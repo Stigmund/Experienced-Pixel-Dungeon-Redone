@@ -25,6 +25,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
@@ -101,11 +102,15 @@ public abstract class KindofMisc extends EquipableItem {
 						protected void onSelect(int index) {
 
 							KindofMisc equipped = miscs[index];
+
 							Bag storage = Dungeon.hero.belongings.backpack;
 							Item cheese = Dungeon.hero.belongings.getSimilar(new CheeseCheest());
-							if (cheese != null){
+
+							// re-introduce cheese chest dupe glitch
+							if (cheese != null && !SPDSettings.cheeseChestGlitch()){
 								storage = (Bag) cheese;
 							}
+
 							//we directly remove the item because we want to have inventory capacity
 							// to unequip the equipped one, but don't want to trigger any other
 							// item detaching logic
