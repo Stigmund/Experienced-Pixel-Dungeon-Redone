@@ -60,6 +60,19 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_GRID 	    = "visual_grid";
 	public static final String KEY_CAMERA_FOLLOW= "camera_follow";
 	public static final String KEY_SCREEN_SHAKE = "screen_shake";
+	public static final String KEY_GLITCH	= "cheest_glitch";
+
+	public static void cheeseChestGlitch(boolean _value) {
+
+		put( KEY_GLITCH, _value );
+
+		//ShatteredPixelDungeon.updateSystemUI();
+	}
+
+	public static boolean cheeseChestGlitch() {
+
+		return getBoolean( KEY_GLITCH, false );
+	}
 
 	public static void fullscreen( boolean value ) {
 		put( KEY_FULLSCREEN, value );
