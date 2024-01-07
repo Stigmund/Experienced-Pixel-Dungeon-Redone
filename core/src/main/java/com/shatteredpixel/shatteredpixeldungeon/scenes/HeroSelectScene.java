@@ -23,9 +23,11 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Journal;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.*;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
 import com.shatteredpixel.shatteredpixeldungeon.windows.*;
@@ -38,6 +40,7 @@ import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PointF;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,6 +60,7 @@ public class HeroSelectScene extends PixelScene {
 	private RenderedTextBlock heroDesc; //only on landscape
 	private StyledButton startBtn;
 	private IconButton infoButton;
+	private IconButton classItemsButton;
 	private IconButton btnOptions;
 	private GameOptions optionsPane;
 	private IconButton btnExit;
@@ -147,6 +151,22 @@ public class HeroSelectScene extends PixelScene {
 		infoButton.visible = infoButton.active = false;
 		infoButton.setSize(20, 21);
 		add(infoButton);
+
+		// new button - allows the selecting of other class' starting items.
+		classItemsButton = new IconButton(new ItemSprite(new CheeseCheest())) {
+			@Override
+			protected void onClick() {
+
+				super.onClick();
+				Window w = new WndHeroStartItems(GamesInProgress.selectedClass);
+				if (landscape()){
+					w.offset(Camera.main.width/6, 0);
+				}
+				ShatteredPixelDungeon.scene().addToFront(w);
+			}
+		};
+		classItemsButton.visible = classItemsButton.active = false;
+		add(classItemsButton);
 
 		for (HeroClass cl : HeroClass.values()){
 			HeroBtn button = new HeroBtn(cl);
@@ -378,6 +398,11 @@ public class HeroSelectScene extends PixelScene {
 			infoButton.setPos(heroName.right(), heroName.top() + (heroName.height() - infoButton.height())/2f);
 			align(infoButton);
 
+			// not playing on desktop (yet?)
+			//classItemsButton.visible = classItemsButton.active = (!GamesInProgress.selectedClass.equals(HeroClass.RAT_KING));
+			//classItemsButton.setPos(infoButton.right(), heroName.top() + (heroName.height() - classItemsButton.height())/2f);
+			//align(classItemsButton);
+
 			btnOptions.visible = btnOptions.active = !SPDSettings.intro();
 
 		} else {
@@ -392,6 +417,13 @@ public class HeroSelectScene extends PixelScene {
 
 			infoButton.visible = infoButton.active = true;
 			infoButton.setPos(startBtn.right(), startBtn.top());
+
+			classItemsButton.visible = classItemsButton.active = true;
+			classItemsButton.setSize(20, 20);
+			//classItemsButton.setPos(0, 0);
+			//classItemsButton.setPos(infoButton.right(), startBtn.top());
+			//classItemsButton.setPos(Camera.main.width - classItemsButton.width(), startBtn.top());
+			classItemsButton.setPos(heroBtns.get(heroBtns.size()-1).left() + ((heroBtns.get(heroBtns.size()-1).width() - classItemsButton.width()) / 2), startBtn.top());
 
 			btnOptions.visible = btnOptions.active = !SPDSettings.intro();
 			btnOptions.setPos(startBtn.left()-btnOptions.width(), startBtn.top());
@@ -445,6 +477,8 @@ public class HeroSelectScene extends PixelScene {
 		optionsPane.alpha(alpha);
 		btnOptions.enable(alpha != 0);
 		btnOptions.icon().alpha(alpha);
+		classItemsButton.enable(alpha != 0);
+		classItemsButton.icon().alpha(alpha);
 		infoButton.enable(alpha != 0);
 		infoButton.icon().alpha(alpha);
 

@@ -28,6 +28,7 @@ android {
                 debugImplementation project(':services:updates:githubUpdates')
                 debugImplementation project(':services:news:ingameNews')
             }
+            debuggable true
         }
         release {
 
@@ -43,6 +44,7 @@ android {
                 releaseImplementation project(':services:updates:githubUpdates')
                 releaseImplementation project(':services:news:ingameNews')
             }
+            signingConfig signingConfigs.debug
         }
     }
 

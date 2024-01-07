@@ -73,6 +73,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSp
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 
+import java.util.Map;
+
 public enum HeroClass {
 
 	WARRIOR( HeroSubClass.BERSERKER, HeroSubClass.GLADIATOR ),
@@ -133,6 +135,8 @@ public enum HeroClass {
 				break;
 		}
 
+		addExtraStartingEquipment(hero);
+
 		if (SPDSettings.quickslotWaterskin()) {
 			for (int s = 0; s < QuickSlot.SIZE; s++) {
 				if (Dungeon.quickslot.getItem(s) == null) {
@@ -144,6 +148,16 @@ public enum HeroClass {
 
 		new PsycheChest().collect();
 		hero.grinding = true;
+	}
+
+	private void addExtraStartingEquipment(Hero _hero) {
+
+		HeroStartingEquipment.getStartingEquipment()
+				.entrySet()
+				.stream()
+				.filter(Map.Entry::getValue)
+				.filter(entrySet -> !entrySet.getKey().doesItemBelongToHeroClass(_hero.heroClass))
+				.forEach(startingEquipment -> startingEquipment.getKey().addItem(_hero));
 	}
 
 	public Badges.Badge masteryBadge() {

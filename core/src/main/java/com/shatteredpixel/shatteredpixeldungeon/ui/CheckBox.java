@@ -25,14 +25,29 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.watabou.noosa.Image;
 
 public class CheckBox extends RedButton {
 
 	private boolean checked = false;
-	
+	private Image checkboxIcon;
+
 	public CheckBox( String label ) {
 		super( label );
 		
+		icon( Icons.get( Icons.UNCHECKED ) );
+	}
+
+	public CheckBox(String label, Image icon) {
+
+		super( label );
+
+		if (icon != null) {
+
+			checkboxIcon = icon;
+			add(checkboxIcon);
+		}
+
 		icon( Icons.get( Icons.UNCHECKED ) );
 	}
 
@@ -44,15 +59,35 @@ public class CheckBox extends RedButton {
 
 	@Override
 	protected void layout() {
+
+		final int CHECKBOX_ICON_MARGIN = 3;
+		final float CHECKBOX_ICON_TEXT_OFFSET = 25;
+
+		if (this.checkboxIcon != null) {
+
+			height = checkboxIcon.height + (CHECKBOX_ICON_MARGIN * 2);
+		}
+
 		super.layout();
+
+		float textMargin = (height - text.height()) / 2;
+		float margin = (height - icon.height) / 2;
+
+		// checkbox icon is the new icon left justified!
+		float textOffset = x + textMargin;
+		if (this.checkboxIcon != null) {
+
+			textOffset = x + CHECKBOX_ICON_TEXT_OFFSET;
+
+			checkboxIcon.x = x + (CHECKBOX_ICON_TEXT_OFFSET - checkboxIcon.width) / 2;
+			checkboxIcon.y = y + CHECKBOX_ICON_MARGIN;
+			PixelScene.align(icon);
+		}
 		
-		float margin = (height - text.height()) / 2;
-		
-		text.setPos( x + margin, y + margin);
+		text.setPos(textOffset, y + textMargin);
 		PixelScene.align(text);
 
-		margin = (height - icon.height) / 2;
-
+		// "icon" is the checkbox mark!
 		icon.x = x + width - margin - icon.width;
 		icon.y = y + margin;
 		PixelScene.align(icon);
