@@ -7,6 +7,9 @@ buildscript {
     dependencies {
         //FIXME the version of R8 coming with gradle plugin 4.0.0 causes serious problems
         //noinspection GradleDependency
+
+        // Gradle Tools 7.1.3 is the only one I can get it to build with.
+        // Java 15 is the only version I can get gradle to include all native libs
         classpath 'com.android.tools.build:gradle:7.1.3'
     }
 }
@@ -14,7 +17,7 @@ buildscript {
 allprojects {
 
     ext {
-        appName = 'Experienced Pixel Dungeon'
+        appName = "Stig's Pixel Dungeon"
         appPackageName = 'com.trashboxbobylev.experiencedpixeldungeon.redone'
 
         appVersionCode = 482
@@ -23,7 +26,7 @@ allprojects {
         appJavaCompatibility = JavaVersion.VERSION_1_8
 
         appAndroidCompileSDK = 33
-        appAndroidMinSDK = 29
+        appAndroidMinSDK = 29 // OnePlus ONEPLUS A5000 Android 10 "Q" arm64
         appAndroidTargetSDK = 33
 
         gdxVersion = '1.11.0'

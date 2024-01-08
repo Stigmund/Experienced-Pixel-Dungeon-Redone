@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTerrainTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
 import com.shatteredpixel.shatteredpixeldungeon.windows.*;
 import com.watabou.input.ControllerHandler;
 import com.watabou.input.GameAction;
@@ -455,7 +456,7 @@ public class Toolbar extends Component {
 										item.execute(Dungeon.hero);
 									} else {
 										InventoryPane.clearTargetingSlot();
-										Game.scene().addToFront(new WndUseItem(null, item));
+										Game.scene().addToFront(WndUtils.getItemWindow(null, item));
 									}
 								}
 							});

@@ -64,6 +64,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.ItemButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
 import com.shatteredpixel.shatteredpixeldungeon.windows.*;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Sample;
@@ -143,7 +144,7 @@ public class DriedRose extends Artifact {
 
 			if (hero.buff(MagicImmune.class) != null) return;
 
-			if (!Ghost.Quest.completed())   GameScene.show(new WndUseItem(null, this));
+			if (!Ghost.Quest.completed())   GameScene.show(WndUtils.getItemWindow(null, this));
 			else if (ghost != null)         GLog.i( Messages.get(this, "spawned") );
 			else if (!isEquipped( hero ))   GLog.i( Messages.get(Artifact.class, "need_to_equip") );
 			else if (charge != chargeCap)   GLog.i( Messages.get(this, "no_charge") );

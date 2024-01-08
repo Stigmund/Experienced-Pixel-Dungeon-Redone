@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
@@ -115,7 +116,7 @@ public class BrokenSeal extends Item {
 			curItem = this;
 			GameScene.selectItem(armorSelector);
 		} else if (action.equals(AC_INFO)) {
-			GameScene.show(new WndUseItem(null, this));
+			GameScene.show(WndUtils.getItemWindow(null, this));
 		}
 	}
 

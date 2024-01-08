@@ -31,6 +31,7 @@ public class CheckBox extends RedButton {
 
 	private boolean checked = false;
 	private Image checkboxIcon;
+	public boolean centerText = false;
 
 	public CheckBox( String label ) {
 		super( label );
@@ -47,12 +48,6 @@ public class CheckBox extends RedButton {
 			checkboxIcon = icon;
 			add(checkboxIcon);
 		}
-
-		icon( Icons.get( Icons.UNCHECKED ) );
-	}
-
-	public CheckBox( String label, int size ) {
-		super( label, size );
 
 		icon( Icons.get( Icons.UNCHECKED ) );
 	}
@@ -82,6 +77,11 @@ public class CheckBox extends RedButton {
 			checkboxIcon.x = x + (CHECKBOX_ICON_TEXT_OFFSET - checkboxIcon.width) / 2;
 			checkboxIcon.y = y + CHECKBOX_ICON_MARGIN;
 			PixelScene.align(icon);
+		}
+
+		if (centerText) {
+
+			textOffset = (width - text.width()) / 2;
 		}
 		
 		text.setPos(textOffset, y + textMargin);

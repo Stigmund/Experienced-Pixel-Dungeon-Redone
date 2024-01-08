@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.*;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
 import com.watabou.input.GameAction;
 import com.watabou.input.KeyBindings;
 import com.watabou.input.KeyEvent;
@@ -285,7 +286,7 @@ public class WndBag extends WndTabbed {
 
 				} else {
 
-					Game.scene().addToFront(new WndUseItem( WndBag.this, item ) );
+					Game.scene().addToFront(WndUtils.getItemWindow( WndBag.this, item ) );
 
 				}
 			}

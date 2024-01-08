@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.InventorySlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
 import com.watabou.noosa.Game;
 
 import java.util.ArrayList;
@@ -97,7 +98,7 @@ public class WndQuickBag extends Window {
 				@Override
 				protected void onClick() {
 					if (Dungeon.hero == null || !Dungeon.hero.isAlive() || !Dungeon.hero.belongings.contains(item)){
-						Game.scene().addToFront(new WndUseItem(WndQuickBag.this, item));
+						Game.scene().addToFront(WndUtils.getItemWindow(WndQuickBag.this, item));
 						return;
 					}
 
@@ -113,7 +114,7 @@ public class WndQuickBag extends Window {
 
 				@Override
 				protected boolean onLongClick() {
-					Game.scene().addToFront(new WndUseItem(WndQuickBag.this, item));
+					Game.scene().addToFront(WndUtils.getItemWindow(WndQuickBag.this, item));
 					return true;
 				}
 

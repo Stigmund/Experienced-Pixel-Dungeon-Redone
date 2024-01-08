@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Reflection;
@@ -88,7 +89,7 @@ public class Blandfruit extends Food {
 
 		if (action.equals( Potion.AC_CHOOSE )){
 
-			GameScene.show(new WndUseItem(null, this) );
+			GameScene.show(WndUtils.getItemWindow(null, this) );
 			return;
 
 		}

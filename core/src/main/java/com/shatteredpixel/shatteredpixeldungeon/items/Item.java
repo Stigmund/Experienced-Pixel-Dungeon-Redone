@@ -48,7 +48,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
-import org.apache.commons.lang3.tuple.Pair;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundlable;
@@ -57,13 +57,10 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class Item implements Bundlable {
 
@@ -107,8 +104,8 @@ public class Item implements Bundlable {
 
 	public boolean wereOofed = false;
 
-	public Map<String, Boolean> actionOptionStates = null;
-	
+	public Class<? extends WndUseItem> itemWindow = WndUseItem.class;
+
 	public static final Comparator<Item> itemComparator = new Comparator<Item>() {
 		@Override
 		public int compare( Item lhs, Item rhs ) {
@@ -121,27 +118,6 @@ public class Item implements Bundlable {
 		actions.add( AC_DROP );
 		actions.add( AC_THROW );
 		return actions;
-	}
-
-	@SafeVarargs
-	public final void setOptionsAsCheckboxes(Pair<String, Boolean>... _pairs) {
-
-		actionOptionStates = new HashMap<String, Boolean>() {{
-			for (Pair<String, Boolean> p : _pairs)
-			{
-				put(p.getLeft(), p.getRight());
-			}
-		}};
-	}
-
-	public Boolean getActionOptionCheckedState(String _action) {
-
-		if (actionOptionStates == null) {
-
-			return null;
-		}
-
-		return actionOptionStates.get(_action);
 	}
 
 	public String actionName(String action, Hero hero){
@@ -187,16 +163,6 @@ public class Item implements Bundlable {
 
 	public void doThrow( Hero hero ) {
 		GameScene.selectCell(thrower);
-	}
-
-	public boolean exitOnAction(String _action) {
-
-		return true;
-	}
-
-	public boolean exitParentOnAction(String _action) {
-
-		return true;
 	}
 
 	public void execute( Hero hero, String action ) {

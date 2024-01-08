@@ -25,10 +25,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.ui.CheckBox;
 import com.shatteredpixel.shatteredpixeldungeon.ui.InventoryPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
@@ -37,9 +34,9 @@ import java.util.ArrayList;
 
 public class WndUseItem extends WndInfoItem {
 
-	private static final float BUTTON_HEIGHT	= 16;
+	protected static final float BUTTON_HEIGHT	= 16;
 
-	private static final float GAP	= 2;
+	protected static final float GAP	= 2;
 
 	public WndUseItem( final Window owner, final Item item ) {
 
@@ -52,31 +49,13 @@ public class WndUseItem extends WndInfoItem {
 			ArrayList<RedButton> buttons = new ArrayList<>();
 			for (final String action : item.actions( Dungeon.hero )) {
 
-				RedButton btn = null;
-				String label = item.actionName(action, Dungeon.hero);
-				Boolean actionOptionCheckbox = item.getActionOptionCheckedState(action);
+				RedButton btn = new RedButton(item.actionName(action, Dungeon.hero), 8 ) {
+					@Override
+					protected void onClick() {
 
-				if (actionOptionCheckbox != null) {
-					btn = new CheckBox(label, 8) {
-						@Override
-						protected void onClick() {
-
-							buttonExecute(owner, item, action);
-						}
-					};
-
-					((CheckBox) btn).checked(actionOptionCheckbox);
-				}
-				else {
-
-					btn = new RedButton(label, 8 ) {
-						@Override
-						protected void onClick() {
-
-							buttonExecute(owner, item, action);
-						}
-					};
-				}
+						executeItemAction(owner, item, action, true, true);
+					}
+				};
 
 				btn.setSize( btn.reqWidth(), BUTTON_HEIGHT );
 				buttons.add(btn);
@@ -85,7 +64,6 @@ public class WndUseItem extends WndInfoItem {
 				if (action.equals(item.defaultAction())) {
 					btn.textColor( TITLE_COLOR );
 				}
-
 			}
 			y = layoutButtons(buttons, width, y);
 		}
@@ -93,23 +71,27 @@ public class WndUseItem extends WndInfoItem {
 		resize( width, (int)(y) );
 	}
 
-	public void buttonExecute(Window owner, Item item, String action) {
+	public void executeItemAction(Window owner, Item item, String action, boolean _closeSelf, boolean _closeParent) {
 
-		if (item.exitOnAction(action)) {
+		if (_closeSelf) {
 
 			hide();
 		}
 
-		if (owner != null && owner.parent != null && item.exitParentOnAction(action)) {
+		if (_closeParent && owner != null && owner.parent != null) {
 
 			owner.hide();
 		}
 
-		if (Dungeon.hero.isAlive() && Dungeon.hero.belongings.contains(item)){
+		if (Dungeon.hero.isAlive() && Dungeon.hero.belongings.contains(item)) {
+
 			item.execute( Dungeon.hero, action );
 		}
+
 		Item.updateQuickslot();
-		if (action.equals(item.defaultAction()) && item.usesTargeting && owner == null){
+
+		if (action.equals(item.defaultAction()) && item.usesTargeting && owner == null) {
+
 			InventoryPane.useTargeting();
 		}
 	}

@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
 import com.watabou.gltextures.TextureCache;
@@ -47,7 +48,10 @@ import com.watabou.noosa.ui.Component;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Signal;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+
+import javax.naming.Context;
 
 public class InventoryPane extends Component {
 
@@ -519,7 +523,7 @@ public class InventoryPane extends Component {
 				updateInventory();
 			} else {
 				targetingSlot = this;
-				GameScene.show(new WndUseItem( null, item ));
+				GameScene.show(WndUtils.getItemWindow( null, item ));
 			}
 		}
 

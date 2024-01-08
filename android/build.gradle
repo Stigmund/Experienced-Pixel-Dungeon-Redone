@@ -31,6 +31,8 @@ android {
             debuggable true
         }
         release {
+            applicationIdSuffix ".stigmund"
+            versionNameSuffix '-STIG'
 
             //These lines enable R8, which is a code shrinker/optimizer/obfuscator.
             //This makes release APKs smaller and more efficient, but also makes debugging trickier

@@ -31,25 +31,25 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-
-import org.apache.commons.lang3.tuple.Pair;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndCheeseCheest;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class CheeseCheest extends Bag {
 
-	private static final String AC_GLITCH = "GLITCH";
+	/*
+		Deliberately not added to the actions list, instead an itemWindow is set
+		this is because it's easier/more flexible to rearrange the window
+		instead of coming up with a mechanism to define different action buttons/widths etc.
+	 */
+	public static final String AC_GLITCH = "GLITCH";
 
 	{
 		image = ItemSpriteSheet.CHEEST;
 
-		defaultAction = AC_GLITCH;
-
-		setOptionsAsCheckboxes(Pair.of(AC_GLITCH, SPDSettings.cheeseChestGlitch()));
+		itemWindow = WndCheeseCheest.class;
 	}
 
 	@Override
@@ -84,14 +84,6 @@ public class CheeseCheest extends Bag {
 		return 650 * (Dungeon.cycle + 1);
 	}
 
-	public ArrayList<String> actions(Hero hero ) {
-		ArrayList<String> actions = super.actions( hero );
-
-		actions.add( AC_GLITCH );
-
-		return actions;
-	}
-
 	@Override
 	public void execute( Hero hero, String action ) {
 
@@ -100,22 +92,11 @@ public class CheeseCheest extends Bag {
 		if (action.equals( AC_GLITCH )) {
 
 			boolean state = !SPDSettings.cheeseChestGlitch();
-			actionOptionStates.put(AC_GLITCH, state);
 			SPDSettings.cheeseChestGlitch(state);
 
 			GLog.i(String.format("%s%s",
 								 (state ? GLog.POSITIVE : GLog.NEGATIVE),
 								 Messages.get(this, "toggle_glitch", (SPDSettings.cheeseChestGlitch() ? "On" : "Off"))));
 		}
-	}
-
-	/*public boolean exitOnAction(String _action) {
-
-		return !_action.equals( AC_GLITCH );
-	}*/
-
-	public boolean exitParentOnAction(String _action) {
-
-		return !_action.equals( AC_GLITCH );
 	}
 }

@@ -54,6 +54,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
@@ -211,7 +212,7 @@ public class Potion extends Item {
 		
 		if (action.equals( AC_CHOOSE )){
 			
-			GameScene.show(new WndUseItem(null, this) );
+			GameScene.show(WndUtils.getItemWindow(null, this) );
 			
 		} else if (action.equals( AC_DRINK )) {
 			
