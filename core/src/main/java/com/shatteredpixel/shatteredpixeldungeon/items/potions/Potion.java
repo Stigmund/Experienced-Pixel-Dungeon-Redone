@@ -279,7 +279,7 @@ public class Potion extends Item {
 
 		if (!anonymous){
 			Talent.onPotionUsed(curUser, curUser.pos, talentFactor);
-			if (this instanceof PotionOfHealing && hero.perks.contains(Perks.Perk.GRASS_HEALING)){
+			if (this instanceof PotionOfHealing && hero.isPerkActive(Perks.Perk.GRASS_HEALING)){
 				int radius = 2;
 				Rect update = new Rect(
 						(hero.pos % Dungeon.level.width()) - radius,

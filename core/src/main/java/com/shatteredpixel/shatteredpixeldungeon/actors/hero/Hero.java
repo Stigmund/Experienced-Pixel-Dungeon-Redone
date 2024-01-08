@@ -102,7 +102,9 @@ import com.watabou.utils.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Hero extends Char {
 
@@ -136,7 +138,7 @@ public class Hero extends Char {
 	}
 
 	public ArrayList<Perks.Perk> perks = new ArrayList<>();
-
+	public Map<Perks.Perk, Boolean> perkStates = new HashMap<>();
 	private int attackSkill = 10;
 	private int defenseSkill = 5;
 
@@ -228,6 +230,11 @@ public class Hero extends Char {
 	private static final String GRINDING = "grinding";
 	private static final String PERKS = "perks";
 
+	public boolean isPerkActive(Perks.Perk _perk) {
+
+		return perkStates.getOrDefault(_perk, false);
+	}
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 
@@ -237,7 +244,7 @@ public class Hero extends Char {
 		bundle.put( SUBCLASS, subClass );
 		bundle.put( ABILITY, armorAbility );
 		Talent.storeTalentsInBundle( bundle, this );
-		Perks.storeInBundle(bundle, perks);
+		Perks.storeInBundle(bundle, perks, perkStates);
 
 		bundle.put( ATTACK, attackSkill );
 		bundle.put( DEFENSE, defenseSkill );
@@ -269,7 +276,7 @@ public class Hero extends Char {
 		subClass = bundle.getEnum( SUBCLASS, HeroSubClass.class );
 		armorAbility = (ArmorAbility)bundle.get( ABILITY );
 		Talent.restoreTalentsFromBundle( bundle, this );
-		Perks.restoreFromBundle(bundle, perks);
+		Perks.restoreFromBundle(bundle, perks, perkStates);
 
 		attackSkill = bundle.getInt( ATTACK );
 		defenseSkill = bundle.getInt( DEFENSE );
@@ -476,7 +483,7 @@ if (buff(RoundShield.GuardTracker.class) != null){
 		if (belongings.armor() != null) {
 			evasion = belongings.armor().evasionFactor(this, evasion);
 		}
-		if (perks.contains(Perks.Perk.PROTEIN_INFUSION)){
+		if (isPerkActive(Perks.Perk.PROTEIN_INFUSION)){
 			int hunger = buff(Hunger.class).hunger();
 			evasion *= 1f + 0.5f*((Hunger.STARVING - hunger)/Hunger.STARVING);
 		}
@@ -595,7 +602,7 @@ if (buff(RoundShield.GuardTracker.class) != null){
 		} else {
 			((HeroSprite)sprite).sprint( 1f );
 		}
-		if (perks.contains(Perks.Perk.PROTEIN_INFUSION)){
+		if (isPerkActive(Perks.Perk.PROTEIN_INFUSION)){
 			int hunger = buff(Hunger.class).hunger();
 			speed *= 1f + 1f*((Hunger.STARVING - hunger)/Hunger.STARVING);
 		}
@@ -1293,7 +1300,7 @@ if (buff(RoundShield.GuardTracker.class) != null){
 	public void rest( boolean fullRest ) {
 		spendAndNextConstant( TIME_TO_REST );
 		if (!fullRest) {
-			if (perks.contains(Perks.Perk.HOLD_FAST)){
+			if (isPerkActive(Perks.Perk.HOLD_FAST)){
 				Buff.affect(this, HoldFast.class).pos = pos;
 		}
 		if (hasTalent(Talent.PATIENT_STRIKE)){
@@ -1438,7 +1445,7 @@ if (buff(RoundShield.GuardTracker.class) != null){
 			dmg = Math.round(dmg*0.00f);
 		}
 
-		if (perks.contains(Perks.Perk.NO_ONESHOTS) && dmg >= HT && HP == HT){
+		if (isPerkActive(Perks.Perk.NO_ONESHOTS) && dmg >= HT && HP == HT){
 			dmg /= 2;
 		}
 
@@ -2417,7 +2424,7 @@ if (buff(RoundShield.GuardTracker.class) != null){
 			GameScene.updateFog(pos, Foresight.DISTANCE+1);
 		}
 
-		if (perks.contains(Perks.Perk.RAT_SUMMONS) && intentional){
+		if (isPerkActive(Perks.Perk.RAT_SUMMONS) && intentional){
 			ArrayList<Integer> spawnPoints = new ArrayList<>();
 
 			for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {

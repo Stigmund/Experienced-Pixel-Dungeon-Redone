@@ -134,7 +134,7 @@ public class RatKing extends NPC {
             Sample.INSTANCE.play( Assets.Sounds.PUFF );
         }
 		if (!barter.items.isEmpty()){
-		    if (!Dungeon.hero.perks.contains(Perks.Perk.BETTER_BARTERING) || Random.Int(3) != 0)
+		    if (!Dungeon.hero.isPerkActive(Perks.Perk.BETTER_BARTERING) || Random.Int(3) != 0)
 		        barter.items.remove(barter.items.size() - 1);
 			for (int i = 0; i < level*(Dungeon.cycle+1); i++) {
 				Item item;

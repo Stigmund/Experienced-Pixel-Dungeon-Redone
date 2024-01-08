@@ -88,7 +88,7 @@ public class RingOfWealth extends Ring {
 				do {
 					i = genConsumableDrop(level - 1);
 				} while (Challenges.isItemBlocked(i));
-				if (Dungeon.hero.perks.contains(Perks.Perk.FISHING_PRO) && Random.Int(4) == 0) i.quantity(i.quantity()*2);
+				if (Dungeon.hero.isPerkActive(Perks.Perk.FISHING_PRO) && Random.Int(4) == 0) i.quantity(i.quantity()*2);
 				drops.add(i);
 				dropsToRare--;
 			}

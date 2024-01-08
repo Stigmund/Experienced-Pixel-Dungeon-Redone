@@ -120,7 +120,7 @@ public class Honeypot extends Item {
 			Bee bee = new Bee();
 			bee.spawn( Dungeon.scalingDepth() );
 			bee.setPotInfo( pos, owner );
-			if (Dungeon.hero.perks.contains(Perks.Perk.FRIENDLY_BEES)){
+			if (Dungeon.hero.isPerkActive(Perks.Perk.FRIENDLY_BEES)){
 				bee.alignment = Char.Alignment.ALLY;
 				bee.setPotInfo(-1, null);
 			}

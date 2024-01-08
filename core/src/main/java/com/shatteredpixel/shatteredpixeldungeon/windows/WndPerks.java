@@ -25,6 +25,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -34,6 +35,7 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.ui.Component;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class WndPerks extends Window {
 
@@ -47,7 +49,7 @@ public class WndPerks extends Window {
     private ArrayList<ConduitBox> boxes = new ArrayList<>();
     private ScrollPane pane;
 
-    public WndPerks(ArrayList<Perks.Perk> perks, boolean editable ) {
+    public WndPerks(ArrayList<Perks.Perk> perks, Map<Perks.Perk, Boolean> perkStates, boolean editable ) {
 
         super();
 
@@ -100,6 +102,7 @@ public class WndPerks extends Window {
             ConduitBox cb = new ConduitBox(challenge);
             cb.active = editable;
             cb.conduct = i;
+            cb.checked(perkStates.get(i));
 
             pos += GAP;
             cb.setRect(0, pos, WIDTH-16, BTN_HEIGHT);
@@ -128,7 +131,7 @@ public class WndPerks extends Window {
         super.onBackPressed();
     }
 
-    public static class ConduitBox extends RedButton {
+    public static class ConduitBox extends CheckBox {
 
         public Perks.Perk conduct;
 
@@ -139,6 +142,7 @@ public class WndPerks extends Window {
         @Override
         protected void onClick() {
             super.onClick();
+            Dungeon.hero.perkStates.put(conduct, checked());
         }
 
         protected boolean onClick(float x, float y) {

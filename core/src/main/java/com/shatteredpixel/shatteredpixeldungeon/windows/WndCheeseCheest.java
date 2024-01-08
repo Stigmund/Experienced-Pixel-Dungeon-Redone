@@ -1,7 +1,11 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks.addPerk;
+import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks.earnPerk;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CheckBox;
@@ -23,6 +27,7 @@ public class WndCheeseCheest extends WndUseItem {
                 protected void onClick() {
 
                     executeItemAction(owner, item, CheeseCheest.AC_GLITCH, true, false);
+                    addPerk(Dungeon.hero);
                 }
             };
             checkBox.enable(true);

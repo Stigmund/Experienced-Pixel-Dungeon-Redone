@@ -38,12 +38,14 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWea
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Perks {
     public enum Perk {
@@ -104,13 +106,13 @@ public class Perks {
     }
 
     public static int onAttackProc(Hero hero, Char enemy, int damage){
-        if (hero.perks.contains(Perk.SUCKER_PUNCH)
+        if (hero.isPerkActive(Perk.SUCKER_PUNCH)
                 && enemy instanceof Mob && ((Mob) enemy).surprisedBy(hero)
                 && enemy.buff(SuckerPunchTracker.class) == null){
             damage += hero.damageRoll()/4;
             Buff.affect(enemy, SuckerPunchTracker.class);
         }
-        if (hero.perks.contains(Perk.DIRECTIVE)
+        if (hero.isPerkActive(Perk.DIRECTIVE)
                 && enemy instanceof Mob && ((Mob) enemy).surprisedBy(hero)
                 && enemy.buff(DirectiveTracker.class) == null){
             Actor.addDelayed(new Actor() {
@@ -124,7 +126,7 @@ public class Perks {
 
             Buff.affect(enemy, DirectiveTracker.class);
         }
-        if (hero.perks.contains(Perk.FOLLOW_UP_STRIKE)) {
+        if (hero.isPerkActive(Perk.FOLLOW_UP_STRIKE)) {
             if (hero.belongings.weapon instanceof MissileWeapon) {
                 Buff.affect(enemy, FollowupStrikeTracker.class);
             } else if (enemy.buff(FollowupStrikeTracker.class) != null){
@@ -156,31 +158,53 @@ public class Perks {
 
     public static void earnPerk(Hero hero){
         if (hero.perks.size() < Perk.values().length && hero.lvl == nextPerkLevel()){
-            Perk perk;
-            do {
-                perk = Random.element(Perk.values());
-            } while (hero.perks.contains(perk));
-            hero.perks.add(perk);
-            GLog.p(Messages.get(Perks.class, "perk_obtain", perk.toString()));
-            if (hero.sprite != null)
-            hero.sprite.emitter().burst(Speck.factory(Speck.STAR), 20);
+            addPerk(hero);
         }
     }
 
-    public static void storeInBundle(Bundle bundle, ArrayList<Perk> perks) {
+    public static void addPerk(Hero hero) {
+
+        Perk perk;
+        do {
+            perk = Random.element(Perk.values());
+        } while (hero.isPerkActive(perk));
+        hero.perks.add(perk);
+        hero.perkStates.put(perk, true);
+        GLog.p(Messages.get(Perks.class, "perk_obtain", perk.toString()));
+        if (hero.sprite != null)
+            hero.sprite.emitter().burst(Speck.factory(Speck.STAR), 20);
+    }
+
+    public static void storeInBundle(Bundle bundle, ArrayList<Perk> perks, Map<Perk, Boolean> _states) {
         ArrayList<String> conductIds = new ArrayList<>();
         for (Perk conduct: perks){
-            conductIds.add(conduct.name());
+            conductIds.add(String.format("%s=%s", conduct.name(), _states.get(conduct)));
         }
         bundle.put("perks", conductIds.toArray(new String[0]));
     }
 
-    public static void restoreFromBundle(Bundle bundle, ArrayList<Perk> perks) {
+    public static void restoreFromBundle(Bundle bundle, ArrayList<Perk> perks, Map<Perk, Boolean> _states) {
         perks.clear();
+        _states.clear();
         if (bundle.getStringArray("perks") != null) {
             String[] conductIds = bundle.getStringArray("perks");
             for (String conduct : conductIds) {
-                perks.add(Perk.valueOf(conduct));
+
+                Perk p = null;
+                boolean s = true;
+                if (conduct.contains("=")) {
+
+                    String[] perkAndState = conduct.split("=");
+                    p = Perk.valueOf(perkAndState[0]);
+                    s = Boolean.parseBoolean(perkAndState[1]);
+                }
+                else {
+
+                    p = Perk.valueOf(conduct);
+                }
+
+                perks.add(p);
+                _states.put(p, s);
             }
         }
     }

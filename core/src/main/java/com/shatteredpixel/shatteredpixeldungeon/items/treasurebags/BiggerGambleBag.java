@@ -42,7 +42,7 @@ public class BiggerGambleBag extends TreasureBag {
     protected ArrayList<Item> items() {
         ArrayList<Item> items = new ArrayList<>();
         int amount = Math.max(Math.max(Random.Int(0, 30), Random.Int(0, 30)), Random.Int(0, 30));
-        if (Dungeon.hero.perks.contains(Perks.Perk.MORE_BAG)) amount *= 1.5f;
+        if (Dungeon.hero.isPerkActive(Perks.Perk.MORE_BAG)) amount *= 1.5f;
         for(int i = 0; i < amount; i++) items.add(Generator.random());
         for (Item item: items){
             if (item.stackable && Random.Float() < 0.33f) item.quantity(item.quantity()+1);

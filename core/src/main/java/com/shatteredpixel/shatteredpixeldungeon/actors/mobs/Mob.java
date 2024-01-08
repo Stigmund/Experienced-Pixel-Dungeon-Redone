@@ -797,7 +797,7 @@ public abstract class Mob extends Char {
 					Dungeon.hero.sprite.showStatus(CharSprite.POSITIVE, Messages.get(this, "exp", exp));
 				}
 				Dungeon.hero.earnExp(exp, getClass());
-				if (Dungeon.hero.perks.contains(Perks.Perk.ADDITIONAL_MONEY)){
+				if (Dungeon.hero.isPerkActive(Perks.Perk.ADDITIONAL_MONEY)){
 					Dungeon.level.drop(new Gold(Dungeon.Int( 6 + Dungeon.escalatingDepth() * 2, 12 + Dungeon.escalatingDepth() * 4 )), pos).sprite.drop();
 				}
 				if (Dungeon.hero.buff(Overload.class) != null ||

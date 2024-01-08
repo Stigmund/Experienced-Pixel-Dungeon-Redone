@@ -702,7 +702,7 @@ public abstract class Wand extends Item {
 		float scalingFactor = NORMAL_SCALE_FACTOR;
 
 		public float getScalingChargeAddition() {
-			return SCALING_CHARGE_ADDITION * (Dungeon.hero.perks.contains(Perks.Perk.WAND_PRO) ? 0.75f : 1f);
+			return SCALING_CHARGE_ADDITION * (Dungeon.hero.isPerkActive(Perks.Perk.WAND_PRO) ? 0.75f : 1f);
 		}
 		@Override
 		public boolean attachTo( Char target ) {

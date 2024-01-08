@@ -759,7 +759,7 @@ public abstract class Char extends Actor {
 			}
 		}
 
-		if (this instanceof Hero && ((Hero) this).perks.contains(IRON_WILL) && HP <= HT/2){
+		if (this instanceof Hero && ((Hero) this).isPerkActive(IRON_WILL) && HP <= HT/2){
 			Camera.main.shake(4, 0.25f);
 			Sample.INSTANCE.play(Assets.Sounds.HIT_PARRY);
 

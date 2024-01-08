@@ -60,7 +60,7 @@ public class AlchemyBag extends TreasureBag {
                 Firebomb.class, Flashbang.class, FrostBomb.class, HolyBomb.class, Noisemaker.class,
                 RegrowthBomb.class, ShockBomb.class, WoollyBomb.class, ArcaneBomb.class, ShrapnelBomb.class);
         int amount = Random.Int(1, 4);
-        if (Dungeon.hero.perks.contains(Perks.Perk.MORE_BAG)) amount *= 1.5f;
+        if (Dungeon.hero.isPerkActive(Perks.Perk.MORE_BAG)) amount *= 1.5f;
         items.add(Reflection.newInstance(Random.element(possibleItems)).quantity(amount));
         return items;
     }

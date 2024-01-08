@@ -50,7 +50,7 @@ public class QualityBag extends TreasureBag {
     protected ArrayList<Item> items() {
         ArrayList<Item> items = new ArrayList<>();
         int amount = 1;
-        if (Dungeon.hero.perks.contains(Perks.Perk.MORE_BAG) && Random.Int(2) == 0) amount = 2;
+        if (Dungeon.hero.isPerkActive(Perks.Perk.MORE_BAG) && Random.Int(2) == 0) amount = 2;
         for (int i = 0; i < amount; i++) {
             Weapon wep = Generator.randomWeapon(Dungeon.depth + 1);
             wep.cursed = false;

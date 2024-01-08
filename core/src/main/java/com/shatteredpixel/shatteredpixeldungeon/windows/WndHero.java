@@ -131,7 +131,7 @@ public class WndHero extends WndTabbed {
 				protected void onClick() {
 					super.onClick();
 					hide();
-					GameScene.show(new WndPerks(hero.perks, false));
+					GameScene.show(new WndPerks(hero.perks, hero.perkStates, true));
 				}
 			};
 			perkInfo.setRect(title.right()-16, 0, 16, 16);
