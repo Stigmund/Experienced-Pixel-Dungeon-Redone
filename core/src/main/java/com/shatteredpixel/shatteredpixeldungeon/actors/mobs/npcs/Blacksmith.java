@@ -102,11 +102,20 @@ public class Blacksmith extends NPC {
 						@Override
 						public void hide() {
 							super.hide();
-							Dungeon.hero.belongings.getItem(KeyToTruth.class).detach(Dungeon.hero.belongings.backpack);
-							Blacksmith.this.destroy();
 
-							Blacksmith.this.sprite.die();
+							//Dungeon.hero.belongings.getItem(KeyToTruth.class).detach(Dungeon.hero.belongings.backpack);
+							//Blacksmith.this.destroy();
+							//Blacksmith.this.sprite.die();
 
+							// remove all keys!
+							Item item = Dungeon.hero.belongings.getItem(KeyToTruth.class);
+							while (item != null) {
+
+								item.detach(Dungeon.hero.belongings.backpack);
+								item = Dungeon.hero.belongings.getItem(KeyToTruth.class);
+							}
+
+							Quest.given = true;
 							Quest.completed = true;
 
 							Badges.truth();
