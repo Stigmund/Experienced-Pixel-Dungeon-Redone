@@ -87,10 +87,41 @@ public class Rapier extends MeleeWeapon {
 			}
 		}
 
-		if (hero.rooted || Dungeon.level.distance(hero.pos, target) < 2
+		if (hero.rooted
+				//|| Dungeon.level.distance(hero.pos, target) < 2
 				|| Dungeon.level.distance(hero.pos, target)-1 > wep.reachFactor(hero)){
 			GLog.w(Messages.get(wep, "ability_bad_position"));
 			if (hero.rooted) PixelScene.shake( 1, 1f );
+			return;
+		}
+
+		if (Dungeon.level.distance(hero.pos, target) == 1) {
+
+			if (enemy != null && hero.canAttack(enemy)) {
+				hero.sprite.attack(enemy.pos, new Callback() {
+					@Override
+					public void call() {
+
+						wep.beforeAbilityUsed(hero, enemy);
+						AttackIndicator.target(enemy);
+						if (hero.attack(enemy, dmgMulti, dmgBoost, Char.INFINITE_ACCURACY)) {
+							Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
+							if (!enemy.isAlive()) {
+								wep.onAbilityKill(hero, enemy);
+							}
+						}
+						Invisibility.dispel();
+						hero.spendAndNext(hero.attackDelay());
+						wep.afterAbilityUsed(hero);
+					}
+				});
+			} else {
+				wep.beforeAbilityUsed(hero, null);
+				GLog.w(Messages.get(Rapier.class, "ability_no_target"));
+				hero.spendAndNext(hero.speed());
+				wep.afterAbilityUsed(hero);
+			}
+
 			return;
 		}
 
@@ -105,7 +136,7 @@ public class Rapier extends MeleeWeapon {
 			}
 		}
 
-		if (lungeCell == -1){
+		if (lungeCell == -1) {
 			GLog.w(Messages.get(wep, "ability_bad_position"));
 			return;
 		}
