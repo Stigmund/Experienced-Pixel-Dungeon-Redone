@@ -125,10 +125,29 @@ public enum Icons {
 	KRISTJAN,
 	CUBE_CODE,
 	PURIGRO,
-	ARCNOR;
+	ARCNOR,
+
+	// Stig custom items
+	CHANGELOG_MAN;
 
 	public Image get() {
 		return get( this );
+	}
+
+	public static Image getStigImage( Icons type ) {
+
+		Image icon = null;
+
+		switch (type) {
+
+			case CHANGELOG_MAN:
+
+				icon = new Image( Assets.StigIcons.CHANGELOG_MAN );
+				icon.frame( icon.texture.uvRectBySize( 0, 0, 12, 16 ) );
+				break;
+		}
+
+		return icon;
 	}
 	
 	public static Image get( Icons type ) {

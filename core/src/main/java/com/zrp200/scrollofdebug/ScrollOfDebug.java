@@ -665,7 +665,10 @@ public class ScrollOfDebug extends Scroll {
                 if(storeLocation != null) Variable.put(storeLocation, result);
             }
             return true;
-        } catch (Exception e) {/*do nothing */}
+        } catch (Exception e) {
+            /*do nothing */
+            e.printStackTrace();
+        }
         // check if it is actually a field.
         try {
             Field field = null;

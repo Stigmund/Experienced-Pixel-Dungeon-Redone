@@ -78,6 +78,7 @@ public class Assets {
 
 		public static final String CHROME   = "interfaces/chrome.png";
 		public static final String ICONS    = "interfaces/icons.png";
+		public static final String STIGS_ICONS    = "interfaces/stigs_icons.png";
 		public static final String STATUS   = "interfaces/status_pane.png";
 		public static final String MENU     = "interfaces/menu_pane.png";
 		public static final String MENU_BTN = "interfaces/menu_button.png";
@@ -334,5 +335,10 @@ public class Assets {
 		public static final String CRYSTAL_GUARDIAN= "sprites/crystal_guardian.png";
 		public static final String CRYSTAL_SPIRE= "sprites/crystal_spire.png";
 		public static final String GNOLL_GUARD= "sprites/gnoll_guard.png";
+	}
+
+	public static class StigIcons {
+
+		public static final String CHANGELOG_MAN= "stigimages/changelog_man.png";
 	}
 }

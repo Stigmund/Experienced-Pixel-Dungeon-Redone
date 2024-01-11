@@ -155,8 +155,35 @@ public class WndGameInProgress extends Window {
 		erase.icon(Icons.get(Icons.CLOSE));
 		erase.setRect(WIDTH/2 + 1, pos, WIDTH/2 - 1, 20);
 		add(erase);
-		
+
 		resize(WIDTH, (int)cont.bottom()+1);
+
+		/*
+		RedButton export = new RedButton( Messages.get(this, "export")){
+			@Override
+			protected void onClick() {
+				super.onClick();
+
+				Dungeon.exportSave(slot);
+			}
+		};
+
+		cont.icon(Icons.get(Icons.ENTER));
+		cont.setRect(0, pos, WIDTH/2 -1, 20);
+		add(cont);
+
+		erase.icon(Icons.get(Icons.CLOSE));
+		erase.setRect(WIDTH/2 + 1, pos, WIDTH/2 - 1, 20);
+		add(erase);
+
+		pos = erase.bottom() + 1;
+
+		export.icon(Icons.get(Icons.BUFFS));
+		export.setRect(0, pos, WIDTH, 20);
+		add(export);
+		
+		resize(WIDTH, (int)export.bottom()+1);
+		*/
 	}
 	
 	private void statSlot( String label, String value ) {

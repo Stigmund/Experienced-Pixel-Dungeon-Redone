@@ -262,7 +262,8 @@ public class WndBlacksmith extends Window {
 					Item first, second;
 					first = btnItem1.item();
 					second = btnItem2.item();
-					if (btnItem1.item() instanceof EquipableItem.Tierable && btnItem2.item() instanceof EquipableItem.Tierable){
+
+					/*if (btnItem1.item() instanceof EquipableItem.Tierable && btnItem2.item() instanceof EquipableItem.Tierable){
 						if (((EquipableItem.Tierable) btnItem1.item()).tier() < ((EquipableItem.Tierable) btnItem2.item()).tier()) {
 							first = btnItem2.item();
 							second = btnItem1.item();
@@ -271,7 +272,7 @@ public class WndBlacksmith extends Window {
 					if (btnItem1.item().trueLevel() < btnItem2.item().trueLevel() && !(btnItem1.item() instanceof FishingRod)) {
 						first = btnItem2.item();
 						second = btnItem1.item();
-					}
+					}*/
 
 					Sample.INSTANCE.play( Assets.Sounds.EVOKE );
 					ScrollOfUpgrade.upgrade( Dungeon.hero );
