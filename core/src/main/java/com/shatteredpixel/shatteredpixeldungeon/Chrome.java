@@ -35,6 +35,7 @@ public class Chrome {
 		WINDOW,
 		WINDOW_SILVER,
 		RED_BUTTON,
+		GREEN_BUTTON,
 		GREY_BUTTON,
 		GREY_BUTTON_TR,
 		TAG,
@@ -62,6 +63,8 @@ public class Chrome {
 			return new NinePatch( Asset, 29, 0, 9, 9, 4 );
 		case RED_BUTTON:
 			return new NinePatch( Asset, 38, 0, 6, 6, 2 );
+		case GREEN_BUTTON:
+			return new NinePatch( Assets.Interfaces.GREEN_BUTTON, 0, 0, 6, 6, 2 );
 		case GREY_BUTTON:
 			return new NinePatch( Asset, 38, 6, 6, 6, 2 );
 		case TAG:

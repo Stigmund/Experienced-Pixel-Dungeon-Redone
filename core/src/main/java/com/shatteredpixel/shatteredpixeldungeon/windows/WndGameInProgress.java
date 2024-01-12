@@ -148,6 +148,7 @@ public class WndGameInProgress extends Window {
 			}
 		};
 
+		/*
 		cont.icon(Icons.get(Icons.ENTER));
 		cont.setRect(0, pos, WIDTH/2 -1, 20);
 		add(cont);
@@ -157,8 +158,8 @@ public class WndGameInProgress extends Window {
 		add(erase);
 
 		resize(WIDTH, (int)cont.bottom()+1);
+		*/
 
-		/*
 		RedButton export = new RedButton( Messages.get(this, "export")){
 			@Override
 			protected void onClick() {
@@ -183,7 +184,6 @@ public class WndGameInProgress extends Window {
 		add(export);
 		
 		resize(WIDTH, (int)export.bottom()+1);
-		*/
 	}
 	
 	private void statSlot( String label, String value ) {

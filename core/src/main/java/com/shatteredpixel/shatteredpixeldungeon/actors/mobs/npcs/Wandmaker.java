@@ -145,12 +145,12 @@ public class Wandmaker extends NPC {
 							} else {
 								Dungeon.level.drop( wand, pos ).sprite.drop();
 							}
-							yell( Messages.get(this, "farewell", Dungeon.hero.name()) );
-							Wandmaker.this.destroy();
+							//yell( Messages.get(this, "farewell", Dungeon.hero.name()) );
+							//Wandmaker.this.destroy();
 
-							Wandmaker.this.sprite.die();
+							//Wandmaker.this.sprite.die();
 
-							Wandmaker.Quest.complete();
+							//Wandmaker.Quest.complete();
 
 							Badges.validateUnstable();
 						}
