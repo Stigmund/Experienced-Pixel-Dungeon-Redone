@@ -68,11 +68,10 @@ public class StigPDChanges {
                 "_-_ Always uses the left (now green) button as the reforge master item.\n" +
                 "_-_ Removes all keys of truth (UNTESTED)"));
 
-        // TODO:
-        /*changes.addButton(new ChangeButton(Icons.get(Icons.BUFFS),
-                "Import/Export Feature",
-                "_-_ Ability to import and export game slot files.\n"));*/
-
+        changes.addButton(new ChangeButton(Icons.get(Icons.BUFFS),
+                "Copy Game Slot",
+                "_-_ Ability to copy game slots to new (if space) or existing (overwrite) slots.",
+                "_-_ Unable to get exporting to external storage working!"));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.PREFS),
                 "Other Changes",

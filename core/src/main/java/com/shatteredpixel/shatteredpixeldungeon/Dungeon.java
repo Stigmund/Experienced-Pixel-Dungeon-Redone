@@ -24,6 +24,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
@@ -63,6 +64,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.GAME_FILE;
+import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.slotStates;
 import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.ROGUE;
 
 public class Dungeon {
@@ -936,6 +939,34 @@ public class Dungeon {
 		FileUtils.overwriteFile(GamesInProgress.gameFile(save), 1);
 
 		GamesInProgress.delete( save );
+	}
+
+	public static void copyGame( int _fromSave, int _toSave) {
+
+		String folder = GamesInProgress.gameFolder(_fromSave);
+		String newFolder = GamesInProgress.gameFolder(_toSave);
+
+		FileHandle newFolderPath = FileUtils.getFileHandle(newFolder);
+		newFolderPath.deleteDirectory();
+		newFolderPath.mkdirs();
+		Arrays.stream(FileUtils.getFileHandle(folder).list()).forEach(f -> {
+
+			f.copyTo(FileUtils.getFileHandle(newFolder));
+		});
+
+		// forces the new slot info into where it needs to be!
+		slotStates.remove( _toSave );
+		GamesInProgress.checkAll();
+
+		/*for (String file : FileUtils.filesInDir(folder)) {
+
+			FileUtils.getFileHandle(folder + "/" + file).copyTo(FileUtils.getFileHandle(newFolder));
+		}*/
+
+		//FileUtils.getFileHandle(newFolder + "/"+ GAME_FILE)
+		//FileUtils.overwriteFile(GamesInProgress.gameFile(save), 1);
+
+		//GamesInProgress.delete( save );
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {

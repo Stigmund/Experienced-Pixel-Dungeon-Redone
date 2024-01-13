@@ -24,6 +24,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.watabou.input.*;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Game;
@@ -34,7 +35,6 @@ import com.watabou.utils.Signal;
 public class Button extends Component {
 
 	public static float longClick = 0.5f;
-	
 	protected PointerArea hotArea;
 	protected Tooltip hoverTip;
 

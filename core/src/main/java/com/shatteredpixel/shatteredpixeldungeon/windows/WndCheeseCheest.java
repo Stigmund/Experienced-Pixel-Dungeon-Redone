@@ -27,7 +27,7 @@ public class WndCheeseCheest extends WndUseItem {
                 protected void onClick() {
 
                     executeItemAction(owner, item, CheeseCheest.AC_GLITCH, true, false);
-                    addPerk(Dungeon.hero);
+                    //addPerk(Dungeon.hero);
                 }
             };
             checkBox.enable(true);

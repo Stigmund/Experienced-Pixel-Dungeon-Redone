@@ -118,30 +118,35 @@ public class StartScene extends PixelScene {
 		ShatteredPixelDungeon.switchNoFade( TitleScene.class );
 	}
 	
-	private static class SaveSlotButton extends Button {
-		
-		private NinePatch bg;
+	public static class SaveSlotButton extends Button {
+
+		protected NinePatch bg;
 		
 		private Image hero;
-		private RenderedTextBlock name;
-		
+		protected RenderedTextBlock name;
+
 		private Image steps;
 		private BitmapText depth;
 		private Image classIcon;
 		private BitmapText level;
 		
-		private int slot;
-		private boolean newGame;
-		
+		protected int slot;
+		protected boolean newGame;
+
 		@Override
 		protected void createChildren() {
 			super.createChildren();
-			
-			bg = Chrome.get(Chrome.Type.GEM);
+
+			bg = Chrome.get( getType() );
 			add( bg);
-			
+
 			name = PixelScene.renderTextBlock(9);
 			add(name);
+		}
+
+		protected Chrome.Type getType() {
+
+			return Chrome.Type.GEM;
 		}
 		
 		public void set( int slot ){
@@ -149,7 +154,7 @@ public class StartScene extends PixelScene {
 			GamesInProgress.Info info = GamesInProgress.check(slot);
 			newGame = info == null;
 			if (newGame){
-				name.text( Messages.get(StartScene.class, "new"));
+				name.text(slot +": "+  Messages.get(StartScene.class, "new"));
 				
 				if (hero != null){
 					remove(hero);
@@ -166,9 +171,9 @@ public class StartScene extends PixelScene {
 			} else {
 				
 				if (info.subClass != HeroSubClass.NONE){
-					name.text(Messages.titleCase(info.subClass.title()));
+					name.text(info.slot +": "+ Messages.titleCase(info.subClass.title()));
 				} else {
-					name.text(Messages.titleCase(info.heroClass.title()));
+					name.text(info.slot +": "+ Messages.titleCase(info.heroClass.title()));
 				}
 				
 				if (hero == null){
