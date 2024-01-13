@@ -177,19 +177,16 @@ public class WndGameInProgress extends Window {
 		};
 
 		cont.icon(Icons.get(Icons.ENTER));
-		//cont.setRect(0, pos, WIDTH/2 -1, 20);
 		cont.setRect(0, pos, WIDTH, 20);
 		add(cont);
 
 		pos = cont.bottom() + 2;
 
 		erase.icon(Icons.get(Icons.CLOSE));
-		//erase.setRect(WIDTH/2 + 1, pos, WIDTH/2 - 1, 20);
 		erase.setRect(0, pos, WIDTH/2 - 1, 20);
 		add(erase);
 
 		copy.icon(Icons.get(Icons.BUFFS));
-		//copy.setRect(0, pos, WIDTH, 20);
 		copy.setRect(WIDTH/2 + 1, pos, WIDTH/2 -1, 20);
 		add(copy);
 
