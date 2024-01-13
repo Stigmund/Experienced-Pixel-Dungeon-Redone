@@ -55,6 +55,30 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
+
+    applicationVariants.configureEach {
+        variant -> variant.outputs.configureEach {
+            moveApk(variant)
+        }
+    }
+}
+
+void moveApk(var variant) {
+
+    boolean isRelease = variant.name.contains("release");
+
+    String fromDir = "${project.buildDir}/intermediates/apk/${variant.name}/";
+    String fromApk = "android-${variant.name}.apk";
+    String toDir = "${projectDir}/../builds/";
+    String toApk = "Stigs PD_${appVersionName}${isRelease ? "" : "-DEV"}.apk";
+
+    copy {
+        from file("${fromDir}${fromApk}")
+        into file(toDir)
+    }
+    file("${fromDir}${fromApk}").delete();
+    file("${toDir}${toApk}").delete();
+    file("${toDir}${fromApk}").renameTo("${toDir}${toApk}")
 }
 
 configurations { natives }

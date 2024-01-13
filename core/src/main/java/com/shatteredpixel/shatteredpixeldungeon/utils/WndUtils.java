@@ -26,6 +26,7 @@ public class WndUtils {
         catch (Exception e) {
 
             //throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
         // default/fallback

@@ -2,6 +2,9 @@
 -keepnames class com.shatteredpixel.** { *; }
 -keepnames class com.watabou.** { *; }
 
+# keep members of specialized windows that are instansiated by reflection
+-keepclassmembers class * implements com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndCustom { *; }
+
 # keep members of classes that are instantiated via reflection
 -keepclassmembers class * extends com.watabou.glscripts.Script
 -keepclassmembers class * implements com.watabou.utils.Bundlable

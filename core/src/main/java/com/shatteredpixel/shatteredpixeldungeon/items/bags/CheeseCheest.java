@@ -33,9 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndCheeseCheest;
-
-import java.util.ArrayList;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndCheeseCheest;
 
 public class CheeseCheest extends Bag {
 

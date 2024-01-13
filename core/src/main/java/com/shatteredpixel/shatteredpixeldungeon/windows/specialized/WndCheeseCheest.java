@@ -1,4 +1,4 @@
-package com.shatteredpixel.shatteredpixeldungeon.windows;
+package com.shatteredpixel.shatteredpixeldungeon.windows.specialized;
 
 import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks.addPerk;
 import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks.earnPerk;
@@ -10,8 +10,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CheckBox;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
 
-public class WndCheeseCheest extends WndUseItem {
+public class WndCheeseCheest extends WndUseItem implements WndCustom {
 
     public WndCheeseCheest(Window owner, Item item) {
 
