@@ -36,7 +36,7 @@ public class WndCopyGame extends Window {
     private GamesInProgress.Info overwriteInfo = null;
     private final List<Gizmo> content = new ArrayList<>();
     private final ArrayList<GamesInProgress.Info> games = GamesInProgress.checkAll();
-    private final int NEW_SLOT = games.size()+1;
+    private final int NEW_SLOT = GamesInProgress.firstEmpty();
     private final WndCopyGame owner;
 
     public WndCopyGame(final int _currentSlot) {
