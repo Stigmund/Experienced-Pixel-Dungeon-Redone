@@ -24,15 +24,17 @@ android {
         debug {
             applicationIdSuffix ".indev"
             versionNameSuffix '-INDEV'
+            debuggable true
             dependencies {
                 debugImplementation project(':services:updates:githubUpdates')
                 debugImplementation project(':services:news:ingameNews')
             }
-            debuggable true
         }
         release {
             applicationIdSuffix ".stigmund"
             versionNameSuffix '-STIG'
+            debuggable false
+            signingConfig signingConfigs.debug
 
             //These lines enable R8, which is a code shrinker/optimizer/obfuscator.
             //This makes release APKs smaller and more efficient, but also makes debugging trickier
@@ -46,7 +48,16 @@ android {
                 releaseImplementation project(':services:updates:githubUpdates')
                 releaseImplementation project(':services:news:ingameNews')
             }
+        }
+        livedebug {
+            applicationIdSuffix '.stigmund'
+            versionNameSuffix '-STIG'
+            debuggable true
             signingConfig signingConfigs.debug
+            dependencies {
+                livedebugImplementation project(':services:updates:githubUpdates')
+                livedebugImplementation project(':services:news:ingameNews')
+            }
         }
     }
 
@@ -98,6 +109,10 @@ dependencies {
     natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86_64"
     implementation "com.badlogicgames.gdx-controllers:gdx-controllers-android:$gdxControllersVersion"
     implementation "com.github.RohitSurwase.UCE-Handler:uce_handler:1.4"
+    api ('androidx.core:core:1.12.0') {
+        exclude group: 'androidx.versionedparcelable', module: 'versionedparcelable'
+        //exclude group: 'com.android.support', module: 'support-v4'
+    }
 }
 
 // called every time gradle gets executed, takes the native dependencies of

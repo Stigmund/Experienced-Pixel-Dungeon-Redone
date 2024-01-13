@@ -176,21 +176,43 @@ public class WndGameInProgress extends Window {
 			}
 		};
 
+		RedButton export = new RedButton(Messages.get(this, "export")) {
+			@Override
+			protected void onClick() {
+				super.onClick();
+
+				Dungeon.exportGame(slot);
+			}
+		};
+
 		cont.icon(Icons.get(Icons.ENTER));
 		cont.setRect(0, pos, WIDTH, 20);
 		add(cont);
 
 		pos = cont.bottom() + 2;
 
+		float bWidth = (float) (WIDTH /3) - 1;
+		float bHeight = 20;
+		float xGap = 2;
+		float xPos = 0;
+
 		erase.icon(Icons.get(Icons.CLOSE));
-		erase.setRect(0, pos, WIDTH/2 - 1, 20);
+		erase.setRect(0, pos, bWidth, bHeight);
 		add(erase);
 
+		xPos += bWidth + xGap;
+
 		copy.icon(Icons.get(Icons.BUFFS));
-		copy.setRect(WIDTH/2 + 1, pos, WIDTH/2 -1, 20);
+		copy.setRect(xPos, pos, bWidth, bHeight);
 		add(copy);
 
-		resize(WIDTH, (int)copy.bottom()+1);
+		xPos += bWidth + xGap;
+
+		export.icon(Icons.get(Icons.BUFFS));
+		export.setRect(xPos, pos, bWidth, bHeight);
+		add(export);
+
+		resize(WIDTH, (int)export.bottom()+1);
 	}
 	
 	protected static float statSlot( Window _window, float inPos, String label, String value ) {

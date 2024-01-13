@@ -53,13 +53,17 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar;
+import com.shatteredpixel.shatteredpixeldungeon.utils.DownloadListener;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndResurrect;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Random;
 import com.watabou.utils.*;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -69,6 +73,8 @@ import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.slotState
 import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.ROGUE;
 
 public class Dungeon {
+
+	public static DownloadListener downloadListener;
 
 	//enum of items which have limited spawns, records how many have spawned
 	//could all be their own separate numbers, but this allows iterating, much nicer for bundling/initializing.
@@ -943,30 +949,36 @@ public class Dungeon {
 
 	public static void copyGame( int _fromSave, int _toSave) {
 
-		String folder = GamesInProgress.gameFolder(_fromSave);
-		String newFolder = GamesInProgress.gameFolder(_toSave);
+			String folder = GamesInProgress.gameFolder(_fromSave);
+			String newFolder = GamesInProgress.gameFolder(_toSave);
 
-		FileHandle newFolderPath = FileUtils.getFileHandle(newFolder);
-		newFolderPath.deleteDirectory();
-		newFolderPath.mkdirs();
-		Arrays.stream(FileUtils.getFileHandle(folder).list()).forEach(f -> {
+			FileHandle newFolderPath = FileUtils.getFileHandle(newFolder);
+			newFolderPath.deleteDirectory();
+			newFolderPath.mkdirs();
+			Arrays.stream(FileUtils.getFileHandle(folder).list()).forEach(f -> {
 
-			f.copyTo(FileUtils.getFileHandle(newFolder));
-		});
+					f.copyTo(FileUtils.getFileHandle(newFolder));
+				});
 
-		// forces the new slot info into where it needs to be!
-		slotStates.remove( _toSave );
-		GamesInProgress.checkAll();
+			// forces the new slot info into where it needs to be!
+			slotStates.remove( _toSave );
+			GamesInProgress.checkAll();
 
-		/*for (String file : FileUtils.filesInDir(folder)) {
-
-			FileUtils.getFileHandle(folder + "/" + file).copyTo(FileUtils.getFileHandle(newFolder));
-		}*/
 
 		//FileUtils.getFileHandle(newFolder + "/"+ GAME_FILE)
 		//FileUtils.overwriteFile(GamesInProgress.gameFile(save), 1);
 
 		//GamesInProgress.delete( save );
+		/*for (String file : FileUtils.filesInDir(folder)) {
+
+			FileUtils.getFileHandle(folder + "/" + file).copyTo(FileUtils.getFileHandle(newFolder));
+		}*/
+	}
+
+	public static void exportGame( int _fromSave) {
+
+
+		downloadListener.downloadFile(GamesInProgress.gameFolder(_fromSave));
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {

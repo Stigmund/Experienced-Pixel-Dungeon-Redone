@@ -29,6 +29,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,7 +42,7 @@ public class FileUtils {
 	
 	private static Files.FileType defaultFileType = null;
 	private static String defaultPath = "";
-	
+
 	public static void setDefaultFileProperties( Files.FileType type, String path ){
 		defaultFileType = type;
 		defaultPath = path;

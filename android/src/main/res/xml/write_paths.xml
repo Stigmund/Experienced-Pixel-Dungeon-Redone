@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Represents files in the root of your app's external storage area.
+    The root path of this subdirectory is the same as the value returned by
+    Context.getExternalFilesDir(null).
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path name="Backups" path="save_backups" />
+    <files-path name="SaveSlot1" path="game1" />
+    <files-path name="SaveSlot2" path="game2" />
+    <files-path name="SaveSlot3" path="game3" />
+    <files-path name="SaveSlot4" path="game4" />
+    <files-path name="SaveSlot5" path="game5" />
+    <files-path name="SaveSlot6" path="game6" />
+</paths>
