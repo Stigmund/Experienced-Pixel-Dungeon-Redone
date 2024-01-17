@@ -26,19 +26,28 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
+import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.StartScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.*;
+import com.shatteredpixel.shatteredpixeldungeon.utils.DownloadResponse;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
+import com.watabou.input.KeyBindings;
+import com.watabou.input.KeyEvent;
 import com.watabou.noosa.Game;
+import com.watabou.noosa.Gizmo;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class WndGameInProgress extends Window {
@@ -46,10 +55,13 @@ public class WndGameInProgress extends Window {
 	private static final int WIDTH    = 120;
 	
 	private static int GAP	  = 6;
+
+	protected AnimatedToast toast;
+	private List<AnimatedToast> toastList = new ArrayList<>();
 	
 	//private float pos;
 
-	protected static String getHeroTitle(GamesInProgress.Info _info) {
+	public static String getHeroTitle(GamesInProgress.Info _info) {
 
 		String className = null;
 		if (_info.subClass != HeroSubClass.NONE){
@@ -72,7 +84,7 @@ public class WndGameInProgress extends Window {
 
 		IconTitle title = new IconTitle();
 		title.icon( HeroSprite.avatar(_info.heroClass, _info.armorTier) );
-		title.label((Messages.get(WndGameInProgress.class, "title", _info.level, getHeroTitle(_info))).toUpperCase(Locale.ENGLISH));
+		title.label(getHeroTitle(_info).toUpperCase(Locale.ENGLISH));
 		title.color(Window.TITLE_COLOR);
 		title.setRect( 0, pos, WIDTH, 0 );
 		_window.add(title);
@@ -172,7 +184,16 @@ public class WndGameInProgress extends Window {
 			protected void onClick() {
 				super.onClick();
 
-				ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(slot));
+				ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(slot, null, false));
+			}
+		};
+
+		RedButton export = new RedButton(Messages.get(this, "export")) {
+			@Override
+			protected void onClick() {
+				super.onClick();
+
+				AnimatedToast.toast(Dungeon.exportGame(slot).getMessage());
 			}
 		};
 
@@ -182,17 +203,30 @@ public class WndGameInProgress extends Window {
 
 		pos = cont.bottom() + 2;
 
+		float bWidth = (float) (WIDTH /3) - 1;
+		float bHeight = 20;
+		float xGap = 2;
+		float xPos = 0;
+
 		erase.icon(Icons.get(Icons.CLOSE));
-		erase.setRect(0, pos, WIDTH/2 - 1, 20);
+		erase.setRect(0, pos, bWidth, bHeight);
 		add(erase);
 
+		xPos += bWidth + xGap;
+
 		copy.icon(Icons.get(Icons.BUFFS));
-		copy.setRect(WIDTH/2 + 1, pos, WIDTH/2 -1, 20);
+		copy.setRect(xPos, pos, bWidth, bHeight);
 		add(copy);
 
-		resize(WIDTH, (int)copy.bottom()+1);
+		xPos += bWidth + xGap;
+
+		export.icon(Icons.get(Icons.BUFFS));
+		export.setRect(xPos, pos, bWidth, bHeight);
+		add(export);
+
+		resize(WIDTH, (int)export.bottom()+1);
 	}
-	
+
 	protected static float statSlot( Window _window, float inPos, String label, String value ) {
 
 		float pos = inPos;

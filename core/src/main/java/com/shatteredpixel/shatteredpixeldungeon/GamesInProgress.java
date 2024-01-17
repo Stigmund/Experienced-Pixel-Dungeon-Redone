@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,8 +120,26 @@ public class GamesInProgress {
 			
 			slotStates.put( slot, info );
 			return info;
-			
 		}
+	}
+
+	public static Info readInfoFromFile(File _file) {
+
+		Info info;
+		try {
+
+			Bundle bundle = FileUtils.bundleFromFile(_file);
+			info = new Info();
+			Dungeon.preview(info, bundle);
+
+		} catch (IOException e) {
+			info = null;
+		} catch (Exception e){
+			ShatteredPixelDungeon.reportException( e );
+			info = null;
+		}
+
+		return info;
 	}
 
 	public static void set(int slot) {
@@ -159,7 +178,7 @@ public class GamesInProgress {
 	public static void delete( int slot ) {
 		slotStates.put( slot, null );
 	}
-	
+
 	public static class Info {
 		public int slot;
 		
@@ -186,7 +205,7 @@ public class GamesInProgress {
 		public int goldCollected;
 		public int maxDepth;
 	}
-	
+
 	public static final Comparator<GamesInProgress.Info> scoreComparator = new Comparator<GamesInProgress.Info>() {
 		@Override
 		public int compare(GamesInProgress.Info lhs, GamesInProgress.Info rhs ) {

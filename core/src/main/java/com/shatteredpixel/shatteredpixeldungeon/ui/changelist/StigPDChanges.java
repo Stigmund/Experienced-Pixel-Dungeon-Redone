@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui.changelist;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Shortsword;
+import com.shatteredpixel.shatteredpixeldungeon.plants.Rotberry;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BlacksmithSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WandmakerSprite;
@@ -40,6 +41,17 @@ public class StigPDChanges {
                 "  - Spear\n"+
                 "  - Glaive"));
 
+
+        changes.addButton(new ChangeButton(new ItemSprite(new MagesStaff()),
+                "Mage's Staff Change",
+                "_-_ When imbuing a wand into the staff, the staff will always return the current wand at it's previously added level.\n"+
+                        "_-_ No alchemy re-agent, perk or talents are taken into account.\n" +
+                        "_-_ UNTESTED"));
+
+        changes.addButton(new ChangeButton(new ItemSprite(new Rotberry.Seed()),
+                "Rotberry Seeds",
+                "_-_ Two now drop! YAY!"));
+
         changes.addButton(new ChangeButton(Icons.get(Icons.CHECKED),
                 "Hero Starting Items",
                 "_-_ Added a menu on hero creation to toggle all hero's default starting artifacts and bags to be added to the newly created character.\n" +
@@ -49,15 +61,8 @@ public class StigPDChanges {
 
         changes.addButton(new ChangeButton(Icons.get(Icons.TALENT),
                 "Toggleable Perks",
-                "_-_ The in-game list of perks (accessed by clicking the star in your character info) are now toggleable checkboxes, enabling or disabling the perks functionality.\n"+
-                        "_-_ UNTESTED - simply replaced all perk check references, tested with the rat spawn on search."));
+                "_-_ The in-game list of perks (accessed by clicking the star in your character info) are now toggleable checkboxes, enabling or disabling the perks functionality."));
 
-        changes.addButton(new ChangeButton(new ItemSprite(new MagesStaff()),
-                "Mage's Staff Change",
-                "_-_ When imbuing a wand into the staff, the staff will always return the current wand at it's previously added level.\n"+
-                        "_-_ No alchemy re-agent, perk or talents are taken into account.\n" +
-                        "_-_ UNTESTED"));
-        
         changes.addButton(new ChangeButton(new WandmakerSprite(),
                 "Wand Makers Quest Change",
                 "_-_ No longer disappears on completion of the wand quest."));
@@ -65,18 +70,25 @@ public class StigPDChanges {
         changes.addButton(new ChangeButton(new BlacksmithSprite(),
                 "Blacksmith Change",
                 "_-_ No longer disappears on completion of the wand quest.\n"+
-                "_-_ Always uses the left (now green) button as the reforge master item.\n" +
+                "_-_ Always uses the left button as the reforge master item.\n" +
+                "_-_ The primary reforge button is now green.\n" +
                 "_-_ Removes all keys of truth (UNTESTED)"));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.BUFFS),
-                "Copy Game Slot",
-                "_-_ Ability to copy game slots to new (if space) or existing (overwrite) slots.",
+                "Copy Game Slot (Android 10)",
+                "_-_ Ability to copy the selected or currently running game slot to a new or existing slot.",
                 "_-_ Unable to get exporting to external storage working!"));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.BUFFS),
+                "Import/Export Game (Android 10)",
+                "_-_ Ability to export the game to the game's external storage for manual copying afterwards (because even Android 10 can't write to public Documents!).",
+                "_-_ Ability to import a game from the game's external storage and copy it to a new slot or overwrite an existing slot."));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.PREFS),
                 "Other Changes",
                 "_-_ Added a UI mechanism to allow items to define their own WndUseItem window!\n" +
                         "_-_ Any window that is or extends WndUseItem can now optionally close and parent windows instead of both automatically closing.\n" +
+                        "_-_ Static access toasts for confirmation/error popups.\n" +
                         "_-_ Checkboxes can now have icons before the text."));
     }
 }

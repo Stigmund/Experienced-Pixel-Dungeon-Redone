@@ -235,7 +235,12 @@ public class WndBlacksmith extends Window {
 			message.setPos(0, titlebar.bottom() + GAP);
 			add( message );
 
-			btnItem1 = new ItemButton(Chrome.Type.GREEN_BUTTON) {
+			btnItem1 = new ItemButton() {
+				@Override
+				public Chrome.Type getType() {
+					return Chrome.Type.GREEN_BUTTON;
+				}
+
 				@Override
 				protected void onClick() {
 					btnPressed = btnItem1;

@@ -24,9 +24,11 @@
 
 package com.shatteredpixel.shatteredpixeldungeon;
 
+import com.badlogic.gdx.Preferences;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.utils.DownloadListener;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
@@ -39,7 +41,8 @@ import java.util.Locale;
 public class SPDSettings extends GameSettings {
 	
 	//Version info
-	
+
+	public static Locale LOCALE = null;
 	public static final String KEY_VERSION      = "version";
 	
 	public static void version( int value)  {
@@ -61,6 +64,13 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_CAMERA_FOLLOW= "camera_follow";
 	public static final String KEY_SCREEN_SHAKE = "screen_shake";
 	public static final String KEY_GLITCH	= "cheest_glitch";
+
+	public static void set( Preferences prefs, DownloadListener _downloadListener, Locale _local ) {
+
+		set(prefs);
+		Dungeon.downloadListener = _downloadListener;
+		LOCALE = _local;
+	}
 
 	public static void cheeseChestGlitch(boolean _value) {
 

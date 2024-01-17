@@ -40,7 +40,6 @@ import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PointF;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;

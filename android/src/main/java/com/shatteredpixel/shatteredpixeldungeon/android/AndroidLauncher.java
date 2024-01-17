@@ -24,6 +24,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.android;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -31,7 +32,10 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.ViewConfiguration;
+import android.widget.Toast;
+
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
@@ -42,20 +46,32 @@ import com.badlogic.gdx.utils.GdxNativesLoader;
 import com.rohitss.uceh.UCEHandler;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.EXPORT_DIR;
 import com.shatteredpixel.shatteredpixeldungeon.services.news.News;
 import com.shatteredpixel.shatteredpixeldungeon.services.news.NewsImpl;
 import com.shatteredpixel.shatteredpixeldungeon.services.updates.UpdateImpl;
 import com.shatteredpixel.shatteredpixeldungeon.services.updates.Updates;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DownloadType;
+import com.shatteredpixel.shatteredpixeldungeon.utils.DownloadListener;
 import com.watabou.noosa.Game;
 import com.watabou.utils.FileUtils;
 
-public class AndroidLauncher extends AndroidApplication {
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class AndroidLauncher extends AndroidApplication implements DownloadListener {
 	
 	public static AndroidApplication instance;
 	
 	private static AndroidPlatformSupport support;
-	
+
+	private final int STORAGE_PERMISSION_CODE = 101;
+
 	@SuppressLint("SetTextI18n")
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
@@ -103,7 +119,12 @@ public class AndroidLauncher extends AndroidApplication {
 			// so that we don't need to rely on Gdx.app, which isn't initialized yet.
 			// Note that we use a different prefs name on android for legacy purposes,
 			// this is the default prefs filename given to an android app (.xml is automatically added to it)
-			SPDSettings.set(instance.getPreferences("ShatteredPixelDungeon"));
+
+			instance.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+
+			SPDSettings.set(instance.getPreferences("ShatteredPixelDungeon"),
+					this,
+					getResources().getConfiguration().getLocales().get(0));
 
 		} else {
 			instance = this;
@@ -172,5 +193,177 @@ public class AndroidLauncher extends AndroidApplication {
 	public void onMultiWindowModeChanged(boolean isInMultiWindowMode) {
 		super.onMultiWindowModeChanged(isInMultiWindowMode);
 		support.updateSystemUI();
+	}
+
+	@Override
+	public boolean downloadFile(DownloadType _type, String _exportDir, String _internalGameDir) {
+
+		// TODO: try this: https://stackoverflow.com/questions/65482280/how-do-you-get-the-path-of-the-android-documents-directory-in-android-q
+
+		// doesn't work in debug mode apparently!
+		if (instance.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
+			try {
+
+				exportSaveFile(_type, _exportDir, _internalGameDir);
+				return true;
+			}
+			catch (Exception e) {
+
+				e.printStackTrace();
+				return false;
+			}
+		}
+		/*else {
+
+			// Can't toast on a thread that has not called Looper.prepare() (e.g. not a main thread)
+			//Toast.makeText(instance, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
+		}*/
+
+		//exportSaveFile2(_internalGameDir);
+		//exportSaveFile3(_internalGameDir);
+
+		return false;
+	}
+
+	/**
+	 * Android 10 and lower only!
+	 * @param requestCode
+	 * @param permissions
+	 * @param grantResults
+	 */
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+		if (requestCode == STORAGE_PERMISSION_CODE) {
+
+			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				Toast.makeText(this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
+			} else {
+				Toast.makeText(this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
+			}
+		}
+	}
+
+	private File getExportDirectory(DownloadType _type, String _saveDir) {
+
+		File parentPath;
+		switch (_type) {
+
+			case DOCUMENTS:
+				parentPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+				break;
+			case DOWNLOADS:
+				parentPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+				break;
+			case INTERNAL:
+				parentPath = instance.getContext().getFilesDir();
+				break;
+			default:
+			case EXTERNAL:
+				parentPath = instance.getContext().getExternalFilesDirs("")[0];
+				break;
+		}
+
+		return new File(parentPath, _saveDir);
+	}
+
+	/**
+	 * _saveDir and _internalGameDir are the end of the path, not the start.
+	 * The start is determined by type (or internal if it's the _internalGameDir).
+	 * @param _type
+	 * @param _exportDir
+	 * @param _internalGameDir
+	 */
+	public void exportSaveFile(DownloadType _type, String _exportDir, String _internalGameDir) {
+
+		System.out.println("Has WRITE_EXTERNAL_STORAGE: "+ instance.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE));
+
+		File exportDirectory = getExportDirectory(_type, _exportDir);
+		System.out.println("exportDirectory: "+ exportDirectory.getAbsolutePath());
+		System.out.println("- Exists? "+ exportDirectory.exists());
+		if (!exportDirectory.exists()) {
+
+			System.out.println("- Creating Dir! "+ exportDirectory.exists());
+			exportDirectory.mkdirs();
+			System.out.println("- Exists Now? "+ exportDirectory.exists());
+		}
+
+		File existingGame = new File(getContext().getFilesDir(), _internalGameDir);
+		System.out.println("existingGame: "+ existingGame.getAbsolutePath());
+		System.out.println("- Exists? "+ existingGame.exists());
+		if (!exportDirectory.exists()) {
+
+			System.out.println("- Creating Dir! "+ existingGame.exists());
+			exportDirectory.mkdirs();
+			System.out.println("- Exists Now? "+ existingGame.exists());
+		}
+
+		File[] files = getFiles(existingGame);
+		Arrays.stream(files).forEach(f -> writeFile(exportDirectory, f));
+
+		System.out.println("DONE!");
+
+		//File outputDir = new File(instance.getContext().getExternalFilesDirs("")[0].getAbsoluteFile() + "/"+ _saveDir);
+		//String outputDir = instance.getContext().getExternalFilesDirs("")[0].getAbsoluteFile() + EXPORT_DIR;
+		//File outputDirFile = new File(outputDir);
+		//System.out.println("outputDirFile: "+ outputDirFile.getAbsolutePath());
+		//System.out.println("- Exists Before? "+ outputDirFile.exists());
+		//if (!outputDirFile.exists()) outputDirFile.mkdir();
+		//System.out.println("- Exists After? "+ outputDirFile.exists());
+
+		//String outputDirFinal =  outputDir + _saveDir;
+		//outputDirFile = new File(outputDirFinal);
+		//System.out.println("outputDirFinal: "+ outputDirFile.getAbsolutePath());
+		//System.out.println("- Exists Before "+ outputDirFile.exists());
+		//if (!outputDirFile.exists()) outputDirFile.mkdir();
+		//System.out.println("- Exists After "+ outputDirFile.exists());
+		//FileUtils.getFileHandle(existingGame.getAbsolutePath()).copyTo(FileUtils.getFileHandle(outputDir.getAbsolutePath()));
+		//File outputDir = new File(externalDir.getAbsolutePath());
+		//System.out.println("outputDir: "+ outputDir.getAbsolutePath());
+		//System.out.println("- Exists? "+ outputDir.exists());
+
+	}
+
+	private File[] getFiles(File _file) {
+
+		return Optional.ofNullable(_file.listFiles()).orElse(new File[0]);
+	}
+
+	private boolean writeFile(File _outputDir, File _fileToCopy) {
+
+		boolean success = false;
+		try (InputStream inStream = java.nio.file.Files.newInputStream(_fileToCopy.toPath())) {
+
+			// Path to the your output file
+			//File publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+			//String outputPath = new File(publicDownloads, "game.dat").getAbsolutePath();
+
+			try (OutputStream outStream = java.nio.file.Files.newOutputStream(new File(_outputDir, _fileToCopy.getName()).toPath())) {
+
+				// transfer bytes from the inputfile to the outputfile
+
+				byte[] buffer = new byte[1024];
+				int length;
+
+				while ((length = inStream.read(buffer)) > 0) {
+
+					outStream.write(buffer, 0, length);
+				}
+
+				success = true;
+			}
+			catch (Exception e) {
+
+				e.printStackTrace();
+			}
+		}
+		catch (Exception e) {
+
+			e.printStackTrace();
+		}
+
+		return success;
 	}
 }

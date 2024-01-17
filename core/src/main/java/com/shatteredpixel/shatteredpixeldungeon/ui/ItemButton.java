@@ -32,7 +32,6 @@ import com.watabou.noosa.ui.Component;
 public class ItemButton extends Component {
 
 	protected NinePatch bg;
-	protected Chrome.Type chromeType = Chrome.Type.RED_BUTTON;
 	protected ItemSlot slot;
 
 	public ItemButton() {
@@ -40,18 +39,16 @@ public class ItemButton extends Component {
 		super();
 	}
 
-	public ItemButton(Chrome.Type _buttonType) {
+	public Chrome.Type getType() {
 
-		chromeType = _buttonType;
-		createChildren();
+		return Chrome.Type.RED_BUTTON;
 	}
-
 
 	@Override
 	protected void createChildren() {
 		super.createChildren();
 
-		bg = Chrome.get(chromeType);
+		bg = Chrome.get(getType());
 		add(bg);
 
 		slot = new ItemSlot() {
