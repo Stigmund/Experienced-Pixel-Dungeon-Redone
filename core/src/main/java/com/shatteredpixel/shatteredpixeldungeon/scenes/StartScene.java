@@ -41,6 +41,7 @@ import com.watabou.noosa.Image;
 import com.watabou.noosa.NinePatch;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class StartScene extends PixelScene {
 	
@@ -87,6 +88,7 @@ public class StartScene extends PixelScene {
 		add(title);
 		
 		ArrayList<GamesInProgress.Info> games = GamesInProgress.checkAll();
+		games.sort(Comparator.comparingInt(i -> i.slot));
 		
 		int slotCount = Math.min(GamesInProgress.MAX_SLOTS, games.size()+1);
 		int slotGap = 10 - slotCount;

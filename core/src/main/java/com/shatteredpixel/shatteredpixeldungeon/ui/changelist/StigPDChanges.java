@@ -65,23 +65,25 @@ public class StigPDChanges {
 
         changes.addButton(new ChangeButton(new WandmakerSprite(),
                 "Wand Makers Quest Change",
-                "_-_ No longer disappears on completion of the wand quest."));
+                "_-_ No longer disappears on completion of the wand quest.\n"+
+                "_-_ No longer consumes quest items on cheese quest completion."));
 
         changes.addButton(new ChangeButton(new BlacksmithSprite(),
                 "Blacksmith Change",
                 "_-_ No longer disappears on completion of the wand quest.\n"+
                 "_-_ Always uses the left button as the reforge master item.\n" +
                 "_-_ The primary reforge button is now green.\n" +
+                "_-_ Option to switch between gold and favor (cost multipliers are shared).\n" +
                 "_-_ Removes all keys of truth (UNTESTED)"));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.BUFFS),
                 "Copy Game Slot (Android 10)",
-                "_-_ Ability to copy the selected or currently running game slot to a new or existing slot.",
+                "_-_ Ability to copy the selected or currently running game slot to a new or existing slot.\n"+
                 "_-_ Unable to get exporting to external storage working!"));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.BUFFS),
                 "Import/Export Game (Android 10)",
-                "_-_ Ability to export the game to the game's external storage for manual copying afterwards (because even Android 10 can't write to public Documents!).",
+                "_-_ Ability to export the game to the game's external storage for manual copying afterwards (because even Android 10 can't write to public Documents!).\n"+
                 "_-_ Ability to import a game from the game's external storage and copy it to a new slot or overwrite an existing slot."));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.PREFS),

@@ -122,6 +122,7 @@ public class Wandmaker extends NPC {
 						public void hide() {
 							super.hide();
 
+							/* Don't take quest item on cheese quest!
 							Item questItem;
 							switch (Quest.type) {
 								case 1:
@@ -137,7 +138,7 @@ public class Wandmaker extends NPC {
 							}
 							if (questItem != null)
 								questItem.detach( Dungeon.hero.belongings.backpack );
-
+							*/
 							Dungeon.hero.belongings.getItem(Cheese.class).detach(Dungeon.hero.belongings.backpack);
 							Item wand = new WandOfUnstable().identify();
 							if (wand.doPickUp( Dungeon.hero )) {

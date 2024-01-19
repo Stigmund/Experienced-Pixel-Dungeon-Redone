@@ -54,6 +54,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
 import java.util.ArrayList;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class WndBlacksmith extends Window {
 
@@ -61,6 +63,12 @@ public class WndBlacksmith extends Window {
 	private static final int WIDTH_L = 160;
 
 	private static final int GAP  = 2;
+
+	private static boolean useGold = false;
+
+	private ArrayList<BlacksmithButton> buttons = new ArrayList<>();
+	private float buttonStartPos = 0;
+	private final int width = PixelScene.landscape() ? WIDTH_L : WIDTH_P;
 
 	public WndBlacksmith( Blacksmith troll, Hero hero ) {
 		super();
@@ -73,21 +81,37 @@ public class WndBlacksmith extends Window {
 		titlebar.setRect( 0, 0, width, 0 );
 		add( titlebar );
 
-		RenderedTextBlock message = PixelScene.renderTextBlock( Messages.get(this, "prompt", Blacksmith.Quest.favor), 6 );
+		RenderedTextBlock message = PixelScene.renderTextBlock( Messages.get(this, "prompt", Blacksmith.Quest.favor, Dungeon.gold), 6 );
 		message.maxWidth( width );
 		message.setPos(0, titlebar.bottom() + GAP);
 		add( message );
 
-		ArrayList<RedButton> buttons = new ArrayList<>();
+		float pos = message.bottom() + 3*GAP;
+		buttonStartPos = pos;
 
-		int pickaxeCost = Statistics.questScores[2] >= 2500 ? 0 : 250;
-		RedButton pickaxe = new RedButton(Messages.get(this, "pickaxe", pickaxeCost), 6){
+		WndBlacksmith updatable = this;
+
+		RedButton swapCurrency = new RedButton((useGold ? "Use Favor" : "Use Gold"), 6){
+			@Override
+			protected void onClick() {
+				useGold = !useGold;
+				text((useGold ? "Use Favor" : "Use Gold"));
+				updateWindow();
+			}
+		};
+		swapCurrency.setSize(40, swapCurrency.reqHeight());
+		swapCurrency.setPos(width - swapCurrency.width(), pos - swapCurrency.height() - GAP);
+		add(swapCurrency);
+
+		BlacksmithButton pickaxe = new BlacksmithButton(
+				(btn) -> Messages.get(this, "pickaxe", btn.getCostGen(), btn.getCostUnit()),
+				() -> Statistics.questScores[2] >= 2500 ? 0 : 250) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(
 						troll.sprite(),
 						Messages.titleCase( troll.name() ),
-						Messages.get(WndBlacksmith.class, "pickaxe_verify") + (pickaxeCost == 0 ? "\n\n" + Messages.get(WndBlacksmith.class, "pickaxe_free") : ""),
+						Messages.get(WndBlacksmith.class, "pickaxe_verify") + (getCostGen() == 0 ? "\n\n" + Messages.get(WndBlacksmith.class, "pickaxe_free") : ""),
 						Messages.get(WndBlacksmith.class, "pickaxe_yes"),
 						Messages.get(WndBlacksmith.class, "pickaxe_no")
 				){
@@ -99,7 +123,7 @@ public class WndBlacksmith extends Window {
 							} else {
 								Dungeon.level.drop( Blacksmith.Quest.pickaxe, Dungeon.hero.pos ).sprite.drop();
 							}
-							Blacksmith.Quest.favor -= pickaxeCost;
+							purchase(getCostGen());
 							Blacksmith.Quest.pickaxe = null;
 							WndBlacksmith.this.hide();
 						}
@@ -107,40 +131,43 @@ public class WndBlacksmith extends Window {
 				});
 			}
 		};
-		pickaxe.enable(Blacksmith.Quest.pickaxe != null && Blacksmith.Quest.favor >= pickaxeCost);
+		pickaxe.enable(Blacksmith.Quest.pickaxe != null && canPurchase(pickaxe.getCostGen()));
 		buttons.add(pickaxe);
 
-		int reforgecost = (int) (200 * Math.pow(1.5, Blacksmith.Quest.reforges));
-		RedButton reforge = new RedButton(Messages.get(this, "reforge", reforgecost), 6){
+		BlacksmithButton reforge = new BlacksmithButton(
+				(btn) -> Messages.get(this, "reforge", btn.getCostGen(), btn.getCostUnit()),
+				() -> (int) (200 * Math.pow(1.5, Blacksmith.Quest.reforges))) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndReforge(troll, WndBlacksmith.this));
 			}
 		};
-		reforge.enable(Blacksmith.Quest.favor >= reforgecost);
 		buttons.add(reforge);
 
 		int hardenCost = (int) (500 * Math.pow(1.5, Blacksmith.Quest.hardens));
-		RedButton harden = new RedButton(Messages.get(this, "harden", hardenCost), 6){
+		BlacksmithButton harden = new BlacksmithButton(
+				(btn) -> Messages.get(this, "harden", btn.getCostGen(), btn.getCostUnit()),
+				() -> (int) (500 * Math.pow(1.5, Blacksmith.Quest.hardens))) {
 			@Override
 			protected void onClick() {
 				GameScene.selectItem(new HardenSelector());
 			}
 		};
-		harden.enable(Blacksmith.Quest.favor >= hardenCost);
 		buttons.add(harden);
 
-		int upgradeCost = (int) (500 * Math.pow(1.5, Blacksmith.Quest.upgrades));
-		RedButton upgrade = new RedButton(Messages.get(this, "upgrade", upgradeCost), 6){
+		BlacksmithButton upgrade = new BlacksmithButton(
+				(btn) -> Messages.get(this, "upgrade", btn.getCostGen(), btn.getCostUnit()),
+				() -> (int) (500 * Math.pow(1.5, Blacksmith.Quest.upgrades))) {
 			@Override
 			protected void onClick() {
 				GameScene.selectItem(new UpgradeSelector());
 			}
 		};
-		upgrade.enable(Blacksmith.Quest.favor >= upgradeCost);
 		buttons.add(upgrade);
 
-		RedButton smith = new RedButton(Messages.get(this, "smith", 2500), 6){
+		BlacksmithButton smith = new BlacksmithButton(
+				(btn) -> Messages.get(this, "smith", btn.getCostGen(), btn.getCostUnit()),
+				() -> 2500) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(
@@ -153,7 +180,7 @@ public class WndBlacksmith extends Window {
 					@Override
 					protected void onSelect(int index) {
 						if (index == 0){
-							Blacksmith.Quest.favor -= 2500;
+							purchase(2500);
 							Blacksmith.Quest.smiths++;
 							WndBlacksmith.this.hide();
 							GameScene.show(new WndSmith(troll, hero));
@@ -162,12 +189,13 @@ public class WndBlacksmith extends Window {
 				});
 			}
 		};
-		smith.enable(Blacksmith.Quest.favor >= 2500);
 		buttons.add(smith);
 
 		int cashOutModifier = (int) Math.pow(Dungeon.cycle + 1, 5);
 
-		RedButton cashOut = new RedButton(Messages.get(this, "cashout", cashOutModifier), 6){
+		BlacksmithButton cashOut = new BlacksmithButton(
+				(btn) -> Messages.get(this, "cashout", cashOutModifier),
+				() -> Blacksmith.Quest.favor) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(
@@ -188,13 +216,13 @@ public class WndBlacksmith extends Window {
 				});
 			}
 		};
-		cashOut.enable(Blacksmith.Quest.favor > 0);
+		cashOut.enable(canPurchase(0));
 		buttons.add(cashOut);
 
-		float pos = message.bottom() + 3*GAP;
-		for (RedButton b : buttons){
+		for (BlacksmithButton b : buttons){
 			b.leftJustify = true;
 			b.multiline = true;
+			b.updateText();
 			b.setSize(width, b.reqHeight());
 			b.setRect(0, pos, width, b.reqHeight());
 			b.enable(b.active); //so that it's visually reflected
@@ -204,6 +232,73 @@ public class WndBlacksmith extends Window {
 
 		resize(width, (int)pos);
 
+	}
+
+
+	private String getUnit() {
+
+		return (useGold ? "Gold" : "Favor");
+	}
+
+	private boolean canPurchase(int _requiredAmount) {
+
+		return (useGold ? Dungeon.gold : Blacksmith.Quest.favor) >= _requiredAmount;
+	}
+
+	private static void purchase(int _amount) {
+
+		if (useGold) Dungeon.gold -= _amount;
+		else Blacksmith.Quest.favor -= _amount;
+	}
+
+	private void updateWindow() {
+
+		float pos = buttonStartPos;
+		for (BlacksmithButton b : buttons) {
+
+			b.updateText();
+			b.setSize(width, b.reqHeight());
+			b.setRect(0, pos, width, b.reqHeight());
+			b.enable(canPurchase(b.getCostGen()));
+			//add(b);
+			pos = b.bottom() + GAP;
+		}
+
+		resize(width, (int)pos);
+	}
+
+	protected class BlacksmithButton extends RedButton {
+
+		private final Function<BlacksmithButton, String> textGen;
+		private final Supplier<Integer> costGen;
+
+		protected BlacksmithButton(Function<BlacksmithButton, String> _text, Supplier<Integer> _cost) {
+
+			super("", 6);
+			textGen = _text;
+			costGen = _cost;
+			enable(canPurchase(costGen.get()));
+		}
+
+		protected int getCostGen() {
+
+			return costGen.get();
+		}
+
+		protected String getTextGen() {
+
+			return textGen.apply(this);
+		}
+
+		protected String getCostUnit() {
+
+			return getUnit().toLowerCase();
+		}
+
+		protected void updateText() {
+
+			text(textGen.apply(this));
+		}
 	}
 
 	//public so that it can be directly called for pre-v2.2.0 quest completions
@@ -308,7 +403,7 @@ public class WndBlacksmith extends Window {
 					Badges.validateItemLevelAquired( first );
 					Item.updateQuickslot();
 
-					Blacksmith.Quest.favor -= (int) (200 * Math.pow(1.5, Blacksmith.Quest.reforges));
+					purchase((int) (200 * Math.pow(1.5, Blacksmith.Quest.reforges)));
 					Blacksmith.Quest.reforges++;
 
 					hide();
@@ -396,7 +491,7 @@ public class WndBlacksmith extends Window {
 				}
 
 				int hardenCost = (int) (500 * Math.pow(1.5, Blacksmith.Quest.reforges));
-				Blacksmith.Quest.favor -= hardenCost;
+				purchase(hardenCost);
 				Blacksmith.Quest.hardens++;
 
 				WndBlacksmith.this.hide();
@@ -430,7 +525,7 @@ public class WndBlacksmith extends Window {
 		public void onSelect(Item item) {
 			if (item != null) {
 				int upgradeCost = (int) (500 * Math.pow(1.5, Blacksmith.Quest.reforges));
-				Blacksmith.Quest.favor -= upgradeCost;
+				purchase(upgradeCost);
 				Blacksmith.Quest.upgrades++;
 
 				ScrollOfUpgrade upgrades = new ScrollOfUpgrade();
