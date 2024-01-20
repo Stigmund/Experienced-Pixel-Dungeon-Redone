@@ -17,6 +17,9 @@ android {
         minSdkVersion appAndroidMinSDK
         targetSdkVersion appAndroidTargetSDK
 
+        println("archivesBaseName = ${appVersionName}")
+        archivesBaseName = "${appVersionName}"
+
         resConfigs "en_US"
     }
 
@@ -24,15 +27,17 @@ android {
         debug {
             applicationIdSuffix ".indev"
             versionNameSuffix '-INDEV'
+            debuggable true
             dependencies {
                 debugImplementation project(':services:updates:githubUpdates')
                 debugImplementation project(':services:news:ingameNews')
             }
-            debuggable true
         }
         release {
             applicationIdSuffix ".stigmund"
             versionNameSuffix '-STIG'
+            debuggable false
+            signingConfig signingConfigs.debug
 
             //These lines enable R8, which is a code shrinker/optimizer/obfuscator.
             //This makes release APKs smaller and more efficient, but also makes debugging trickier
@@ -46,7 +51,16 @@ android {
                 releaseImplementation project(':services:updates:githubUpdates')
                 releaseImplementation project(':services:news:ingameNews')
             }
+        }
+        livedebug {
+            applicationIdSuffix '.stigmund'
+            versionNameSuffix '-STIG'
+            debuggable true
             signingConfig signingConfigs.debug
+            dependencies {
+                livedebugImplementation project(':services:updates:githubUpdates')
+                livedebugImplementation project(':services:news:ingameNews')
+            }
         }
     }
 
@@ -56,29 +70,23 @@ android {
         }
     }
 
-    applicationVariants.configureEach {
-        variant -> variant.outputs.configureEach {
-            moveApk(variant)
+    applicationVariants.configureEach { variant ->
+
+        variant.outputs.configureEach {
+            outputFileName = "Stigs PD_${appVersionName}-${variant.name}.apk";
+        }
+        variant.getAssembleProvider().configure {
+            doLast() {
+                copy {
+                    from variant.outputs*.outputFile
+                    into "${projectDir}/../builds/"
+                }
+                // don't delete, Android Instant App Deployment looks here!
+                // delete variant.outputs*.outputFile
+            }
+
         }
     }
-}
-
-void moveApk(var variant) {
-
-    boolean isRelease = variant.name.contains("release");
-
-    String fromDir = "${project.buildDir}/intermediates/apk/${variant.name}/";
-    String fromApk = "android-${variant.name}.apk";
-    String toDir = "${projectDir}/../builds/";
-    String toApk = "Stigs PD_${appVersionName}${isRelease ? "" : "-DEV"}.apk";
-
-    copy {
-        from file("${fromDir}${fromApk}")
-        into file(toDir)
-    }
-    file("${fromDir}${fromApk}").delete();
-    file("${toDir}${toApk}").delete();
-    file("${toDir}${fromApk}").renameTo("${toDir}${toApk}")
 }
 
 configurations { natives }

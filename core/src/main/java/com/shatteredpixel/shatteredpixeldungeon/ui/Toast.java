@@ -24,6 +24,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera;
+
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.input.GameAction;
@@ -39,11 +41,24 @@ public class Toast extends Component {
 	protected IconButton close;
 	protected RenderedTextBlock text;
 
-	public Toast( String text ) {
+	public Toast() {
 		super();
-		text( text );
+	}
 
-		width = this.text.width() + close.width() + bg.marginHor() + MARGIN_HOR * 3;
+	public Toast( String _text ) {
+		super();
+		text( _text );
+
+		float textWidth = this.text.width();
+		float bgWidth = textWidth + close.width() + bg.marginHor() + MARGIN_HOR * 3;
+		float MAX_WIDTH = (float) (uiCamera.width * 0.8);
+		width = Math.min(bgWidth, MAX_WIDTH);
+		if (bgWidth > MAX_WIDTH) {
+
+			text.maxWidth((int) (MAX_WIDTH - (close.width() + bg.marginHor() + MARGIN_HOR * 3)));
+			text.setPos(0, 0);
+		}
+
 		height = Math.max( this.text.height(), close.height() ) + bg.marginVer() + MARGIN_VER * 2;
 	}
 

@@ -52,8 +52,24 @@ public class WndGame extends Window {
 		
 		super();
 
-		//settings
+		boolean isDead = (Dungeon.hero == null || !Dungeon.hero.isAlive());
+
 		RedButton curBtn;
+
+		if (!isDead) {
+
+			//Copy
+			addButton( curBtn = new RedButton( "Copy" ) {
+				@Override
+				protected void onClick() {
+					hide();
+					ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(GamesInProgress.curSlot, null, true));
+				}
+			});
+			curBtn.icon(Icons.get(Icons.BUFFS));
+		}
+
+		//settings
 		addButton( curBtn = new RedButton( Messages.get(this, "settings") ) {
 			@Override
 			protected void onClick() {
@@ -76,7 +92,7 @@ public class WndGame extends Window {
 		}
 
 		// Restart
-		if (Dungeon.hero == null || !Dungeon.hero.isAlive()) {
+		if (isDead) {
 
 			addButton( curBtn = new RedButton( Messages.get(this, "start") ) {
 				@Override

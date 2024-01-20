@@ -34,12 +34,14 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.*;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndImportSelectGame;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.NinePatch;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class StartScene extends PixelScene {
 	
@@ -65,6 +67,16 @@ public class StartScene extends PixelScene {
 		ExitButton btnExit = new ExitButton();
 		btnExit.setPos( w - btnExit.width(), 0 );
 		add( btnExit );
+
+		IconButton importButton = new IconButton(Icons.get(Icons.BUFFS)) {
+			@Override
+			protected void onClick() {
+
+				ShatteredPixelDungeon.scene().addToFront(new WndImportSelectGame(false));
+			}
+		};
+		importButton.setRect(0, 0, 20, 20);
+		add(importButton);
 		
 		RenderedTextBlock title = PixelScene.renderTextBlock( Messages.get(this, "title"), 9);
 		title.hardlight(Window.TITLE_COLOR);
@@ -76,6 +88,7 @@ public class StartScene extends PixelScene {
 		add(title);
 		
 		ArrayList<GamesInProgress.Info> games = GamesInProgress.checkAll();
+		games.sort(Comparator.comparingInt(i -> i.slot));
 		
 		int slotCount = Math.min(GamesInProgress.MAX_SLOTS, games.size()+1);
 		int slotGap = 10 - slotCount;
@@ -121,14 +134,14 @@ public class StartScene extends PixelScene {
 	public static class SaveSlotButton extends Button {
 
 		protected NinePatch bg;
-		
-		private Image hero;
+
+		protected Image hero;
 		protected RenderedTextBlock name;
 
-		private Image steps;
-		private BitmapText depth;
-		private Image classIcon;
-		private BitmapText level;
+		protected Image steps;
+		protected BitmapText depth;
+		protected Image classIcon;
+		protected BitmapText level;
 		
 		protected int slot;
 		protected boolean newGame;

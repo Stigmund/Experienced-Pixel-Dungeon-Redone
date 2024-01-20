@@ -50,10 +50,14 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DownloadType;
 import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar;
+import com.shatteredpixel.shatteredpixeldungeon.utils.DownloadListener;
+import com.shatteredpixel.shatteredpixeldungeon.utils.DownloadResponse;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndResurrect;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Random;
@@ -64,11 +68,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.GAME_FILE;
 import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.slotStates;
 import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.ROGUE;
 
 public class Dungeon {
+
+	public static DownloadListener downloadListener;
+
+	public static final String EXPORT_DIR = "/Exports/";
 
 	//enum of items which have limited spawns, records how many have spawned
 	//could all be their own separate numbers, but this allows iterating, much nicer for bundling/initializing.
@@ -957,16 +964,35 @@ public class Dungeon {
 		// forces the new slot info into where it needs to be!
 		slotStates.remove( _toSave );
 		GamesInProgress.checkAll();
+	}
 
-		/*for (String file : FileUtils.filesInDir(folder)) {
+	public static DownloadResponse exportGame( int _fromSave) {
 
-			FileUtils.getFileHandle(folder + "/" + file).copyTo(FileUtils.getFileHandle(newFolder));
-		}*/
+		GamesInProgress.Info info = GamesInProgress.check(_fromSave);
 
-		//FileUtils.getFileHandle(newFolder + "/"+ GAME_FILE)
-		//FileUtils.overwriteFile(GamesInProgress.gameFile(save), 1);
+		if (info != null) {
 
-		//GamesInProgress.delete( save );
+			String exportDir = generateExportDirName(info);
+
+			if (downloadListener.downloadFile(DownloadType.EXTERNAL,
+											  exportDir,
+											  GamesInProgress.gameFolder(_fromSave))) {
+
+				return new DownloadResponse(true, "Exported Slot "+ _fromSave +" to "+ exportDir);
+			}
+		}
+
+		return new DownloadResponse(false, "Failed to Export!");
+	}
+
+	@SuppressWarnings("DefaultLocale")
+	private static String generateExportDirName(GamesInProgress.Info _info) {
+
+		return String.format("%s[%s] [%s] [game%d]",
+				EXPORT_DIR,
+				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", SPDSettings.LOCALE).format(new Date()),
+				Messages.titleCase(WndGameInProgress.getHeroTitle(_info).toLowerCase()),
+				_info.slot);
 	}
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {

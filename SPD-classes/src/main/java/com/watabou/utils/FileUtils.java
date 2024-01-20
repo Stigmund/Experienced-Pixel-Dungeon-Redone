@@ -29,6 +29,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -180,6 +182,15 @@ public class FileUtils {
 		try {
 			FileHandle file = getFileHandle( fileName );
 			return bundleFromStream(file.read());
+		} catch (GdxRuntimeException e){
+			//game classes expect an IO exception, so wrap the GDX exception in that
+			throw new IOException(e);
+		}
+	}
+
+	public static Bundle bundleFromFile(File _file ) throws IOException{
+		try {
+			return bundleFromStream(java.nio.file.Files.newInputStream(_file.toPath()));
 		} catch (GdxRuntimeException e){
 			//game classes expect an IO exception, so wrap the GDX exception in that
 			throw new IOException(e);
