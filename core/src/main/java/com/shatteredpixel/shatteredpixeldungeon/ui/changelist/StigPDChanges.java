@@ -74,7 +74,9 @@ public class StigPDChanges {
                 "_-_ Always uses the left button as the reforge master item.\n" +
                 "_-_ The primary reforge button is now green.\n" +
                 "_-_ Option to switch between gold and favor (cost multipliers are shared).\n" +
-                "_-_ Removes all keys of truth (UNTESTED)"));
+                "_-_ Removes all keys of truth (UNTESTED)\n" +
+                "_-_ Smith weapons don't cost anything until chosen, allowing to close reload the window for a different set.\n" +
+                "_-_ All Smith weapons are now shown, making the above change kind of pointless."));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.BUFFS),
                 "Copy Game Slot (Android 10)",
@@ -91,6 +93,7 @@ public class StigPDChanges {
                 "_-_ Added a UI mechanism to allow items to define their own WndUseItem window!\n" +
                         "_-_ Any window that is or extends WndUseItem can now optionally close and parent windows instead of both automatically closing.\n" +
                         "_-_ Static access toasts for confirmation/error popups.\n" +
-                        "_-_ Checkboxes can now have icons before the text."));
+                        "_-_ Checkboxes can now have icons before the text.\n" +
+                        "_-_ Item info windows now have scrollable text if the text is too large."));
     }
 }

@@ -49,7 +49,7 @@ public class ScrollPane extends Component {
 	protected PointerController controller;
 	protected Signal.Listener<KeyEvent> keyListener;
 	protected Component content;
-	protected ColorBlock thumb;
+	public ColorBlock thumb;
 
 	private float keyScroll = 0;
 

@@ -54,6 +54,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -69,10 +70,12 @@ public class WndBlacksmith extends Window {
 	private ArrayList<BlacksmithButton> buttons = new ArrayList<>();
 	private float buttonStartPos = 0;
 	private final int width = PixelScene.landscape() ? WIDTH_L : WIDTH_P;
+	private static WndBlacksmith self;
+	private RenderedTextBlock message = null;
 
 	public WndBlacksmith( Blacksmith troll, Hero hero ) {
 		super();
-
+		self = this;
 		int width = PixelScene.landscape() ? WIDTH_L : WIDTH_P;
 
 		IconTitle titlebar = new IconTitle();
@@ -81,7 +84,7 @@ public class WndBlacksmith extends Window {
 		titlebar.setRect( 0, 0, width, 0 );
 		add( titlebar );
 
-		RenderedTextBlock message = PixelScene.renderTextBlock( Messages.get(this, "prompt", Blacksmith.Quest.favor, Dungeon.gold), 6 );
+		message = PixelScene.renderTextBlock( Messages.get(this, "prompt", Blacksmith.Quest.favor, Dungeon.gold), 6 );
 		message.maxWidth( width );
 		message.setPos(0, titlebar.bottom() + GAP);
 		add( message );
@@ -100,12 +103,13 @@ public class WndBlacksmith extends Window {
 			}
 		};
 		swapCurrency.setSize(40, swapCurrency.reqHeight());
-		swapCurrency.setPos(width - swapCurrency.width(), pos - swapCurrency.height() - GAP);
+		//swapCurrency.setPos(width - swapCurrency.width(), pos - swapCurrency.height() - GAP);
+		swapCurrency.setPos(width - swapCurrency.width(), message.bottom() - swapCurrency.height());
 		add(swapCurrency);
 
 		BlacksmithButton pickaxe = new BlacksmithButton(
 				(btn) -> Messages.get(this, "pickaxe", btn.getCostGen(), btn.getCostUnit()),
-				() -> Statistics.questScores[2] >= 2500 ? 0 : 250) {
+				() -> Blacksmith.Quest.pickaxe != null ? (Statistics.questScores[2] >= 2500 ? 0 : 250) : null) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(
@@ -165,7 +169,7 @@ public class WndBlacksmith extends Window {
 		};
 		buttons.add(upgrade);
 
-		BlacksmithButton smith = new BlacksmithButton(
+		/*BlacksmithButton smith = new BlacksmithButton(
 				(btn) -> Messages.get(this, "smith", btn.getCostGen(), btn.getCostUnit()),
 				() -> 2500) {
 			@Override
@@ -188,6 +192,15 @@ public class WndBlacksmith extends Window {
 					}
 				});
 			}
+		};*/
+		BlacksmithButton smith = new BlacksmithButton(
+				(btn) -> Messages.get(this, "smith", btn.getCostGen(), btn.getCostUnit()),
+				() -> 2500) {
+			@Override
+			protected void onClick() {
+
+				GameScene.show(new WndSmith(troll, hero));
+			}
 		};
 		buttons.add(smith);
 
@@ -195,7 +208,7 @@ public class WndBlacksmith extends Window {
 
 		BlacksmithButton cashOut = new BlacksmithButton(
 				(btn) -> Messages.get(this, "cashout", cashOutModifier),
-				() -> Blacksmith.Quest.favor) {
+				() -> Blacksmith.Quest.favor == 0 ? null : Blacksmith.Quest.favor) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(
@@ -216,7 +229,6 @@ public class WndBlacksmith extends Window {
 				});
 			}
 		};
-		cashOut.enable(canPurchase(0));
 		buttons.add(cashOut);
 
 		for (BlacksmithButton b : buttons){
@@ -253,13 +265,15 @@ public class WndBlacksmith extends Window {
 
 	private void updateWindow() {
 
+		message.text(Messages.get(this, "prompt", Blacksmith.Quest.favor, Dungeon.gold));
+
 		float pos = buttonStartPos;
 		for (BlacksmithButton b : buttons) {
 
 			b.updateText();
 			b.setSize(width, b.reqHeight());
 			b.setRect(0, pos, width, b.reqHeight());
-			b.enable(canPurchase(b.getCostGen()));
+			b.setEnabled();
 			//add(b);
 			pos = b.bottom() + GAP;
 		}
@@ -277,12 +291,19 @@ public class WndBlacksmith extends Window {
 			super("", 6);
 			textGen = _text;
 			costGen = _cost;
-			enable(canPurchase(costGen.get()));
+			setEnabled();
+		}
+
+		protected void setEnabled() {
+
+			Integer cost = costGen.get();
+			enable(cost != null && canPurchase(cost));
 		}
 
 		protected int getCostGen() {
 
-			return costGen.get();
+			Integer cost = costGen.get();
+			return cost == null ? 0 : cost;
 		}
 
 		protected String getTextGen() {
@@ -575,6 +596,29 @@ public class WndBlacksmith extends Window {
 			}
 
 			int count = 0;
+			int btnPerRow = 0;
+			float pos = message.top() + message.height() + BTN_GAP;
+			float tempMaxWidth = BTN_GAP;
+			for (Object o : Blacksmith.Quest.smithRewards)
+			{
+				float testX = tempMaxWidth + BTN_SIZE + BTN_GAP;
+				if (testX > WIDTH) break;
+
+				btnPerRow++;
+				tempMaxWidth = testX;
+			}
+			final float btnMaxWith = tempMaxWidth;
+
+			Function<List<Item>, Float> getXPos = (list) -> {
+				float w = (BTN_SIZE * list.size()) + (BTN_GAP * (list.size() -1));
+				float x = ((WIDTH - Math.min(w, btnMaxWith)) / 2);
+				if (w > btnMaxWith) x += BTN_GAP;
+				return x;
+			};
+
+			float xPos = getXPos.apply(Blacksmith.Quest.smithRewards);
+			float yPos = pos;
+
 			for (Item i : Blacksmith.Quest.smithRewards){
 				count++;
 				ItemButton btnReward = new ItemButton(){
@@ -584,18 +628,42 @@ public class WndBlacksmith extends Window {
 					}
 				};
 				btnReward.item( i );
-				btnReward.setRect( count*(WIDTH - BTN_GAP) / 2 - BTN_SIZE, message.top() + message.height() + BTN_GAP, BTN_SIZE, BTN_SIZE );
+				//btnReward.setRect( count*(WIDTH - BTN_GAP) / 2 - BTN_SIZE, message.top() + message.height() + BTN_GAP, BTN_SIZE, BTN_SIZE );
+				btnReward.setRect(xPos, yPos, BTN_SIZE, BTN_SIZE);
 				add( btnReward );
 
+				pos = btnReward.bottom() + BTN_GAP;
+				xPos += BTN_SIZE + BTN_GAP;
+
+				if (count % btnPerRow == 0 && count < Blacksmith.Quest.smithRewards.size()) {
+
+					List<Item> remainingWeapons = Blacksmith.Quest.smithRewards.subList(count, Math.min(Blacksmith.Quest.smithRewards.size(), count + btnPerRow));
+					xPos = getXPos.apply(remainingWeapons);
+					yPos = pos;
+				}
 			}
 
-			resize(WIDTH, (int)message.bottom() + 2*BTN_GAP + BTN_SIZE);
+			RedButton btnCancel = new RedButton("Cancel"){
+				@Override
+				protected void onClick() {
+
+					onBackPressed();
+				}
+			};
+
+			btnCancel.setRect( 0, pos, WIDTH, 20 );
+			add( btnCancel );
+
+
+			resize(WIDTH, (int)btnCancel.bottom());
 
 		}
 
 		@Override
 		public void onBackPressed() {
-			//do nothing
+
+			Blacksmith.Quest.smithRewards = null;
+			WndSmith.this.hide();
 		}
 
 		private class RewardWindow extends WndInfoItem {
@@ -606,17 +674,39 @@ public class WndBlacksmith extends Window {
 				RedButton btnConfirm = new RedButton(Messages.get(WndSadGhost.class, "confirm")){
 					@Override
 					protected void onClick() {
-						RewardWindow.this.hide();
-						item.identify(false);
-						Sample.INSTANCE.play(Assets.Sounds.EVOKE);
-						Item.evoke( Dungeon.hero );
-						if (item.doPickUp( Dungeon.hero )) {
-							GLog.i( Messages.capitalize(Messages.get(Dungeon.hero, "you_now_have", item.name())) );
-						} else {
-							Dungeon.level.drop( item, Dungeon.hero.pos ).sprite.drop();
-						}
-						WndSmith.this.hide();
-						Blacksmith.Quest.smithRewards = null;
+
+						GameScene.show(new WndOptions(
+								troll.sprite(),
+								Messages.titleCase( troll.name() ),
+								Messages.get(WndBlacksmith.class, "smith_verify"),
+								Messages.get(WndBlacksmith.class, "smith_yes"),
+								Messages.get(WndBlacksmith.class, "smith_no")
+						){
+							@Override
+							protected void onSelect(int index) {
+								if (index == 0){
+
+									purchase(2500);
+									Blacksmith.Quest.smiths++;
+
+									item.identify(false);
+									Sample.INSTANCE.play(Assets.Sounds.EVOKE);
+									Item.evoke( Dungeon.hero );
+
+									if (item.doPickUp( Dungeon.hero )) {
+										GLog.i( Messages.capitalize(Messages.get(Dungeon.hero, "you_now_have", item.name())) );
+									} else {
+										Dungeon.level.drop( item, Dungeon.hero.pos ).sprite.drop();
+									}
+
+									Blacksmith.Quest.smithRewards = null;
+
+									RewardWindow.this.hide();
+									WndSmith.this.hide();
+									self.updateWindow();
+								}
+							}
+						});
 					}
 				};
 				btnConfirm.setRect(0, height+2, width/2-1, 16);
@@ -634,7 +724,5 @@ public class WndBlacksmith extends Window {
 				resize(width, (int)btnCancel.bottom());
 			}
 		}
-
 	}
-
 }

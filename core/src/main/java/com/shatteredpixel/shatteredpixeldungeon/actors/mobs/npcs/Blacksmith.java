@@ -63,6 +63,7 @@ import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class Blacksmith extends NPC {
@@ -251,7 +252,7 @@ public class Blacksmith extends NPC {
 				}
 			});
 
-		} else if (Quest.favor > 0 || Quest.pickaxe != null && Statistics.questScores[2] >= 2500) {
+		} else if (Statistics.questScores[2] >= 2500) {
 
 			Game.runOnRenderThread(new Callback() {
 				@Override
@@ -568,12 +569,14 @@ public class Blacksmith extends NPC {
 
 		public static void generateRewards( boolean useDecks ){
 			smithRewards = new ArrayList<>();
-			smithRewards.add(Reflection.newInstance(smithWeapons[Random.Int(smithWeapons.length)]));
-			smithRewards.add(Reflection.newInstance(smithWeapons[Random.Int(smithWeapons.length)]));
-			while (smithRewards.get(0).getClass() == smithRewards.get(1).getClass()) {
+			//smithRewards.add(Reflection.newInstance(smithWeapons[Random.Int(smithWeapons.length)]));
+			//smithRewards.add(Reflection.newInstance(smithWeapons[Random.Int(smithWeapons.length)]));
+			/*while (smithRewards.get(0).getClass() == smithRewards.get(1).getClass()) {
 				smithRewards.remove(1);
 				smithRewards.add(Reflection.newInstance(smithWeapons[Random.Int(smithWeapons.length)]));
-			}
+			}*/
+			// all rewards!
+			Arrays.stream(smithWeapons).forEach(w -> smithRewards.add(Reflection.newInstance(w)));
 
 			//30%:+0, 45%:+1, 20%:+2, 5%:+3
 			int rewardLevel;

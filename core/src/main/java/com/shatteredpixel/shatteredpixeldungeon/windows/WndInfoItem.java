@@ -24,12 +24,18 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera;
+
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ItemSlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.watabou.noosa.Camera;
+import com.watabou.noosa.ui.Component;
 
 public class WndInfoItem extends Window {
 	
@@ -82,10 +88,10 @@ public class WndInfoItem extends Window {
 		
 		IconTitle titlebar = new IconTitle( heap );
 		titlebar.color( TITLE_COLOR );
-		
+
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( heap.info(), 6 );
 
-		layoutFields(titlebar, txtInfo);
+		layoutFields(titlebar, txtInfo, heap.peek());
 	}
 	
 	private void fillFields( Item item ) {
@@ -102,10 +108,10 @@ public class WndInfoItem extends Window {
 		
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.info(), 6 );
 		
-		layoutFields(titlebar, txtInfo);
+		layoutFields(titlebar, txtInfo, item);
 	}
 
-	private void layoutFields(IconTitle title, RenderedTextBlock info){
+	private void layoutFields(IconTitle title, RenderedTextBlock info, Item _item){
 		int width = WIDTH_MIN;
 
 		info.maxWidth(width);
@@ -121,9 +127,44 @@ public class WndInfoItem extends Window {
 		title.setRect( 0, 0, width, 0 );
 		add( title );
 
-		info.setPos(title.left(), title.bottom() + GAP);
-		add( info );
 
-		resize( width, (int)(info.bottom() + 2) );
+		//info.setPos(title.left(), title.bottom() + GAP);
+		//add( info );
+
+
+		float btnH = (float) (20 * Math.ceil((double) _item.actions(Dungeon.hero).size() / 3)); // portrait (3 per row) only one row of buttons!
+		float tempH = title.bottom() + GAP + info.height() + 2 + btnH;
+		float maxH = (float) (uiCamera.height * 0.8);
+
+		if (tempH > maxH) {
+
+			remove(info);
+
+			ScrollPane pane = new ScrollPane(new Component());
+			info.maxWidth((int) (info.width() - pane.thumb.width() - GAP));
+			info.setPos(0, 1);
+			add(pane);
+			Component content = pane.content();
+
+			float paneH = (info.height()) - (tempH - maxH) - btnH - GAP;
+			pane.setRect(title.left(), title.bottom(), width, paneH);
+
+			content.add( info );
+
+			resize( width, (int)(pane.bottom() + 2) );
+			content.setRect(0, 0, width, info.height() + 3);
+			pane.setRect(0, title.bottom(), width, paneH);
+
+			// DON'T KNOW WHY!!!
+			content.camera.y -= (7 * content.camera.zoom);
+			//content.camera.height -= content.camera.zoom;
+		}
+		else {
+
+			info.setPos(title.left(), title.bottom() + GAP);
+			add( info );
+
+			resize( width, (int)(info.bottom() + 2) );
+		}
 	}
 }
