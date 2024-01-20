@@ -17,10 +17,8 @@ public class CopySlotCloseButton extends CopyButton {
         return Chrome.Type.RED_GEM;
     }
 
-    @Override
-    public void set(int _slot) {
+    public void set() {
 
-        this.slot = _slot;
         name.text("Cancel");
         name.resetColor();
 

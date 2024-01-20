@@ -92,8 +92,8 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
             @Override
             protected void onClick() {
 
-                hide();
                 ShatteredPixelDungeon.scene().add( new WndCopySelectSlot(getOnHeroSelect(), currentSlot, overwriteSlot, (overwriteInfo != null)));
+                hide();
             }
         };
 
@@ -119,7 +119,6 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
                             super.onSelect(index);
                             if (index == 0) {
 
-                                hide();
                                 getOnConfirmAction().run();
                             }
                         }

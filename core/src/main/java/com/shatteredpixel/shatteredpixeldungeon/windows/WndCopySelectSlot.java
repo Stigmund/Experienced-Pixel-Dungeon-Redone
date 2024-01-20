@@ -23,7 +23,7 @@ public class WndCopySelectSlot extends Window {
     private static final int SLOT_WIDTH = 120;
     private static final int SLOT_HEIGHT = 30;
 
-    public WndCopySelectSlot(BiConsumer<CopyButton, Window> _onHeroSelect, final int _currentSlot, final int _currentlySelectedSlot, boolean _hasSelected) {
+    public WndCopySelectSlot(BiConsumer<CopyButton, Window> _onHeroSelect, final int _currentSlot, final Integer _currentlySelectedSlot, boolean _hasSelected) {
 
         float gap = SLOT_HEIGHT + (10 - MAX_SLOTS);
         float pos = (10 - MAX_SLOTS);
@@ -47,7 +47,7 @@ public class WndCopySelectSlot extends Window {
         // Existing Slots
         for (GamesInProgress.Info game : games) {
 
-            if (game.slot != _currentSlot && _currentlySelectedSlot != game.slot) {
+            if (game.slot != _currentSlot && (_currentlySelectedSlot == null || _currentlySelectedSlot != game.slot)) {
 
                 CopyButton existingGame = new CopyButton(_onHeroSelect, this);
                 existingGame.set(game.slot);
@@ -72,7 +72,7 @@ public class WndCopySelectSlot extends Window {
 
         // Cancel
         CopySlotCloseButton cancelButton = new CopySlotCloseButton(_onHeroSelect, this);
-        cancelButton.set(_currentlySelectedSlot);
+        cancelButton.set();
         cancelButton.setRect((WIDTH - SLOT_WIDTH) / 2f, pos, SLOT_WIDTH, SLOT_HEIGHT);
         content.add(cancelButton);
         boxes.add(cancelButton);

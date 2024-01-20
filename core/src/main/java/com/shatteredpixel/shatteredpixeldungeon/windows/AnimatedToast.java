@@ -1,7 +1,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import static com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.align;
 import static com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera;
 
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toast;
 import com.watabou.input.PointerEvent;
 import com.watabou.noosa.Game;
@@ -11,7 +13,7 @@ public class AnimatedToast extends Toast {
 
     public static AnimatedToast toast;
     public static boolean kill = false;
-    private final float WIDTH = (uiCamera.width - width()) / 2;
+    private float X;
     private float Y;
     protected final float START_Y;
     private final float END_Y;
@@ -28,8 +30,10 @@ public class AnimatedToast extends Toast {
 
         super(_text);
         text.setHightlighting(false);
+        camera = uiCamera;
         START_Y = Y = uiCamera.height;
         END_Y = (uiCamera.height - 60 + ((60 - height()) / 2));
+        X = (uiCamera.width - width()) / 2;
 
         PointerArea hotArea = new PointerArea( 0, 0, uiCamera.width, uiCamera.height ) {
 
@@ -42,12 +46,12 @@ public class AnimatedToast extends Toast {
         add(hotArea);
         sendToBack(hotArea);
 
-        setPos(WIDTH , Y);
+        setPos(X, Y);
     }
 
     private void setPosition() {
 
-        setPos(WIDTH , Y);
+        setPos(X, Y);
     }
 
     public static void killToast() {

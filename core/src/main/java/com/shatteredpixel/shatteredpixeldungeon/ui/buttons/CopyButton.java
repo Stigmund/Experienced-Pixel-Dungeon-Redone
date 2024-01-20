@@ -10,11 +10,19 @@ public class CopyButton extends StartScene.SaveSlotButton implements ScrollPaneC
 
     public final BiConsumer<CopyButton, Window> action;
     public final Window window;
+    public Integer slot = null;
 
     public CopyButton(BiConsumer<CopyButton, Window> action, Window _window) {
 
         this.action = action;
         this.window = _window;
+    }
+
+    @Override
+    public void set(int _slot) {
+
+        this.slot = _slot;
+        super.set(slot);
     }
 
     @Override
