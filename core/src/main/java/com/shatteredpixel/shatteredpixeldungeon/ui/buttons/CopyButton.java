@@ -3,24 +3,28 @@ package com.shatteredpixel.shatteredpixeldungeon.ui.buttons;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.StartScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPaneClickable;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndCopyGame;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndCopySelectSlot;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndUsesHeroSelector;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class CopyButton extends StartScene.SaveSlotButton implements ScrollPaneClickable {
 
-    public final BiConsumer<CopyButton, Window> action;
-    public final Window window;
+    public Integer slot = null;
 
-    public CopyButton(BiConsumer<CopyButton, Window> action, Window _window) {
+    public CopyButton() {
 
-        this.action = action;
-        this.window = _window;
     }
 
     @Override
     protected void onClick() {
 
-        action.accept(this, window);
+        //action.accept(slot);
+       // WndCopySelectSlot.opener.onHeroSelect(slot);
+        //WndCopySelectSlot.opener = null;
     }
 
     @Override
@@ -37,6 +41,11 @@ public class CopyButton extends StartScene.SaveSlotButton implements ScrollPaneC
         if (!inside(x, y)) return false;
         onClick();
         return true;
+    }
+
+    public void set(int _slot) {
+        slot = _slot;
+        super.set(slot);
     }
 
     public int getSlot() {

@@ -63,7 +63,7 @@ public class WndGame extends Window {
 				@Override
 				protected void onClick() {
 					hide();
-					ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(GamesInProgress.curSlot, null, true));
+					ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(GamesInProgress.curSlot, true));
 				}
 			});
 			curBtn.icon(Icons.get(Icons.BUFFS));

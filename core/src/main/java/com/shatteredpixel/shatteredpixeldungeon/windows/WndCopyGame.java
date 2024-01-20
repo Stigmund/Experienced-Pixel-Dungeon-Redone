@@ -9,20 +9,16 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
-import com.shatteredpixel.shatteredpixeldungeon.ui.buttons.CopyButton;
+import com.watabou.noosa.Gizmo;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.MAX_SLOTS;
-import static com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.align;
-import static com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress.getHeroTitle;
-import static com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress.statSlot;
 
-public class WndCopyGame extends Window implements WndUsesHeroSelector {
+public class WndCopyGame extends WndGameInProgress implements WndUsesHeroSelector {
 
-    protected static final int WIDTH    = 120;
     protected int currentSlot;
     protected GamesInProgress.Info currentInfo;
     protected Integer overwriteSlot = null;
@@ -31,23 +27,19 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
     protected final ArrayList<GamesInProgress.Info> games = GamesInProgress.checkAll();
     protected final int NEW_SLOT = GamesInProgress.firstEmpty();
     private boolean fromRunningGame;
-    protected AnimatedToast toast;
-    private ArrayList<AnimatedToast> toDestroy = new ArrayList<>();
     private final Runnable action = this::copyGame;
-    private final BiConsumer<CopyButton, Window> onHeroSelect = (slotButton, window) -> {
+    public Consumer<Integer> onHeroSelect = (slot) -> {
 
-        window.hide();
-        ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(currentSlot, slotButton.getSlot(), fromRunningGame));
+        overwriteSlot = slot;
+        redraw();
     };
 
     public WndCopyGame() {
-
     }
 
-    public WndCopyGame(int _currentSlot, Integer _currentlySelectedSlot, boolean _fromRunningGame) {
+    public WndCopyGame(int _currentSlot, boolean _fromRunningGame) {
 
         currentSlot = _currentSlot;
-        overwriteSlot = _currentlySelectedSlot != null && _currentlySelectedSlot == 0 ? null : _currentlySelectedSlot;
         if (overwriteSlot == null || overwriteSlot == NEW_SLOT) overwriteInfo = null;
         else overwriteInfo = GamesInProgress.check(overwriteSlot);
         currentInfo = GamesInProgress.check(currentSlot);
@@ -56,7 +48,7 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
         setContent();
     }
 
-    protected void setContent() {
+    public void setContent() {
 
         boolean copyDisabled = (overwriteSlot == null);
         if (overwriteSlot == null && games.size() < MAX_SLOTS) {
@@ -67,8 +59,7 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
 
         // Title
 
-        int GAP = 6;
-        float pos = setTitle() + GAP;
+        pos = setTitle() + GAP;
 
         boolean newSlot = (overwriteInfo == null);
         String slotText = newSlot
@@ -78,22 +69,23 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
                             : "Slot "+ overwriteSlot);
 
         // Save Slot Title
-        pos = statSlot(this, pos, "Overwrite Slot:", slotText);
+        statSlot("Overwrite Slot:", slotText);
 
         if (!newSlot) {
 
             // char info
-            pos = WndGameInProgress.setContent(this, pos, overwriteInfo);
+            super.setContent(overwriteInfo);
         }
 
+        WndUsesHeroSelector window = this;
+
         // Select save slot to overwrite
-        WndCopyGame owner = this;
         RedButton selectOverwrite = new RedButton("Select a Slot to Overwrite") {
             @Override
             protected void onClick() {
 
-                hide();
-                ShatteredPixelDungeon.scene().add( new WndCopySelectSlot(getOnHeroSelect(), currentSlot, overwriteSlot, (overwriteInfo != null)));
+                //hide();
+                ShatteredPixelDungeon.scene().addToFront( new WndCopySelectSlot(getOnHeroSelect(), currentSlot, overwriteSlot, (overwriteInfo != null)));
             }
         };
 
@@ -120,7 +112,7 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
                             if (index == 0) {
 
                                 hide();
-                                getOnConfirmAction().run();
+                                onConfirmAction().run();
                             }
                         }
                     });
@@ -128,7 +120,7 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
                 else {
 
                     hide();
-                    getOnConfirmAction().run();
+                    onConfirmAction().run();
                 }
             }
         };
@@ -165,49 +157,15 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
         return title.bottom();
     }
 
-    protected void setActionButton(float pos, boolean _disabled) {
+    public Gizmo add(Gizmo g) {
 
-        setActionButton(pos, _disabled, "Copy", this::copyGame);
+        return super.add(g);
     }
 
-    protected void setActionButton(float pos, boolean _disabled, String _text, Runnable _action) {
+    public void redraw() {
 
-        RedButton actionButton = new RedButton(_text) {
-            @Override
-            protected void onClick() {
-
-                if (overwriteInfo != null) {
-
-                    ShatteredPixelDungeon.scene().add(new WndOptions(Icons.get(Icons.WARNING),
-                            "Are you sure you want to overwrite save slot "+ overwriteSlot +"?",
-                            Messages.get(WndGameInProgress.class, "erase_warn_body"),
-                            "Yes, overwrite slot "+ overwriteSlot,
-                            "No, I want to reselect" ) {
-                        @Override
-                        protected void onSelect( int index ) {
-                            super.onSelect(index);
-                            if (index == 0) {
-
-                                hide();
-                                getOnConfirmAction().run();
-                            }
-                        }
-                    });
-                }
-                else {
-
-                    hide();
-                    getOnConfirmAction().run();
-                }
-            }
-        };
-        actionButton.setRect(0, pos, ((float) WIDTH / 2) - 1, 20);
-        if (_disabled) {
-
-            actionButton.enable(false);
-            actionButton.active = false;
-        }
-        add(actionButton);
+        clearChildren();
+        setContent();
     }
 
     private void copyGame() {
@@ -235,12 +193,20 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
         return "Copy";
     }
 
-    public Runnable getOnConfirmAction() {
+    public Runnable onConfirmAction() {
 
         return action;
     }
 
-    public BiConsumer<CopyButton, Window> getOnHeroSelect() {
+    public void onHeroSelect(int slot) {
+
+        overwriteSlot = slot;
+        clearChildren();
+        setContent();
+    }
+
+    @Override
+    public Consumer<Integer> getOnHeroSelect() {
 
         return onHeroSelect;
     }

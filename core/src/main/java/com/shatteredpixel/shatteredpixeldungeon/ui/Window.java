@@ -35,6 +35,8 @@ import com.watabou.noosa.*;
 import com.watabou.utils.Point;
 import com.watabou.utils.Signal;
 
+import java.util.Iterator;
+
 public class Window extends Group implements Signal.Listener<KeyEvent> {
 
 	protected int width;
@@ -174,6 +176,30 @@ public class Window extends Group implements Signal.Listener<KeyEvent> {
 		}
 
 		offset(newXOfs, newYOfs);
+	}
+
+	/**
+	 * Clears all non window related members.
+	 * (e.g. keeps the frame etc.)
+	 */
+	public void clearChildren() {
+
+		if (length == 0) return;
+		Iterator<Gizmo> it = members.iterator();
+		while (it.hasNext()) {
+
+			Gizmo g = it.next();
+			if (g instanceof PointerArea || g instanceof NinePatch || g instanceof Window) continue;
+			if (g != null) {
+
+				g.kill();
+				g.parent = null;
+			}
+
+			it.remove();
+		}
+
+		length = members.size();
 	}
 
 	public void hide() {

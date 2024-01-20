@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class WndCopySelectSlot extends Window {
 
@@ -23,7 +24,7 @@ public class WndCopySelectSlot extends Window {
     private static final int SLOT_WIDTH = 120;
     private static final int SLOT_HEIGHT = 30;
 
-    public WndCopySelectSlot(BiConsumer<CopyButton, Window> _onHeroSelect, final int _currentSlot, final int _currentlySelectedSlot, boolean _hasSelected) {
+    public WndCopySelectSlot(Consumer<Integer> _onHeroSelect, final int _currentSlot, final Integer _currentlySelectedSlot, boolean _hasSelected) {
 
         float gap = SLOT_HEIGHT + (10 - MAX_SLOTS);
         float pos = (10 - MAX_SLOTS);
@@ -47,9 +48,17 @@ public class WndCopySelectSlot extends Window {
         // Existing Slots
         for (GamesInProgress.Info game : games) {
 
-            if (game.slot != _currentSlot && _currentlySelectedSlot != game.slot) {
+            if (game.slot != _currentSlot && (_currentlySelectedSlot == null || _currentlySelectedSlot != game.slot)) {
 
-                CopyButton existingGame = new CopyButton(_onHeroSelect, this);
+                CopyButton existingGame = new CopyButton() {
+                    @Override
+                    protected void onClick() {
+
+                        //super.onClick();
+                        _onHeroSelect.accept(slot);
+                        hide();
+                    }
+                };
                 existingGame.set(game.slot);
                 existingGame.setRect((WIDTH - SLOT_WIDTH) / 2f, pos, SLOT_WIDTH, SLOT_HEIGHT);
                 align(existingGame);
@@ -62,7 +71,15 @@ public class WndCopySelectSlot extends Window {
         // New Slot
         if (games.size() < MAX_SLOTS && _hasSelected) {
 
-            CopyButton copyToNew = new CopyButton(_onHeroSelect, this);
+            CopyButton copyToNew = new CopyButton() {
+                @Override
+                protected void onClick() {
+
+                    //super.onClick();
+                    _onHeroSelect.accept(slot);
+                    hide();
+                }
+            };
             copyToNew.set(NEW_SLOT);
             copyToNew.setRect((WIDTH - SLOT_WIDTH) / 2f, pos, SLOT_WIDTH, SLOT_HEIGHT);
             content.add(copyToNew);
@@ -71,8 +88,14 @@ public class WndCopySelectSlot extends Window {
         }
 
         // Cancel
-        CopySlotCloseButton cancelButton = new CopySlotCloseButton(_onHeroSelect, this);
-        cancelButton.set(_currentlySelectedSlot);
+        CopySlotCloseButton cancelButton = new CopySlotCloseButton() {
+            @Override
+            protected void onClick() {
+
+                hide();
+            }
+        };
+        cancelButton.set();
         cancelButton.setRect((WIDTH - SLOT_WIDTH) / 2f, pos, SLOT_WIDTH, SLOT_HEIGHT);
         content.add(cancelButton);
         boxes.add(cancelButton);
@@ -86,5 +109,12 @@ public class WndCopySelectSlot extends Window {
         pane.setRect(0, 0, WIDTH, pos);
 
         content.setSize(WIDTH, contentSize);
+    }
+
+    public void destroy() {
+
+        boxes.clear();
+        //opener = null;
+        super.destroy();
     }
 }

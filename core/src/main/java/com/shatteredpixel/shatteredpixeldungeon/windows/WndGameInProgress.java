@@ -26,122 +26,33 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
-import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
-import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.StartScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.*;
-import com.shatteredpixel.shatteredpixeldungeon.utils.DownloadResponse;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
-import com.watabou.input.KeyBindings;
-import com.watabou.input.KeyEvent;
 import com.watabou.noosa.Game;
-import com.watabou.noosa.Gizmo;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class WndGameInProgress extends Window {
-	
-	private static final int WIDTH    = 120;
-	
-	private static int GAP	  = 6;
 
-	protected AnimatedToast toast;
-	private List<AnimatedToast> toastList = new ArrayList<>();
-	
-	//private float pos;
+	protected static final int WIDTH    = 120;
+	protected static int GAP	  = 6;
+	protected float pos = 0;
 
-	public static String getHeroTitle(GamesInProgress.Info _info) {
-
-		String className = null;
-		if (_info.subClass != HeroSubClass.NONE){
-
-			className = _info.subClass.title();
-		}
-		else {
-
-			className = _info.heroClass.title();
-		}
-
-		className = Messages.get(WndGameInProgress.class, "title", _info.level, className).toUpperCase(Locale.ENGLISH);
-
-		return className;
+	public WndGameInProgress() {
 	}
 
-	protected static float setContent(Window _window, float inPos, GamesInProgress.Info _info) {
-
-		float pos = inPos;
-
-		IconTitle title = new IconTitle();
-		title.icon( HeroSprite.avatar(_info.heroClass, _info.armorTier) );
-		title.label(getHeroTitle(_info).toUpperCase(Locale.ENGLISH));
-		title.color(Window.TITLE_COLOR);
-		title.setRect( 0, pos, WIDTH, 0 );
-		_window.add(title);
-
-		if (_info.challenges > 0) GAP -= 2;
-
-		pos = title.bottom() + GAP;
-
-		if (_info.challenges > 0) {
-			RedButton btnChallenges = new RedButton( Messages.get(WndGameInProgress.class, "challenges") ) {
-				@Override
-				protected void onClick() {
-					Game.scene().add( new WndChallenges( _info.challenges, false ) );
-				}
-			};
-			btnChallenges.icon(Icons.get(Icons.CHALLENGE_ON));
-			float btnW = btnChallenges.reqWidth() + 2;
-			btnChallenges.setRect( (WIDTH - btnW)/2, pos, btnW , 18 );
-			_window.add( btnChallenges );
-
-			pos = btnChallenges.bottom() + GAP;
-		}
-
-		pos += GAP;
-
-		int strBonus = _info.strBonus;
-		if (strBonus > 0)           pos = statSlot(_window, pos,  Messages.get(WndGameInProgress.class, "str"), _info.str + " + " + strBonus );
-		else if (strBonus < 0)      pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "str"), _info.str + " - " + -strBonus );
-		else                        pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "str"), _info.str );
-		if (_info.shld > 0)  pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "health"), _info.hp + "+" + _info.shld + "/" + _info.ht );
-		else                pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "health"), (_info.hp) + "/" + _info.ht );
-		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "exp"), _info.exp + "/" + Hero.maxExp(_info.level) );
-
-		pos += GAP;
-		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "gold"), _info.goldCollected );
-		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), _info.maxDepth );
-		if (_info.daily) {
-			if (_info.dailyReplay) {
-				pos = statSlot(_window, pos,Messages.get(WndGameInProgress.class, "replay_for"), "_" + _info.customSeed + "_");
-			} else {
-				pos = statSlot(_window, pos,Messages.get(WndGameInProgress.class, "daily_for"), "_" + _info.customSeed + "_");
-			}
-		} else if (!_info.customSeed.isEmpty()){
-			pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "custom_seed"), "_" + _info.customSeed + "_" );
-		} else {
-			pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "dungeon_seed"), DungeonSeed.convertToCode(_info.seed) );
-		}
-
-		pos += GAP;
-
-		return pos;
-	}
-	
 	public WndGameInProgress(final int slot){
 		
 		final GamesInProgress.Info info = GamesInProgress.check(slot);
-		float pos = WndGameInProgress.setContent(this, 0, info);
+		setContent(info);
 
 		RedButton cont = new RedButton(Messages.get(this, "continue")){
 			@Override
@@ -184,7 +95,7 @@ public class WndGameInProgress extends Window {
 			protected void onClick() {
 				super.onClick();
 
-				ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(slot, null, false));
+				ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(slot, false));
 			}
 		};
 
@@ -227,12 +138,84 @@ public class WndGameInProgress extends Window {
 		resize(WIDTH, (int)export.bottom()+1);
 	}
 
-	protected static float statSlot( Window _window, float inPos, String label, String value ) {
+	public static String getHeroTitle(GamesInProgress.Info _info) {
 
-		float pos = inPos;
+		String className = null;
+		if (_info.subClass != HeroSubClass.NONE){
+
+			className = _info.subClass.title();
+		}
+		else {
+
+			className = _info.heroClass.title();
+		}
+
+		className = Messages.get(WndGameInProgress.class, "title", _info.level, className).toUpperCase(Locale.ENGLISH);
+
+		return className;
+	}
+
+	protected void setContent(GamesInProgress.Info _info) {
+
+		IconTitle title = new IconTitle();
+		title.icon( HeroSprite.avatar(_info.heroClass, _info.armorTier) );
+		title.label(getHeroTitle(_info).toUpperCase(Locale.ENGLISH));
+		title.color(Window.TITLE_COLOR);
+		title.setRect( 0, pos, WIDTH, 0 );
+		add(title);
+
+		if (_info.challenges > 0) GAP -= 2;
+
+		pos = title.bottom() + GAP;
+
+		if (_info.challenges > 0) {
+			RedButton btnChallenges = new RedButton( Messages.get(WndGameInProgress.class, "challenges") ) {
+				@Override
+				protected void onClick() {
+					Game.scene().add( new WndChallenges( _info.challenges, false ) );
+				}
+			};
+			btnChallenges.icon(Icons.get(Icons.CHALLENGE_ON));
+			float btnW = btnChallenges.reqWidth() + 2;
+			btnChallenges.setRect( (WIDTH - btnW)/2, pos, btnW , 18 );
+			add( btnChallenges );
+
+			pos = btnChallenges.bottom() + GAP;
+		}
+
+		pos += GAP;
+
+		int strBonus = _info.strBonus;
+		if (strBonus > 0)           statSlot(Messages.get(WndGameInProgress.class, "str"), _info.str + " + " + strBonus );
+		else if (strBonus < 0)      statSlot( Messages.get(WndGameInProgress.class, "str"), _info.str + " - " + -strBonus );
+		else                        statSlot(Messages.get(WndGameInProgress.class, "str"), _info.str );
+		if (_info.shld > 0)  statSlot(Messages.get(WndGameInProgress.class, "health"), _info.hp + "+" + _info.shld + "/" + _info.ht );
+		else                statSlot(Messages.get(WndGameInProgress.class, "health"), (_info.hp) + "/" + _info.ht );
+		statSlot(Messages.get(WndGameInProgress.class, "exp"), _info.exp + "/" + Hero.maxExp(_info.level) );
+
+		pos += GAP;
+		statSlot(Messages.get(WndGameInProgress.class, "gold"), _info.goldCollected );
+		statSlot( Messages.get(WndGameInProgress.class, "depth"), _info.maxDepth );
+		if (_info.daily) {
+			if (_info.dailyReplay) {
+				statSlot(Messages.get(WndGameInProgress.class, "replay_for"), "_" + _info.customSeed + "_");
+			} else {
+				 statSlot(Messages.get(WndGameInProgress.class, "daily_for"), "_" + _info.customSeed + "_");
+			}
+		} else if (!_info.customSeed.isEmpty()){
+			statSlot(Messages.get(WndGameInProgress.class, "custom_seed"), "_" + _info.customSeed + "_" );
+		} else {
+			statSlot(Messages.get(WndGameInProgress.class, "dungeon_seed"), DungeonSeed.convertToCode(_info.seed) );
+		}
+
+		pos += GAP;
+	}
+
+	protected void statSlot( String label, String value ) {
+
 		RenderedTextBlock txt = PixelScene.renderTextBlock( label, 8 );
-		txt.setPos(0, inPos);
-		_window.add( txt );
+		txt.setPos(0, pos);
+		add( txt );
 
 		int size = 8;
 		if (value.length() >= 14) size -=2;
@@ -240,14 +223,12 @@ public class WndGameInProgress extends Window {
 		txt = PixelScene.renderTextBlock( value, size );
 		txt.setPos(WIDTH * 0.55f, pos + (6 - txt.height())/2);
 		PixelScene.align(txt);
-		_window.add( txt );
+		add( txt );
 		
 		pos += GAP + txt.height();
-
-		return pos;
 	}
 	
-	private static float statSlot( Window _window, float inPos, String label, int value ) {
-		return statSlot( _window, inPos, label, Integer.toString( value ) );
+	private void statSlot( String label, int value ) {
+		statSlot( label, Integer.toString( value ) );
 	}
 }

@@ -2,14 +2,13 @@ package com.shatteredpixel.shatteredpixeldungeon.ui.buttons;
 
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndUsesHeroSelector;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class CopySlotCloseButton extends CopyButton {
-
-    public CopySlotCloseButton(BiConsumer<CopyButton, Window> action, Window _window) {
-        super(action, _window);
-    }
 
     @Override
     protected Chrome.Type getType() {
@@ -17,10 +16,8 @@ public class CopySlotCloseButton extends CopyButton {
         return Chrome.Type.RED_GEM;
     }
 
-    @Override
-    public void set(int _slot) {
+    public void set() {
 
-        this.slot = _slot;
         name.text("Cancel");
         name.resetColor();
 

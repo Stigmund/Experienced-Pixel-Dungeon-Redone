@@ -1,26 +1,23 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import static com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress.getHeroTitle;
-
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
-import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
-import com.shatteredpixel.shatteredpixeldungeon.ui.buttons.CopyButton;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class WndImportGame extends WndCopyGame {
 
     private WndImportSelectGame.GameInfo gameInfo;
     private final Runnable action = this::importGame;
 
-    private final BiConsumer<CopyButton, Window> onHeroSelect = (slotButton, window) -> {
+    private final Consumer<Integer> onHeroSelect = (slotButton) -> {
 
-        window.hide();
-        ShatteredPixelDungeon.scene().addToFront(new WndImportGame(gameInfo, slotButton.getSlot()));
+        //window.hide();
+        //ShatteredPixelDungeon.scene().addToFront(new WndImportGame(gameInfo, slotButton.getSlot()));
     };
 
     public WndImportGame(WndImportSelectGame.GameInfo _info, Integer _currentlySelectedSlot) {
@@ -54,12 +51,6 @@ public class WndImportGame extends WndCopyGame {
         return line2.bottom();
     }
 
-    @Override
-    protected void setActionButton(float pos, boolean _disabled) {
-
-        setActionButton(pos, _disabled, "Import", this::importGame);
-    }
-
     private void importGame() {
 
     }
@@ -69,12 +60,12 @@ public class WndImportGame extends WndCopyGame {
         return "Import";
     }
 
-    public Runnable getOnConfirmAction() {
+    public Runnable onConfirmAction() {
 
         return action;
     }
 
-    public BiConsumer<CopyButton, Window> getOnHeroSelect() {
+    public Consumer<Integer> getOnHeroSelect() {
 
         return onHeroSelect;
     }

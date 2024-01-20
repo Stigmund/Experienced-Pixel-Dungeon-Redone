@@ -1,12 +1,13 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
-import com.shatteredpixel.shatteredpixeldungeon.ui.buttons.CopyButton;
-
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public interface WndUsesHeroSelector {
+    void setContent();
     String getActionTitle();
-    Runnable getOnConfirmAction();
-    BiConsumer<CopyButton, Window> getOnHeroSelect();
+    Runnable onConfirmAction();
+    void onHeroSelect(int slot);
+
+    Consumer<Integer> getOnHeroSelect();
 }
