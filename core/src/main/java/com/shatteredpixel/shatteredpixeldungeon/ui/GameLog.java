@@ -24,15 +24,22 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero.GAME_LOGS;
+
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.ui.Component;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.Signal;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class GameLog extends Component implements Signal.Listener<String> {
 
@@ -43,7 +50,16 @@ public class GameLog extends Component implements Signal.Listener<String> {
 	private RenderedTextBlock lastEntry;
 	private int lastColor;
 
-	private static ArrayList<Entry> entries = new ArrayList<>();
+	public static ArrayList<Entry> entries = new ArrayList<Entry>() {
+		@Override
+		public boolean add(Entry o) {
+
+			boolean sup = super.add(o);
+			if (sup && SPDSettings.captureGameLogs()) Dungeon.hero.gameLogs.add(o);
+
+			return sup;
+		}
+	};
 
 	public GameLog() {
 		super();
@@ -56,6 +72,7 @@ public class GameLog extends Component implements Signal.Listener<String> {
 	
 	@Override
 	public synchronized void update() {
+		Date now = new Date();
 		int maxLines = SPDSettings.interfaceSize() > 0 ? 5 : 3;
 		for (String text : textsToAdd){
 			if (length != entries.size()){
@@ -101,7 +118,7 @@ public class GameLog extends Component implements Signal.Listener<String> {
 				lastColor = color;
 				add( lastEntry );
 				
-				entries.add( new Entry( text, color ) );
+				entries.add( new Entry( text, color, now) );
 				
 			}
 			
@@ -163,17 +180,44 @@ public class GameLog extends Component implements Signal.Listener<String> {
 		}
 	}
 
-	private static class Entry {
+	public static class Entry {
 		public String text;
 		public int color;
-		public Entry( String text, int color ) {
+		public Date time;
+		public Entry( String text, int color, Date time ) {
 			this.text = text;
 			this.color = color;
+			this.time = time;
+		}
+
+		public String toBundleString() {
+
+			return String.format("%s~%s~%s", text, color, time.getTime());
 		}
 	}
 
 	public static void wipe() {
 		entries.clear();
 		textsToAdd.clear();
+	}
+
+	public static void storeInBundle(Bundle _bundle, List<Entry> _logs) {
+
+		_bundle.put(GAME_LOGS, _logs.stream()
+				.map(Entry::toBundleString)
+				.collect(Collectors.joining("|")));
+	}
+
+	public static void restoreFromBundle(Bundle _bundle, List<Entry> _logs) {
+
+		_logs.clear();
+
+		String[] logArrays = _bundle.getString(GAME_LOGS).split("\\|");
+		for (String logBundle : logArrays) {
+
+			if (logBundle.isEmpty()) continue;
+			String[] values = logBundle.split("~");
+			_logs.add(new Entry(values[0], Integer.parseInt(values[1]), new Date(Long.parseLong(values[2]))));
+		}
 	}
 }

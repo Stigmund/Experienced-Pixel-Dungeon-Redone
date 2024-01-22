@@ -64,12 +64,23 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_CAMERA_FOLLOW= "camera_follow";
 	public static final String KEY_SCREEN_SHAKE = "screen_shake";
 	public static final String KEY_GLITCH	= "cheest_glitch";
+	public static final String KEY_CAPTURE_LOGS	= "capture_logs";
 
 	public static void set( Preferences prefs, DownloadListener _downloadListener, Locale _local ) {
 
 		set(prefs);
 		Dungeon.downloadListener = _downloadListener;
 		LOCALE = _local;
+	}
+
+	public static boolean captureGameLogs() {
+
+		return getBoolean( KEY_CAPTURE_LOGS, false );
+	}
+
+	public static void captureGameLogs(boolean _captureGameLogs) {
+
+		put( KEY_CAPTURE_LOGS, _captureGameLogs );
 	}
 
 	public static void cheeseChestGlitch(boolean _value) {

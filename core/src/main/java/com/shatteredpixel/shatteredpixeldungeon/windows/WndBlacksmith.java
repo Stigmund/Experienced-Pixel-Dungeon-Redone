@@ -164,7 +164,7 @@ public class WndBlacksmith extends Window {
 				() -> (int) (500 * Math.pow(1.5, Blacksmith.Quest.upgrades))) {
 			@Override
 			protected void onClick() {
-				GameScene.selectItem(new UpgradeSelector());
+				GameScene.selectItem(new UpgradeSelector(getCostGen()));
 			}
 		};
 		buttons.add(upgrade);
@@ -525,6 +525,13 @@ public class WndBlacksmith extends Window {
 
 	private class UpgradeSelector extends WndBag.ItemSelector {
 
+		private final int cost;
+
+		public UpgradeSelector(int costGen) {
+			super();
+			cost = costGen;
+		}
+
 		@Override
 		public String textPrompt() {
 			return Messages.get(this, "prompt");
@@ -545,8 +552,7 @@ public class WndBlacksmith extends Window {
 		@Override
 		public void onSelect(Item item) {
 			if (item != null) {
-				int upgradeCost = (int) (500 * Math.pow(1.5, Blacksmith.Quest.reforges));
-				purchase(upgradeCost);
+				purchase(cost);
 				Blacksmith.Quest.upgrades++;
 
 				ScrollOfUpgrade upgrades = new ScrollOfUpgrade();

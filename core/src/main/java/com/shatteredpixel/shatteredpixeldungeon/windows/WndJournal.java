@@ -25,6 +25,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
@@ -45,10 +46,23 @@ import com.watabou.noosa.Image;
 import com.watabou.noosa.ui.Component;
 import com.watabou.utils.Reflection;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class WndJournal extends WndTabbed {
 	
@@ -65,6 +79,18 @@ public class WndJournal extends WndTabbed {
 	private NotesTab notesTab;
 	private CatalogTab catalogTab;
 	private LoreTab loreTab;
+	private LogTab logTab;
+
+	private static final Map<String, String> ordinalNumbers = new HashMap<String, String>(42){{
+
+		put("1", "1st");
+		put("2", "2nd");
+		put("3", "3rd");
+		put("21", "21st");
+		put("22", "22nd");
+		put("23", "23rd");
+		put("31", "31st");
+	}};
 
 	public static int last_index = 0;
 	
@@ -98,6 +124,11 @@ public class WndJournal extends WndTabbed {
 		add(loreTab);
 		loreTab.setRect(0, 0, width, height);
 		loreTab.updateList();
+
+		logTab = new LogTab();
+		add(logTab);
+		logTab.setRect(0, 0, width, height);
+		logTab.updateList();
 
 		Tab[] tabs = {
 				new IconTab( new ItemSprite(ItemSpriteSheet.MASTERY, null) ) {
@@ -134,6 +165,13 @@ public class WndJournal extends WndTabbed {
 						loreTab.active = loreTab.visible = value;
 						if (value) last_index = 4;
 					}
+				},
+				new IconTab( new ItemSprite(ItemSpriteSheet.HALLS_PAGE, null) ) {
+					protected void select( boolean value ) {
+						super.select( value );
+						logTab.active = logTab.visible = value;
+						if (value) last_index = 4;
+					}
 				}
 		};
 		
@@ -154,6 +192,131 @@ public class WndJournal extends WndTabbed {
 		notesTab.layout();
 		catalogTab.layout();
 		loreTab.layout();
+		logTab.layout();
+	}
+
+	public static class LogTab extends Component {
+
+		private ColorBlock line;
+		private ScrollingListPane.ListTitle title;
+		private ScrollPane scrollPane;
+
+		@Override
+		protected void createChildren() {
+			super.createChildren();
+
+			title = new ScrollingListPane.ListTitle("Game Logs");
+			add(title);
+
+			line = new ColorBlock( 1, 1, 0xFF222222);
+			add(line);
+
+			scrollPane = new ScrollPane(new Component());
+			add(scrollPane);
+		}
+
+		@Override
+		protected void layout() {
+			super.layout();
+		}
+
+		protected void updateList() {
+
+			int GAP = 2;
+			title.setSize(width, ITEM_HEIGHT);
+
+			line.size(width, 1);
+			line.x = x;
+			line.y = ITEM_HEIGHT;
+
+			float titleArea = ITEM_HEIGHT + line.height() + GAP;
+
+			scrollPane.setRect(0, titleArea, width, height - titleArea);
+
+			Component content = scrollPane.content();
+
+			float pos = GAP;
+			float col2X = PixelScene.renderTextBlock("00:00:00", 5).width() + GAP;
+			float col2W = width - col2X - scrollPane.thumb.width() - GAP;
+			SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+
+			int lastBg = 1; // start on 0 due to inverse result
+			int[] bgs = new int[]{0xFF666666, 0xFF555555}; // light then dark
+
+			for (Map.Entry<String, List<GameLog.Entry>> es : new LogDateFormatter().getLogMap().entrySet()) {
+
+				int thisBg = (lastBg == 0 ? 1 : 0);
+				lastBg = thisBg;
+
+				ColorBlock bg = new ColorBlock( 1, 1, bgs[thisBg]);
+				content.add(bg);
+				float startPos = pos;
+
+				RenderedTextBlock dateLine = PixelScene.renderTextBlock(es.getKey(), 5);
+				dateLine.hardlight(WHITE);
+				dateLine.setPos(0, pos);
+				content.add(dateLine);
+
+				pos += dateLine.height() + GAP;
+
+				for (GameLog.Entry e : es.getValue()) {
+
+					RenderedTextBlock line = PixelScene.renderTextBlock(timeFormat.format(e.time), 5);
+					line.hardlight(WHITE);
+					line.setPos(0, pos);
+					content.add(line);
+
+					RenderedTextBlock line2 = PixelScene.renderTextBlock(e.text, 5);
+					line2.hardlight(e.color);
+					line2.maxWidth((int) col2W);
+
+					line2.setPos(col2X, pos);
+					content.add(line2);
+
+					pos += line2.height() + GAP;
+				}
+
+				bg.x = 0;
+				bg.y = startPos - 2;
+				bg.size(width, (pos - startPos) + 2);
+
+				pos += GAP;
+			}
+
+			content.setSize(width, pos);
+			scrollPane.setRect(0, title.bottom() + GAP, width, height - title.height() - GAP);
+		}
+
+		private static class LogDateFormatter {
+
+			private final SimpleDateFormat dateFromat1 = new SimpleDateFormat("EEE, ");
+			private final SimpleDateFormat dateFromat2 = new SimpleDateFormat("d");
+			private final SimpleDateFormat dateFromat3 = new SimpleDateFormat(" MMM yyyy");
+			public Map<String, List<GameLog.Entry>> entriesByDate = new HashMap<>();
+
+			public LogDateFormatter() {}
+
+			public Map<String, List<GameLog.Entry>> getLogMap() {
+
+				Map<String, List<GameLog.Entry>> entriesByDate = new LinkedHashMap<>();
+				List<GameLog.Entry> entries = SPDSettings.captureGameLogs() ? Dungeon.hero.gameLogs : GameLog.entries;
+				Collections.reverse(entries);
+
+				// for debugging
+				//IntStream.range(0, 50).boxed().forEach(i -> entries.add(new GameLog.Entry("Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test Test 0000"+ i, Window.TITLE_COLOR, new Date())));
+
+				entries.forEach(e -> entriesByDate.computeIfAbsent(parse(e.time), k -> new ArrayList<>()).add(e));
+
+				return entriesByDate;
+			}
+			public String parse(Date _date) {
+
+				String day = dateFromat2.format(_date);
+				return dateFromat1.format(_date)
+						+ Optional.ofNullable(ordinalNumbers.get(day)).orElse(day +"th")
+						+ dateFromat3.format(_date);
+			}
+		}
 	}
 	
 	public static class GuideTab extends Component {
@@ -248,7 +411,7 @@ public class WndJournal extends WndTabbed {
 			title.visible = false;
 
 			body = PixelScene.renderTextBlock(6);
-			
+
 			list = new ScrollPane(new Component());
 			add(list);
 		}

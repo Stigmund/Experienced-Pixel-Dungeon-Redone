@@ -91,6 +91,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.AttackIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndResurrect;
@@ -170,6 +171,7 @@ public class Hero extends Char {
 	//This list is maintained so that some logic checks can be skipped
 	// for enemies we know we aren't seeing normally, resulting in better performance
 	public ArrayList<Mob> mindVisionEnemies = new ArrayList<>();
+	public ArrayList<GameLog.Entry> gameLogs = new ArrayList<>();
 
 	public Hero() {
 		super();
@@ -228,6 +230,7 @@ public class Hero extends Char {
     private static final String TOTAL_EXPERIENCE	= "totalExp";
 	private static final String HTBOOST     = "htboost";
 	private static final String GRINDING = "grinding";
+	public static final String GAME_LOGS = "logs";
 	private static final String PERKS = "perks";
 
 	public boolean isPerkActive(Perks.Perk _perk) {
@@ -259,9 +262,11 @@ public class Hero extends Char {
 
 		bundle.put(GRINDING, grinding);
 
+		GameLog.storeInBundle(bundle, gameLogs);
+
 		belongings.storeInBundle( bundle );
 	}
-	
+
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 
@@ -286,6 +291,7 @@ public class Hero extends Char {
 		totalExp = bundle.getInt(TOTAL_EXPERIENCE);
 		grinding = bundle.getBoolean(GRINDING);
 
+		GameLog.restoreFromBundle(bundle, gameLogs);
 
 		belongings.restoreFromBundle( bundle );
 	}

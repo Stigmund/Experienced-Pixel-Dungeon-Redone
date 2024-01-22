@@ -1,11 +1,13 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui.changelist;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Shortsword;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Rotberry;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BlacksmithSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WandmakerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
@@ -88,6 +90,12 @@ public class StigPDChanges {
                 "_-_ Ability to export the game to the game's external storage for manual copying afterwards (because even Android 10 can't write to public Documents!).\n"+
                 "_-_ Ability to import a game from the game's external storage and copy it to a new slot or overwrite an existing slot."));
 
+        changes.addButton(new ChangeButton(new ItemSprite(ItemSpriteSheet.HALLS_PAGE, null),
+                "Journal Game Logs",
+                "_-_ New System Setting to toggle saving game logs to the save slot.\n"+
+                        "_-_ New tab in the player's Journal displaying the game logs for either the current session or the player's entire logs, depending on the setting above."));
+
+
         changes.addButton(new ChangeButton(Icons.get(Icons.PREFS),
                 "Other Changes",
                 "_-_ Added a UI mechanism to allow items to define their own WndUseItem window!\n" +
@@ -95,5 +103,9 @@ public class StigPDChanges {
                         "_-_ Static access toasts for confirmation/error popups.\n" +
                         "_-_ Checkboxes can now have icons before the text.\n" +
                         "_-_ Item info windows now have scrollable text if the text is too large."));
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16),
+                "Bug Fixes",
+                "_-_ Blacksmith upgrade cost displaying correctly but using the reforge cost."));
     }
 }

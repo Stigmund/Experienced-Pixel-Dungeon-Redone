@@ -33,7 +33,7 @@ public class ScrollingListPane extends ScrollPane {
 
 	private ArrayList<Component> items = new ArrayList<>();
 
-	private static final int ITEM_HEIGHT	= 18;
+	public static final int ITEM_HEIGHT	= 18;
 
 	public ScrollingListPane(){
 		super(new Component());
@@ -166,7 +166,7 @@ public class ScrollingListPane extends ScrollPane {
 
 	public static class ListTitle extends Component {
 
-		protected RenderedTextBlock label;
+		public RenderedTextBlock label;
 		protected ColorBlock line;
 
 		public ListTitle (String title){
@@ -186,7 +186,7 @@ public class ScrollingListPane extends ScrollPane {
 		}
 
 		@Override
-		protected void layout() {
+		public void layout() {
 
 			line.size(width, 1);
 			line.x = x;

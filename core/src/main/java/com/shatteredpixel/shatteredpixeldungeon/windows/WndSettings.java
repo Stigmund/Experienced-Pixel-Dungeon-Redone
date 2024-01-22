@@ -406,6 +406,8 @@ public class WndSettings extends WndTabbed {
 		CheckBox chkFlipTags;
 		ColorBlock sep2;
 		CheckBox chkFont;
+		CheckBox chkSaveLogs;
+		ColorBlock sep3;
 
 		@Override
 		protected void createChildren() {
@@ -623,6 +625,29 @@ public class WndSettings extends WndTabbed {
 			};
 			chkFont.checked(SPDSettings.systemFont());
 			add(chkFont);
+
+			sep3 = new ColorBlock(1, 1, 0xFF000000);
+			add(sep3);
+
+			chkSaveLogs = new CheckBox("Save Game Logs"){
+				@Override
+				protected void onClick() {
+					super.onClick();
+					ShatteredPixelDungeon.seamlessResetScene(new Game.SceneChangeCallback() {
+						@Override
+						public void beforeCreate() {
+							SPDSettings.captureGameLogs(checked());
+						}
+
+						@Override
+						public void afterCreate() {
+							//do nothing
+						}
+					});
+				}
+			};
+			chkSaveLogs.checked(SPDSettings.captureGameLogs());
+			add(chkSaveLogs);
 		}
 
 		@Override
@@ -662,6 +687,12 @@ public class WndSettings extends WndTabbed {
 
 			chkFont.setRect(0, sep2.y + 1 + GAP, width, BTN_HEIGHT);
 			height = chkFont.bottom();
+
+			sep3.size(width, 1);
+			sep3.y = height + GAP;
+
+			chkSaveLogs.setRect(0, sep3.y + 1 + GAP, width, BTN_HEIGHT);
+			height = chkSaveLogs.bottom();
 		}
 
 	}
