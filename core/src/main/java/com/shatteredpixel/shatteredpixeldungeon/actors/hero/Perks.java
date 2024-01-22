@@ -38,13 +38,13 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWea
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Perks {
@@ -162,12 +162,47 @@ public class Perks {
         }
     }
 
+    /**
+     * Needed for a bug I introduced with the perk state,
+     * May as well leave it in.
+     * @param hero
+     */
+    public static void replaceDuplicatePerks(Hero hero) {
+
+        // perk states is a map, it can only hold unique perks.
+        if (hero.perks.size() == hero.perkStates.size()) return;
+
+        // if somehow we've used all the perks and still have duplicates!
+        boolean hasAll = Perk.values().length == hero.perkStates.size();
+
+        List<Perk> foundPerks = new ArrayList<>();
+        for (int i = 0; i < hero.perks.size(); i++) {
+
+            Perk p = hero.perks.get(i);
+            if (!foundPerks.contains(p)) {
+
+                foundPerks.add(p);
+            }
+            else if (!hasAll) {
+
+                Perk perk;
+                do {
+                    perk = Random.element(Perk.values());
+                } while (hero.perks.contains(perk));
+
+                hero.perks.set(i, perk);
+                hero.perkStates.put(perk, true);
+                foundPerks.add(perk);
+            }
+        }
+    }
+
     public static void addPerk(Hero hero) {
 
         Perk perk;
         do {
             perk = Random.element(Perk.values());
-        } while (hero.isPerkActive(perk));
+        } while (hero.perks.contains(perk));
         hero.perks.add(perk);
         hero.perkStates.put(perk, true);
         GLog.p(Messages.get(Perks.class, "perk_obtain", perk.toString()));
