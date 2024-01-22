@@ -248,21 +248,21 @@ public class Blacksmith extends NPC {
 			Game.runOnRenderThread(new Callback() {
 				@Override
 				public void call() {
-					GameScene.show( new WndBlacksmith.WndReforge( Blacksmith.this, null ) );
+					GameScene.show( new WndBlacksmith.WndReforge( Blacksmith.this, null, 2500 ) );
 				}
 			});
 
-		} else if (Statistics.questScores[2] >= 2500) {
+		} else if (Statistics.questScores[2] >= WndBlacksmith.WndSmith.cost) {
 
 			Game.runOnRenderThread(new Callback() {
 				@Override
 				public void call() {
 					//in case game was closed during smith reward selection
-					if (Quest.smithRewards != null && Quest.smiths > 0){
-						GameScene.show( new WndBlacksmith.WndSmith( Blacksmith.this, Dungeon.hero ) );
-					} else {
+					//if (Quest.smithRewards != null && Quest.smiths > 0){
+					//	GameScene.show( new WndBlacksmith.WndSmith( Blacksmith.this, Dungeon.hero ) );
+					//} else {
 						GameScene.show(new WndBlacksmith(Blacksmith.this, Dungeon.hero));
-					}
+					//}
 				}
 			});
 

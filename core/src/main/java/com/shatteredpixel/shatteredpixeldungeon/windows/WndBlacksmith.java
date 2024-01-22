@@ -109,7 +109,7 @@ public class WndBlacksmith extends Window {
 
 		BlacksmithButton pickaxe = new BlacksmithButton(
 				(btn) -> Messages.get(this, "pickaxe", btn.getCostGen(), btn.getCostUnit()),
-				() -> Blacksmith.Quest.pickaxe != null ? (Statistics.questScores[2] >= 2500 ? 0 : 250) : null) {
+				() -> Blacksmith.Quest.pickaxe != null ? (Statistics.questScores[2] >= WndBlacksmith.WndSmith.cost ? 0 : 250) : null) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndOptions(
@@ -143,7 +143,7 @@ public class WndBlacksmith extends Window {
 				() -> (int) (200 * Math.pow(1.5, Blacksmith.Quest.reforges))) {
 			@Override
 			protected void onClick() {
-				GameScene.show(new WndReforge(troll, WndBlacksmith.this));
+				GameScene.show(new WndReforge(troll, WndBlacksmith.this, getCostGen()));
 			}
 		};
 		buttons.add(reforge);
@@ -154,7 +154,7 @@ public class WndBlacksmith extends Window {
 				() -> (int) (500 * Math.pow(1.5, Blacksmith.Quest.hardens))) {
 			@Override
 			protected void onClick() {
-				GameScene.selectItem(new HardenSelector());
+				GameScene.selectItem(new HardenSelector(getCostGen()));
 			}
 		};
 		buttons.add(harden);
@@ -337,7 +337,7 @@ public class WndBlacksmith extends Window {
 		private ItemButton btnItem2;
 		private RedButton btnReforge;
 
-		public WndReforge( Blacksmith troll, Window wndParent ) {
+		public WndReforge( Blacksmith troll, Window wndParent, int cost ) {
 			super();
 
 			IconTitle titlebar = new IconTitle();
@@ -424,7 +424,7 @@ public class WndBlacksmith extends Window {
 					Badges.validateItemLevelAquired( first );
 					Item.updateQuickslot();
 
-					purchase((int) (200 * Math.pow(1.5, Blacksmith.Quest.reforges)));
+					purchase(cost);
 					Blacksmith.Quest.reforges++;
 
 					hide();
@@ -484,6 +484,13 @@ public class WndBlacksmith extends Window {
 
 	private class HardenSelector extends WndBag.ItemSelector {
 
+		int cost = 0;
+
+		public HardenSelector(int cost) {
+			super();
+			this.cost = cost;
+		}
+
 		@Override
 		public String textPrompt() {
 			return Messages.get(this, "prompt");
@@ -511,8 +518,7 @@ public class WndBlacksmith extends Window {
 					((Armor) item).glyphHardened = true;
 				}
 
-				int hardenCost = (int) (500 * Math.pow(1.5, Blacksmith.Quest.reforges));
-				purchase(hardenCost);
+				purchase(cost);
 				Blacksmith.Quest.hardens++;
 
 				WndBlacksmith.this.hide();
@@ -580,6 +586,7 @@ public class WndBlacksmith extends Window {
 		private static final int BTN_SIZE	= 32;
 		private static final int BTN_GAP	= 5;
 		private static final int GAP		= 2;
+		public static final int cost = 2500;
 
 		public WndSmith( Blacksmith troll, Hero hero ){
 			super();
@@ -692,7 +699,7 @@ public class WndBlacksmith extends Window {
 							protected void onSelect(int index) {
 								if (index == 0){
 
-									purchase(2500);
+									purchase(WndSmith.cost);
 									Blacksmith.Quest.smiths++;
 
 									item.identify(false);
