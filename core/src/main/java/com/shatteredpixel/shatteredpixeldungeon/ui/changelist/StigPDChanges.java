@@ -108,6 +108,7 @@ public class StigPDChanges {
                 "Bug Fixes",
                 "_-_ Blacksmith upgrade cost displaying correctly but using the reforge cost.\n" +
                         "_-_ Duelist weapon swap button now visually updates when pressed.\n" +
-                        "_-_ Fixed bug with slime drop if all probs had been exhausted"));
+                        "_-_ Fixed bug with slime drop if all probs had been exhausted.\n" +
+                        "_-_ Fixed Ghost Quest weapon reward being a tier set higher than it should be."));
     }
 }

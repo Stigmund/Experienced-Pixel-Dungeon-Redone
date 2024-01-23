@@ -350,7 +350,9 @@ public class Ghost extends NPC {
                 }
 				weapon.upgrade(itemLevel);
 				armor.upgrade(itemLevel);
-                ((MeleeWeapon)weapon).tier += Dungeon.cycle * 5;
+
+				// MeleeWeapon deals with this itself, armour doesn't
+                //((MeleeWeapon)weapon).tier += Dungeon.cycle * 5;
                 armor.tier += Dungeon.cycle * 5;
 
 				//10% to be enchanted. We store it separately so enchant status isn't revealed early
