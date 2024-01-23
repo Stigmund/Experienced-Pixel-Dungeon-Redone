@@ -106,6 +106,8 @@ public class StigPDChanges {
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16),
                 "Bug Fixes",
-                "_-_ Blacksmith upgrade cost displaying correctly but using the reforge cost."));
+                "_-_ Blacksmith upgrade cost displaying correctly but using the reforge cost.\n" +
+                        "_-_ Duelist weapon swap button now visually updates when pressed.\n" +
+                        "_-_ Fixed bug with slime drop if all probs had been exhausted"));
     }
 }

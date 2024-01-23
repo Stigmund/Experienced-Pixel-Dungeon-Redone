@@ -666,6 +666,7 @@ private static boolean evaluatingTwinUpgrades = false;
 
 			ActionIndicator.setAction(this);
 			Item.updateQuickslot();
+			ActionIndicator.refresh();
 			AttackIndicator.updateState();
 		}
 	}

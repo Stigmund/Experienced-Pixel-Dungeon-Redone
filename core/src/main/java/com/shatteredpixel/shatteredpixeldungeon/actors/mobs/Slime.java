@@ -24,6 +24,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
+import static com.shatteredpixel.shatteredpixeldungeon.items.Generator.random;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
@@ -114,11 +116,17 @@ public class Slime extends Mob {
 	
 	@Override
 	public Item createLoot() {
+
 		Dungeon.LimitedDrops.SLIME_WEP.count++;
-		Generator.Category c = Generator.Category.WEP_T2;
-		MeleeWeapon w = (MeleeWeapon) Reflection.newInstance(c.classes[Dungeon.chances(c.probs)]);
-		w.random();
+		// causes bugs because it doesn't reset the probs.
+		//MeleeWeapon w = (MeleeWeapon) Reflection.newInstance(c.classes[Dungeon.chances(c.probs)]);
+
+		// random also increases the Cat's count, which didn't happen here -
+		// is the Cat.count++ wrong because Dungeon.LimitedDrops.SLIME_WEP.count++ exists instead?
+		MeleeWeapon w = (MeleeWeapon) random(Generator.Category.WEP_T2);
+		//w.random();
 		w.level(0);
+
 		return w;
 	}
 }
