@@ -34,6 +34,11 @@ public abstract class BlacksmithWeapon extends MeleeWeapon {
         internalTier = tier = 3;
     }
 
+    public BlacksmithWeapon() {
+
+        setCorrectTier();
+    }
+
     @Override
     public int min(int lvl) {
         return  (tier+Dungeon.cycle*5)*2 +  //base
