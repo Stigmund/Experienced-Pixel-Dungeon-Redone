@@ -2,6 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui.changelist;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.KingBlade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Shortsword;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Rotberry;
@@ -33,8 +34,14 @@ public class StigPDChanges {
         changes.addButton(new ChangeButton(Icons.get(Icons.CHEESY_CHEEST),
                 "Cheesy Cheest Glitch",
                 "_-_ Re-introduced the Incredibly Cheesy Cheest's duplication glitch. Because why not!\n" +
-                        "Optional!\n" +
-                        "When you have the Cheesy Cheest, simply click it in the item inventory to see an additional checkbox to toggle the glitch."));
+                        "_-_ Optional!\n" +
+                        "_-_ When you have the Cheesy Cheest, simply click it in the item inventory to see an additional checkbox to toggle the glitch.\n" +
+                        "_-_ This is a global setting and persists though all games!"));
+
+        changes.addButton(new ChangeButton(new ItemSprite(new KingBlade()),
+                "King's Blade",
+                "_-_ King's blade proc effects are now toggleable from the item's info menu!\n" +
+                        "_-_ This is a global setting and persists though all games!"));
 
         changes.addButton(new ChangeButton(new ItemSprite(new Shortsword()),
                 "Minimum Range",

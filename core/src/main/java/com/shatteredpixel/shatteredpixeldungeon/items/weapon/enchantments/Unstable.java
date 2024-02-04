@@ -49,6 +49,23 @@ public class Unstable extends Weapon.Enchantment {
 			Vampiric.class
 	};
 
+	public final Weapon.Enchantment proc;
+
+	public Unstable() {
+
+		proc = Reflection.newInstance(Random.oneOf(randomEnchants));
+	}
+
+	public Class<? extends Weapon.Enchantment> getProcClass() {
+
+		return proc.getClass();
+	}
+
+	public String getProcName() {
+
+		return proc.getClass().getSimpleName();
+	}
+
 	@Override
 	public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
 		
@@ -57,8 +74,8 @@ public class Unstable extends Weapon.Enchantment {
 			conservedDamage = attacker.buff(Kinetic.ConservedDamage.class).damageBonus();
 			attacker.buff(Kinetic.ConservedDamage.class).detach();
 		}
-		
-		damage = Reflection.newInstance(Random.oneOf(randomEnchants)).proc( weapon, attacker, defender, damage );
+
+		damage = proc.proc( weapon, attacker, defender, damage );
 		
 		return damage + conservedDamage;
 	}

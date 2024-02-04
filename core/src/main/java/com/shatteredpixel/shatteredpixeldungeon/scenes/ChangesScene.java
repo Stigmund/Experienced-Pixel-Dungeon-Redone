@@ -44,7 +44,7 @@ import java.util.ArrayList;
 
 public class ChangesScene extends PixelScene {
 	
-	public static int changesSelected = 3;
+	public static int changesSelected = 2;
 
 	private NinePatch rightPanel;
 	private ScrollPane rightScroll;
@@ -144,7 +144,7 @@ if (Messages.lang() != Languages.ENGLISH){
 				v0_2_X_Changes.addAllChanges(changeInfos);
 				v0_1_X_Changes.addAllChanges(changeInfos);
 				break;
-			case 3:
+			case 2:
 				StigPDChanges.addAllChanges(changeInfos);
 		}
 
@@ -205,13 +205,13 @@ if (Messages.lang() != Languages.ENGLISH){
 			@Override
 			protected void onClick() {
 				super.onClick();
-				if (changesSelected != 3) {
-					changesSelected = 3;
+				if (changesSelected != 2) {
+					changesSelected = 2;
 					ShatteredPixelDungeon.seamlessResetScene();
 				}
 			}
 		};
-		if (changesSelected == 3) btnSTIG.textColor(Window.TITLE_COLOR);
+		if (changesSelected == 2) btnSTIG.textColor(Window.TITLE_COLOR);
 		btnSTIG.setRect(list.left()-4f, list.bottom()+5, bWidth, 14);
 		add(btnSTIG);
 

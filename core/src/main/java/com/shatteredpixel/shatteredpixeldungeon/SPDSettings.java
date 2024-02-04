@@ -65,12 +65,23 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_SCREEN_SHAKE = "screen_shake";
 	public static final String KEY_GLITCH	= "cheest_glitch";
 	public static final String KEY_CAPTURE_LOGS	= "capture_logs";
+	public static final String KEY_KING_BLADE_TOGGLE	= "kingblade_toggle";
 
 	public static void set( Preferences prefs, DownloadListener _downloadListener, Locale _local ) {
 
 		set(prefs);
 		Dungeon.downloadListener = _downloadListener;
 		LOCALE = _local;
+	}
+
+	public static boolean kingBlade() {
+
+		return getBoolean( KEY_KING_BLADE_TOGGLE, true );
+	}
+
+	public static void kingBlade(boolean _state) {
+
+		put( KEY_KING_BLADE_TOGGLE, _state );
 	}
 
 	public static boolean captureGameLogs() {

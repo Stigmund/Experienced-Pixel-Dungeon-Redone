@@ -24,12 +24,77 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.quest;
 
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Unstable;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndCheeseCheest;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndKingBlade;
+import com.watabou.utils.Random;
 
 public class KingBlade extends Item {
+    public static final String AC_TOGGLE = "TOGGLE";
+
     {
         image = ItemSpriteSheet.KING_BLADE;
+
+        itemWindow = WndKingBlade.class;
+    }
+
+    public static int checkAndProc(Char _attacker, Char _defender, Weapon _weapon, int _damage) {
+
+        int damage = _damage;
+
+        if (_attacker instanceof Hero) {
+
+            for (Item item: ((Hero) _attacker).belongings.backpack) {
+
+                if (item instanceof KingBlade && SPDSettings.kingBlade()) {
+
+                    // get two unique procs!
+                    Unstable proc1 = new Unstable();
+                    Unstable proc2;
+                    do {
+                        proc2 = new Unstable();
+                    } while (proc2.getProcClass().equals(proc1.getProcClass()));
+
+                    damage = proc1.proc(_weapon, _attacker, _defender, damage);
+                    damage = proc2.proc(_weapon, _attacker, _defender, damage);
+                    logProcs(proc1.getProcName(), proc2.getProcName());
+                }
+            }
+        }
+
+        return damage;
+    }
+
+    private static void logProcs(String _procName1, String _procName2) {
+
+        GLog.i(String.format("%s%s",
+                GLog.POSITIVE,
+                Messages.get(KingBlade.class, "procs", _procName1, _procName2)));
+    }
+
+    @Override
+    public void execute(Hero hero, String action ) {
+
+        super.execute( hero, action );
+
+        if (action.equals( AC_TOGGLE )) {
+
+            boolean state = !SPDSettings.kingBlade();
+            SPDSettings.kingBlade(state);
+
+            GLog.i(String.format("%s%s",
+                    (state ? GLog.POSITIVE : GLog.NEGATIVE),
+                    Messages.get(this, "toggle", (SPDSettings.kingBlade() ? "On" : "Off"))));
+        }
     }
 
     @Override

@@ -279,14 +279,14 @@ Dungeon.daily = Dungeon.dailyReplay = false;
 						if (index == 0) {
 							Updates.launchUpdate(Updates.updateData());
 						} else if (index == 1){
-							ChangesScene.changesSelected = 0;
+							ChangesScene.changesSelected = 2;
 							ShatteredPixelDungeon.switchNoFade( ChangesScene.class );
 						}
 					}
 				});
 
 			} else {
-				ChangesScene.changesSelected = 0;
+				ChangesScene.changesSelected = 2;
 				ShatteredPixelDungeon.switchNoFade( ChangesScene.class );
 			}
 		}

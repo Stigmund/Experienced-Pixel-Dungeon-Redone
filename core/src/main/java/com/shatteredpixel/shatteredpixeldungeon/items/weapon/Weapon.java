@@ -26,6 +26,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
@@ -106,14 +107,8 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 		if (enchantment != null && attacker.buff(MagicImmune.class) == null) {
 			damage = enchantment.proc( this, attacker, defender, damage );
 		}
-		if (attacker instanceof Hero){
-		    for (Item item: ((Hero) attacker).belongings.backpack){
-		        if (item instanceof KingBlade){
-		            damage = new Unstable().proc(this,attacker,defender,damage);
-                    damage = new Unstable().proc(this,attacker,defender,damage);
-                }
-            }
-        }
+
+		damage = KingBlade.checkAndProc((Hero) attacker, defender, this, damage);
 
 		if (!levelKnown && attacker == Dungeon.hero) {
 			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero, this) );

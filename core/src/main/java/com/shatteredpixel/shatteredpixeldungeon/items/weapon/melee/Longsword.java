@@ -26,6 +26,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -117,14 +118,8 @@ public class Longsword extends MeleeWeapon {
 						if (enchantment != null && attacker.buff(MagicImmune.class) == null) {
 							dmg = enchantment.proc( this, attacker, defender, damage );
 						}
-						if (attacker instanceof Hero){
-							for (Item item: ((Hero) attacker).belongings.backpack){
-								if (item instanceof KingBlade){
-									dmg = new Unstable().proc(this,attacker,defender,damage);
-									dmg = new Unstable().proc(this,attacker,defender,damage);
-								}
-							}
-						}
+
+						dmg = KingBlade.checkAndProc((Hero) attacker, defender, this, dmg);
 						ch.damage(dmg, this);
 					}
 				}
