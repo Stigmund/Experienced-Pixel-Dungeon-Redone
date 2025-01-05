@@ -123,7 +123,7 @@ public class WndGameInProgress extends Window {
 		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), _info.maxDepth );
 
 		if (_info.cycle != 0){
-			pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), (_info.maxDepth) + " " + Messages.get(this, "cycle", info.cycle) );
+			pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), (_info.maxDepth) + " " + Messages.get(WndGameInProgress.class, "cycle", _info.cycle) );
 		} else {
 			pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), _info.maxDepth );
 		}

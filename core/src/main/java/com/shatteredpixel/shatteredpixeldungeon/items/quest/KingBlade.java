@@ -47,9 +47,9 @@ public class KingBlade extends Item {
         itemWindow = WndKingBlade.class;
     }
 
-    public static int checkAndProc(Char _attacker, Char _defender, Weapon _weapon, int _damage) {
+    public static long checkAndProc(Char _attacker, Char _defender, Weapon _weapon, long _damage) {
 
-        int damage = _damage;
+        long damage = _damage;
 
         if (_attacker instanceof Hero) {
 
