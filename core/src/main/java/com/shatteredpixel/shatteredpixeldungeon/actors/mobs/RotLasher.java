@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RotLasherSprite;
-import com.watabou.utils.Random;
 
 public class RotLasher extends Mob {
 
@@ -68,14 +69,15 @@ public class RotLasher extends Mob {
 
 	@Override
 	protected boolean act() {
-		if (enemy == null || !Dungeon.level.adjacent(pos, enemy.pos)) {
-			HP = Math.min(HT, HP + 3 + Dungeon.cycle * 25);
+		if (HP < HT && (enemy == null || !Dungeon.level.adjacent(pos, enemy.pos))) {
+			sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(Math.min(5, HT - HP)), FloatingText.HEALING);
+			HP = Math.min(HT, HP + 3 + Dungeon.cycle * 25L);
 		}
 		return super.act();
 	}
 
 	@Override
-	public void damage(int dmg, Object src) {
+	public void damage(long dmg, Object src) {
 		if (src instanceof Burning) {
 			destroy();
 			sprite.die();
@@ -85,7 +87,7 @@ public class RotLasher extends Mob {
 	}
 
 	@Override
-	public int attackProc(Char enemy, int damage) {
+	public long attackProc(Char enemy, long damage) {
 		damage = super.attackProc( enemy, damage );
 		Buff.affect( enemy, Cripple.class, 2f );
 		return super.attackProc(enemy, damage);
@@ -107,12 +109,12 @@ public class RotLasher extends Mob {
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(45, 63);
-            case 2: return Random.NormalIntRange(250, 324);
+            case 1: return Dungeon.NormalLongRange(45, 63);
+            case 2: return Dungeon.NormalLongRange(250, 324);
         }
-		return Random.NormalIntRange(10, 20);
+		return Dungeon.NormalLongRange(10, 20);
 	}
 
 	@Override
@@ -125,12 +127,12 @@ public class RotLasher extends Mob {
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(14, 34);
-            case 2: return Random.NormalIntRange(140, 234);
+            case 1: return Dungeon.NormalLongRange(14, 34);
+            case 2: return Dungeon.NormalLongRange(140, 234);
         }
-		return Random.NormalIntRange(0, 8);
+		return Dungeon.NormalLongRange(0, 8);
 	}
 	
 	{

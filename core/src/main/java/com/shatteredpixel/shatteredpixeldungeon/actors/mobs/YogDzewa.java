@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,17 +21,28 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
-import com.shatteredpixel.shatteredpixeldungeon.*;
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
-import com.shatteredpixel.shatteredpixeldungeon.effects.*;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CreativeGloves;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Clayball;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -44,7 +55,12 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
-import com.watabou.utils.*;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.GameMath;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,11 +100,17 @@ public class YogDzewa extends Mob {
                 EXP = 2000000;
                 break;
             case 4:
-                HP = HT = 2000000000;
+                HP = HT = 4000000000L;
                 defenseSkill = 0;
                 EXP = 1500000000;
                 break;
+			case 5:
+				HP = HT = 95000000000L;
+				defenseSkill = 0;
+				EXP = 20000000000L;
+				break;
         }
+		properties.add(Property.STATIC);
 	}
 
 	private int phase = 0;
@@ -101,7 +123,7 @@ public class YogDzewa extends Mob {
 	private static final int MIN_SUMMON_CD = 10;
 	private static final int MAX_SUMMON_CD = 15;
 
-	public int takenDamage;
+	public long takenDamage;
 
 	private static Class getPairedFist(Class fist){
 		if (fist == YogFist.BurningFist.class) return YogFist.SoiledFist.class;
@@ -166,7 +188,7 @@ public class YogDzewa extends Mob {
 		return INFINITE_ACCURACY;
 	}
 
-	public int phaseLife(int phase){
+	public long phaseLife(int phase){
 		if (phase == 4)
 			return HT/10;
 		else
@@ -201,25 +223,7 @@ public class YogDzewa extends Mob {
 			}
 		}
 
-		if (phase == 4 && findFist() == null){
-			yell(Messages.get(this, "hope"));
-			summonCooldown = -15; //summon a burst of minions!
-			phase = 5;
-			BossHealthBar.bleed(true);
-			Game.runOnRenderThread(new Callback() {
-				@Override
-				public void call() {
-					Music.INSTANCE.fadeOut(0.5f, new Callback() {
-						@Override
-						public void call() {
-							Music.INSTANCE.play(Assets.Music.HALLS_BOSS_FINALE, true);
-						}
-					});
-				}
-			});
-		}
-
-		int healingTarget = Dungeon.hero.HT / 15;
+		long healingTarget = Dungeon.hero.HT / 15;
 		if (YogFist.isNearYog(Dungeon.hero.pos))
 			healingTarget *= 2;
 
@@ -265,15 +269,16 @@ public class YogDzewa extends Mob {
 					}
 
 					if (hit( this, ch, true )) {
-						int dmg = Random.NormalIntRange(20, 30);
+						long dmg = Dungeon.NormalLongRange(20, 30);
 						switch (Dungeon.cycle){
-							case 1: dmg = Random.NormalIntRange(120, 175); break;
-							case 2: dmg = Random.NormalIntRange(370, 502); break;
-							case 3: dmg = Random.NormalIntRange(2650, 4000); break;
-							case 4: dmg = Random.NormalIntRange(179000, 320000); break;
+							case 1: dmg = Dungeon.NormalLongRange(120, 175); break;
+							case 2: dmg = Dungeon.NormalLongRange(370, 502); break;
+							case 3: dmg = Dungeon.NormalLongRange(2650, 4000); break;
+							case 4: dmg = Dungeon.NormalLongRange(179000, 320000); break;
+							case 5: dmg = Dungeon.NormalLongRange(6400000, 10000000); break;
 						}
 						if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)) {
-							ch.damage(Math.round(dmg*1.5f), new Eye.DeathGaze());
+							ch.damage(dmg*25000L, new Eye.DeathGaze());
 						} else {
 							ch.damage(dmg, new Eye.DeathGaze());
 						}
@@ -295,7 +300,7 @@ public class YogDzewa extends Mob {
 
 			if (abilityCooldown <= 0){
 
-				int beams = 1 + (HT - HP)/(HT / 5 * 2);
+				long beams = 1 + (HT - HP)/(HT / 5 * 2);
 				HashSet<Integer> affectedCells = new HashSet<>();
 				for (int i = 0; i < beams; i++){
 
@@ -331,7 +336,7 @@ public class YogDzewa extends Mob {
 				}
 
 				//don't want to overly punish players with slow move or attack speed
-				spend(GameMath.gate(TICK, Dungeon.hero.cooldown(), 3*TICK));
+				spend(GameMath.gate(TICK, (int)Math.ceil(Dungeon.hero.cooldown()), 3*TICK));
 				Dungeon.hero.interrupt();
 
 				abilityCooldown += Random.NormalFloat(MIN_ABILITY_CD, MAX_ABILITY_CD);
@@ -403,6 +408,28 @@ public class YogDzewa extends Mob {
 		return true;
 	}
 
+	public void processFistDeath(){
+		//normally Yog has no logic when a fist dies specifically
+		//but the very last fist to die does trigger the final phase
+		if (phase == 4 && findFist() == null){
+			yell(Messages.get(this, "hope"));
+			summonCooldown = -15; //summon a burst of minions!
+			phase = 5;
+			BossHealthBar.bleed(true);
+			Game.runOnRenderThread(new Callback() {
+				@Override
+				public void call() {
+					Music.INSTANCE.fadeOut(0.5f, new Callback() {
+						@Override
+						public void call() {
+							Music.INSTANCE.play(Assets.Music.HALLS_BOSS_FINALE, true);
+						}
+					});
+				}
+			});
+		}
+	}
+
 	@Override
 	public boolean isAlive() {
 		return super.isAlive() || phase != 5;
@@ -439,15 +466,14 @@ public class YogDzewa extends Mob {
 	}
 
 	@Override
-	public void damage( int dmg, Object src ) {
-        if (Dungeon.cycle == 4) dmg /= 2;
-		int preHP = HP;
+	public void damage( long dmg, Object src ) {
+		long preHP = HP;
 		super.damage( dmg, src );
 
 		if (phase == 0 || findFist() != null) return;
 
 		HP = Math.max(HP, phaseLife(phase));
-		int dmgTaken = preHP - HP;
+		long dmgTaken = preHP - HP;
 		takenDamage += dmgTaken / 1.5f;
 
 		if (dmgTaken > 0) {
@@ -458,7 +484,7 @@ public class YogDzewa extends Mob {
 		phaseTransition();
 
 		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (lock != null){
+		if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
 			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmgTaken/3f);
 			else                                                    lock.addTime(dmgTaken/2f);
 		}
@@ -498,12 +524,14 @@ public class YogDzewa extends Mob {
 	}
 
 	public void updateVisibility( Level level ){
+		int viewDistance = 4;
 		if (phase > 1 && isAlive()){
-			level.viewDistance = 4 - (phase-1);
-		} else {
-			level.viewDistance = 4;
+			viewDistance = Math.max(4 - (phase-1), 1);
 		}
-		level.viewDistance = Math.max(1, level.viewDistance);
+		if (Dungeon.isChallenged(Challenges.DARKNESS)) {
+			viewDistance = Math.min(viewDistance, 2);
+		}
+		level.viewDistance = viewDistance;
 		if (Dungeon.hero != null) {
 			if (Dungeon.hero.buff(Light.class) == null) {
 				Dungeon.hero.viewDistance = level.viewDistance;
@@ -533,7 +561,7 @@ public class YogDzewa extends Mob {
 	@Override
 	public void aggro(Char ch) {
 		for (Mob mob : (Iterable<Mob>)Dungeon.level.mobs.clone()) {
-			if (Dungeon.level.distance(pos, mob.pos) <= 4 &&
+			if (mob != ch && Dungeon.level.distance(pos, mob.pos) <= 4 &&
 					(mob instanceof Larva || mob instanceof YogRipper || mob instanceof YogEye || mob instanceof YogScorpio)) {
 				mob.aggro(ch);
 			}
@@ -543,7 +571,7 @@ public class YogDzewa extends Mob {
 	public void stealLife(Char target, long amount){
 		phaseTransition();
 
-		int healCap = phaseLife(phase-1);
+		long healCap = phaseLife(phase-1);
 		if (HP + amount > healCap)
 			amount -= HP + amount - healCap;
 		if (amount <= 0)
@@ -563,11 +591,13 @@ public class YogDzewa extends Mob {
 	@Override
 	public void die( Object cause ) {
 
+		Bestiary.skipCountingEncounters = true;
 		for (Mob mob : (Iterable<Mob>)Dungeon.level.mobs.clone()) {
 			if (mob instanceof Larva || mob instanceof YogRipper || mob instanceof YogEye || mob instanceof YogScorpio) {
 				mob.die( cause );
 			}
 		}
+		Bestiary.skipCountingEncounters = false;
 
 		updateVisibility(Dungeon.level);
 
@@ -627,17 +657,6 @@ public class YogDzewa extends Mob {
 		return desc;
 	}
 
-	{
-		immunities.add( Dread.class );
-		immunities.add( Terror.class );
-		immunities.add( Amok.class );
-		immunities.add( Charm.class );
-		immunities.add( Sleep.class );
-		immunities.add( Vertigo.class );
-		immunities.add( Frost.class );
-		immunities.add( Paralysis.class );
-	}
-
 	private static final String PHASE = "phase";
 
 	private static final String ABILITY_CD = "ability_cd";
@@ -694,7 +713,7 @@ public class YogDzewa extends Mob {
 		}
 
 		if (bundle.contains(TAKEN_DMG))
-			takenDamage = bundle.getInt(TAKEN_DMG);
+			takenDamage = bundle.getLong(TAKEN_DMG);
 	}
 
 	public static class Larva extends Mob {
@@ -731,6 +750,11 @@ public class YogDzewa extends Mob {
                     defenseSkill = 17000;
                     EXP = 1000000;
                     break;
+				case 5:
+					HP = HT = 1400000000;
+					defenseSkill = 57500;
+					EXP = 30000000;
+					break;
             }
 			properties.add(Property.BOSS_MINION);
 		}
@@ -742,33 +766,35 @@ public class YogDzewa extends Mob {
                 case 2: return 500;
                 case 3: return 1250;
                 case 4: return 20000;
+				case 5: return 265000;
             }
 			return 30;
 		}
 
 		@Override
-		public int damageRoll() {
+		public long damageRoll() {
             switch (Dungeon.cycle) {
-                case 1: return Random.NormalIntRange(70, 91);
-                case 2: return Random.NormalIntRange(325, 440);
-                case 3: return Random.NormalIntRange(2500, 4000);
-                case 4: return Random.NormalIntRange(360000, 460000);
+                case 1: return Dungeon.NormalLongRange(70, 91);
+                case 2: return Dungeon.NormalLongRange(325, 440);
+                case 3: return Dungeon.NormalLongRange(2500, 4000);
+                case 4: return Dungeon.NormalLongRange(360000, 460000);
+				case 5: return Dungeon.NormalLongRange(6000000, 9000000);
             }
-			return Random.NormalIntRange( 15, 25 );
+			return Dungeon.NormalLongRange( 15, 25 );
 		}
 
 		@Override
-		public int cycledDrRoll() {
+		public long cycledDrRoll() {
             switch (Dungeon.cycle){
-                case 1: return Random.NormalIntRange(40, 63);
-                case 2: return Random.NormalIntRange(125, 248);
-                case 3: return Random.NormalIntRange(1600, 2800);
+                case 1: return Dungeon.NormalLongRange(40, 63);
+                case 2: return Dungeon.NormalLongRange(125, 248);
+                case 3: return Dungeon.NormalLongRange(1600, 2800);
             }
-			return Random.NormalIntRange(0, 4);
+			return Dungeon.NormalLongRange(0, 4);
 		}
 
 		@Override
-		public int attackProc(Char enemy, int damage) {
+		public long attackProc(Char enemy, long damage) {
 			for (Mob mob : (Iterable<Mob>)Dungeon.level.mobs.clone()){
 				if (mob instanceof YogDzewa && mob.isAlive()){
 					((YogDzewa) mob).stealLife(enemy, damage / 2);
@@ -786,7 +812,7 @@ public class YogDzewa extends Mob {
 		}
 
 		@Override
-		public int attackProc(Char enemy, int damage) {
+		public long attackProc(Char enemy, long damage) {
 			for (Mob mob : (Iterable<Mob>)Dungeon.level.mobs.clone()){
 				if (mob instanceof YogDzewa && mob.isAlive()){
 					((YogDzewa) mob).stealLife(enemy, damage / 2);
@@ -802,7 +828,7 @@ public class YogDzewa extends Mob {
 		}
 
 		@Override
-		public int attackProc(Char enemy, int damage) {
+		public long attackProc(Char enemy, long damage) {
 			for (Mob mob : (Iterable<Mob>)Dungeon.level.mobs.clone()){
 				if (mob instanceof YogDzewa && mob.isAlive()){
 					((YogDzewa) mob).stealLife(enemy, damage / 2);
@@ -818,7 +844,7 @@ public class YogDzewa extends Mob {
 		}
 
 		@Override
-		public int attackProc(Char enemy, int damage) {
+		public long attackProc(Char enemy, long damage) {
 			for (Mob mob : (Iterable<Mob>)Dungeon.level.mobs.clone()){
 				if (mob instanceof YogDzewa && mob.isAlive()){
 					((YogDzewa) mob).stealLife(enemy, damage / 2);

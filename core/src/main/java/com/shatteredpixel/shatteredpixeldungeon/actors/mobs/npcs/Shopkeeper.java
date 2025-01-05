@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,14 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlobImmunity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -42,6 +46,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Clayball;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ShopkeeperSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -51,9 +56,11 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndTradeItem;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.utils.BArray;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
+import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 
@@ -68,13 +75,19 @@ public class Shopkeeper extends NPC {
 	public static int MAX_BUYBACK_HISTORY = 3;
 	public ArrayList<Item> buybackItems = new ArrayList<>();
 
+	private int turnsSinceHarmed = -1;
+
+	@Override
+	public Notes.Landmark landmark() {
+		return Notes.Landmark.SHOP;
+	}
+
 	@Override
 	protected boolean act() {
 
-		if (Dungeon.level.visited[pos]){
-			Notes.add(Notes.Landmark.SHOP);
+		if (turnsSinceHarmed >= 0){
+			turnsSinceHarmed ++;
 		}
-
 
 		sprite.turnTo( pos, Dungeon.hero.pos );
 		spend( TICK );
@@ -82,7 +95,7 @@ public class Shopkeeper extends NPC {
 	}
 	
 	@Override
-	public void damage( int dmg, Object src ) {
+	public void damage( long dmg, Object src ) {
 		flee();
 		if (src instanceof Viscosity.DeferedDamage || src instanceof Clayball){
 			Dungeon.level.drop(new KeyToTruth(), pos).sprite.drop();
@@ -92,23 +105,82 @@ public class Shopkeeper extends NPC {
 	
 	@Override
 	public boolean add( Buff buff ) {
-		flee();
-		if (buff instanceof Viscosity.DeferedDamage){
-			Dungeon.level.drop(new KeyToTruth(), pos).sprite.drop();
-			Badges.validateKey();
+		if (buff.type == Buff.buffType.NEGATIVE){
+			processHarm();
 		}
-		return true;
+		return false;
+	}
+
+	public void processHarm(){
+
+		//do nothing if the shopkeeper is out of the hero's FOV
+		if (!Dungeon.level.heroFOV[pos]){
+			return;
+		}
+
+		if (turnsSinceHarmed == -1){
+			turnsSinceHarmed = 0;
+			yell(Messages.get(this, "warn"));
+
+			//use a new actor as we can't clear the gas while we're in the middle of processing it
+			Actor.add(new Actor() {
+				{
+					actPriority = VFX_PRIO;
+				}
+
+				@Override
+				protected boolean act() {
+					//cleanses all harmful blobs in the shop
+					ArrayList<Blob> blobs = new ArrayList<>();
+					for (Class c : new BlobImmunity().immunities()){
+						Blob b = Dungeon.level.blobs.get(c);
+						if (b != null && b.volume > 0){
+							blobs.add(b);
+						}
+					}
+
+					PathFinder.buildDistanceMap( pos, BArray.not( Dungeon.level.solid, null ), 4 );
+
+					for (int i=0; i < Dungeon.level.length(); i++) {
+						if (PathFinder.distance[i] < Integer.MAX_VALUE) {
+
+							boolean affected = false;
+							for (Blob blob : blobs) {
+								if (blob.cur[i] > 0) {
+									blob.clear(i);
+									affected = true;
+								}
+							}
+
+							if (affected && Dungeon.level.heroFOV[i]) {
+								CellEmitter.get( i ).burst( Speck.factory( Speck.DISCOVER ), 2 );
+							}
+
+						}
+					}
+					Actor.remove(this);
+					return true;
+				}
+			});
+
+		//There is a 1 turn buffer before more damage/debuffs make the shopkeeper flee
+		//This is mainly to prevent stacked effects from causing an instant flee
+		} else if (turnsSinceHarmed >= 1) {
+			flee();
+		}
 	}
 	
 	public void flee() {
 		destroy();
 
-		Notes.remove(Notes.Landmark.SHOP);
-if (sprite != null) {
-		sprite.killAndErase();
-		CellEmitter.get( pos ).burst( ElmoParticle.FACTORY, 6 );
+		Notes.remove( landmark() );
+		GLog.newLine();
+		GLog.n(Messages.get(this, "flee"));
+		if (sprite != null) {
+				sprite.killAndErase();
+				CellEmitter.get( pos ).burst( ElmoParticle.FACTORY, 6 );
 
-}
+		}
 	}
 	
 	@Override
@@ -138,8 +210,8 @@ if (sprite != null) {
 	}
 
 	//shopkeepers are greedy!
-	public static int sellPrice(Item item){
-		int i = item.value() * 5 * (Dungeon.escalatingDepth() / 5 + 1);
+	public static long sellPrice(Item item){
+		long i = item.value() * 5 * (Dungeon.escalatingDepth() / 5 + 1);
 		if (item.wereOofed) i *= 5;
 		return i;
 	}
@@ -185,12 +257,13 @@ if (sprite != null) {
 			@Override
 			public void call() {
 				String[] options = new String[2+ buybackItems.size()];
+				int maxLen = PixelScene.landscape() ? 30 : 25;
 				int i = 0;
 				options[i++] = Messages.get(Shopkeeper.this, "sell");
 				options[i++] = Messages.get(Shopkeeper.this, "talk");
 				for (Item item : buybackItems){
 					options[i] = Messages.get(Heap.class, "for_sale", item.value(), Messages.titleCase(item.title()));
-					if (options[i].length() > 26) options[i] = options[i].substring(0, 23) + "...";
+					if (options[i].length() > maxLen) options[i] = options[i].substring(0, maxLen-3) + "...";
 					i++;
 				}
 				GameScene.show(new WndOptions(sprite(), Messages.titleCase(name()), description(), options){

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,10 +32,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Challenge;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GhoulSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
@@ -83,18 +86,24 @@ public class Ghoul extends Mob {
                 defenseSkill = 4800;
                 EXP = 200000;
                 break;
+			case 5:
+				HP = HT = 1630000000;
+				defenseSkill = 85500;
+				EXP = 25000000;
+				break;
         }
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(64, 79);
-            case 2: return Random.NormalIntRange(276, 400);
-            case 3: return Random.NormalIntRange(1500, 1821);
-            case 4: return Random.NormalIntRange(23000, 71000);
+            case 1: return Dungeon.NormalLongRange(64, 79);
+            case 2: return Dungeon.NormalLongRange(276, 400);
+            case 3: return Dungeon.NormalLongRange(1500, 1821);
+            case 4: return Dungeon.NormalLongRange(23000, 71000);
+			case 5: return Dungeon.NormalLongRange(2750000, 6500000);
         }
-		return Random.NormalIntRange( 16, 22 );
+		return Dungeon.NormalLongRange( 16, 22 );
 	}
 
 	@Override
@@ -104,19 +113,21 @@ public class Ghoul extends Mob {
             case 2: return 338;
             case 3: return 880;
             case 4: return 5500;
+			case 5: return 90000;
         }
 		return 24;
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(22, 43);
-            case 2: return Random.NormalIntRange(100, 211);
-            case 3: return Random.NormalIntRange(621, 1111);
-            case 4: return Random.NormalIntRange(18000, 46000);
+            case 1: return Dungeon.NormalLongRange(22, 43);
+            case 2: return Dungeon.NormalLongRange(100, 211);
+            case 3: return Dungeon.NormalLongRange(621, 1111);
+            case 4: return Dungeon.NormalLongRange(18000, 46000);
+			case 5: return Dungeon.NormalLongRange(1600000, 3200000);
         }
-		return Random.NormalIntRange(0, 4);
+		return Dungeon.NormalLongRange(0, 4);
 	}
 
 	@Override
@@ -226,6 +237,7 @@ public class Ghoul extends Mob {
 					Buff.prolong(this, SacrificialFire.Marked.class, timesDowned*5);
 				} else if (buff instanceof AllyBuff
 						|| buff instanceof ChampionEnemy
+						|| buff instanceof MasterThievesArmband.StolenTracker
 						|| buff instanceof DwarfKing.KingDamager) {
 					//don't remove
 				} else {
@@ -335,6 +347,7 @@ public class Ghoul extends Mob {
 				Dungeon.level.mobs.add(ghoul);
 				Dungeon.level.occupyCell( ghoul );
 				ghoul.sprite.idle();
+				ghoul.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(Math.round(ghoul.HT/10f)), FloatingText.HEALING);
 				super.detach();
 				return true;
 			}

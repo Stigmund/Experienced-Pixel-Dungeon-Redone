@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
@@ -58,7 +59,7 @@ public abstract class TreasureBag extends Item {
     }
 
     @Override
-    public int value() {
+    public long value() {
         return quantity * 3000;
     }
 
@@ -75,10 +76,12 @@ public abstract class TreasureBag extends Item {
                     if (!item.doPickUp(hero, hero.pos, 0f)) {
                         Dungeon.level.drop(item, hero.pos).sprite.drop();
                     } else {
+                        hero.spend(-Item.TIME_TO_PICK_UP);
                         GLog.i(Messages.get(Hero.class, "you_now_have", item.name()));
                     }
                 }
             }
+            Catalog.countUse(getClass());
             hero.spendAndNext(Actor.TICK);
         }
     }

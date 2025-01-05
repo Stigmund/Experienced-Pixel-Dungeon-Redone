@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMappi
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
@@ -59,11 +60,11 @@ public class WandOfPrismaticLight extends DamageWand {
 		collisionProperties = Ballistica.MAGIC_BOLT;
 	}
 
-	public int min(int lvl){
+	public long min(long lvl){
 		return 1+lvl;
 	}
 
-	public int max(int lvl){
+	public long max(long lvl){
 		return 5+3*lvl;
 	}
 
@@ -87,10 +88,10 @@ public class WandOfPrismaticLight extends DamageWand {
 	}
 
 	private void affectTarget(Char ch){
-		int dmg = damageRoll();
+		long dmg = damageRoll();
 
 		//three in (5+lvl) chance of failing
-		if (Dungeon.Int(5+buffedLvl()) >= 3) {
+		if (Dungeon.Long(0, 5+buffedLvl()) >= 3) {
 			Buff.prolong(ch, Blindness.class, 2f + (buffedLvl() * 0.333f));
 			ch.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 6 );
 		}
@@ -141,6 +142,20 @@ public class WandOfPrismaticLight extends DamageWand {
 	}
 
 	@Override
+	public String upgradeStat2(long level) {
+		return Messages.decimalFormat("#", 100*(1-(3/(float)(5+level)))) + "%";
+	}
+
+	@Override
+	public String upgradeStat3(long level) {
+		if (Dungeon.isChallenged(Challenges.DARKNESS)){
+			return Long.toString(2 + level);
+		} else {
+			return Long.toString(10 + 5*level);
+		}
+	}
+
+	@Override
 	public void fx(Ballistica beam, Callback callback) {
 		curUser.sprite.parent.add(
 				new Beam.LightRay(curUser.sprite.center(), DungeonTilemap.raisedTileCenterToWorld(beam.collisionPos)));
@@ -148,7 +163,7 @@ public class WandOfPrismaticLight extends DamageWand {
 	}
 
 	@Override
-	public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
+	public void onHit(MagesStaff staff, Char attacker, Char defender, long damage) {
 		//cripples enemy
 		Buff.prolong( defender, Cripple.class, Math.round((1+staff.buffedLvl())*procChanceMultiplier(attacker)));
 	}

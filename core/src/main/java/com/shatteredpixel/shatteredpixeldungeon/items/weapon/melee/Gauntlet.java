@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,9 +53,9 @@ public class Gauntlet extends MeleeWeapon {
 	}
 	
 	@Override
-	public int max(int lvl) {
-		return  Math.round(3f*(tier+1)) +     //18 base, down from 36
-				lvl*Math.round(0.5f*(tier+2));  //+3.5 per level, down from +7
+	public long max(long lvl) {
+		return  Math.round(3d*(tier()+1)) +     //18 base, down from 36
+				lvl*Math.round(0.5d*(tier()+2));  //+3.5 per level, down from +7
 	}
 
 	private ArrayList<Char> affected = new ArrayList<>();
@@ -63,7 +63,7 @@ public class Gauntlet extends MeleeWeapon {
 	private ArrayList<Lightning.Arc> arcs = new ArrayList<>();
 
 	@Override
-	public int proc(Char attacker, Char defender, int damage) {
+	public long proc(Char attacker, Char defender, long damage) {
 		affected.clear();
 		arcs.clear();
 
@@ -125,10 +125,8 @@ public class Gauntlet extends MeleeWeapon {
 					}
 				}
 
-				for (int i = 0; i < 4; i++) {
-					hero.sprite.parent.addToFront(new Lightning(arcs, null));
-					Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
-				}
+				hero.sprite.parent.addToFront(new Lightning(arcs, null));
+				Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
 
 				Invisibility.dispel();
 				hero.spendAndNext(hero.attackDelay());
@@ -138,6 +136,19 @@ public class Gauntlet extends MeleeWeapon {
 				afterAbilityUsed(hero);
 			}
 		});
+    }
+
+	@Override
+	public String abilityInfo() {
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(Math.round(min()*0.6d)), augment.damageFactor(Math.round(max()*0.6d)));
+		} else {
+			return Messages.get(this, "typical_ability_desc", augment.damageFactor(Math.round(min(0)*0.6d)), augment.damageFactor(Math.round(max(0)*0.6d)));
+		}
+	}
+
+	public String upgradeAbilityStat(long level){
+		return "+" + augment.damageFactor(4 + Math.round(0.75f*level));
 	}
 
 }

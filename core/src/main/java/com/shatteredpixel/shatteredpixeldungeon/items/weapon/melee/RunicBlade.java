@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,14 +28,18 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
-import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -121,11 +125,11 @@ public class RunicBlade extends MeleeWeapon {
     //equal to tier 4 in damage at +5
 
     @Override
-    public int max(int lvl) {
-        int i = 5 * (tier) +                    //20 base, down from 30
-                Math.round(lvl * (tier+1)); //+5 per level, up from +6
-        if (!charged) i = 6 * (tier) +
-                Math.round(lvl * (tier + 2));
+    public long max(long lvl) {
+        long i = 5L * (tier()) +                    //20 base, down from 30
+                lvl * (tier()+1); //+5 per level, up from +6
+        if (!charged) i = 6L * (tier()) +
+                lvl * (tier() + 2L);
         return i;
     }
 
@@ -177,8 +181,7 @@ public class RunicBlade extends MeleeWeapon {
                     return;
                 }
 
-                final Ballistica shot = new Ballistica( curUser.pos, target, Ballistica.PROJECTILE);
-                final int cell = shot.collisionPos;
+                final int cell = new RunicMissile().throwPos(curUser, target);
 
                 if (target == curUser.pos || cell == curUser.pos) {
                     GLog.i( Messages.get(Wand.class, "self_target") );
@@ -214,7 +217,7 @@ public class RunicBlade extends MeleeWeapon {
                                                 Char enemy = Actor.findChar( cell );
                                                 if (enemy != null && enemy != curUser) {
                                                     if (Char.hit(curUser, enemy, true)) {
-                                                        int dmg = curBlade.damageRoll(curUser)*2;
+                                                        long dmg = (curBlade.damageRoll(curUser)*2);
                                                         enemy.damage(dmg, curBlade);
                                                         if (curUser.isSubclass(HeroSubClass.GLADIATOR)) Buff.affect( curUser, Combo.class ).hit( enemy );
                                                         curBlade.proc(curUser, enemy, dmg);
@@ -356,9 +359,10 @@ public class RunicBlade extends MeleeWeapon {
 
 		//we apply here because of projecting
 		RunicSlashTracker tracker = Buff.affect(hero, RunicSlashTracker.class);
+		tracker.boost = 3f + 0.50f*buffedLvl();
 		hero.belongings.abilityWeapon = this;
 		if (!hero.canAttack(enemy)){
-			GLog.w(Messages.get(this, "ability_bad_position"));
+			GLog.w(Messages.get(this, "ability_target_range"));
 			tracker.detach();
 			hero.belongings.abilityWeapon = null;
 			return;
@@ -385,7 +389,26 @@ public class RunicBlade extends MeleeWeapon {
 		});
 	}
 
-	public static class RunicSlashTracker extends FlavourBuff{};
+	@Override
+	public String abilityInfo() {
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", 300+50*buffedLvl());
+		} else {
+			return Messages.get(this, "typical_ability_desc", 300);
+		}
+	}
+
+	@Override
+	public String upgradeAbilityStat(long level) {
+		return "+" + (300+50*level) + "%";
+	}
+
+
+	public static class RunicSlashTracker extends FlavourBuff{
+
+		public float boost = 2f;
+
+	};
 
     public void recharge(){
         charged = true;
@@ -416,6 +439,20 @@ public class RunicBlade extends MeleeWeapon {
     public static class RunicMissile extends Item {
         {
             image = ItemSpriteSheet.RUNIC_SHOT;
+        }
+
+        @Override
+        public int throwPos(Hero user, int dst) {
+
+            boolean projecting = curItem instanceof RunicBlade && ((RunicBlade) curItem).hasEnchant(Projecting.class, user);
+
+            if (projecting
+                    && (Dungeon.level.passable[dst] || Dungeon.level.avoid[dst] || Actor.findChar(dst) != null)
+                    && Dungeon.level.distance(user.pos, dst) <= Math.round(4 * Enchantment.genericProcChanceMultiplier(user))){
+                return dst;
+            } else {
+                return super.throwPos(user, dst);
+            }
         }
     }
 }

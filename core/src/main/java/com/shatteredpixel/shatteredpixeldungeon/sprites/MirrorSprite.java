@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -39,7 +40,7 @@ public class MirrorSprite extends MobSprite {
 	public MirrorSprite() {
 		super();
 		
-		texture( Dungeon.hero.heroClass.spritesheet() );
+		texture( Dungeon.hero != null ? Dungeon.hero.heroClass.spritesheet() : HeroClass.WARRIOR.spritesheet() );
 		updateArmor( 0 );
 		idle();
 	}
@@ -60,20 +61,37 @@ public class MirrorSprite extends MobSprite {
 	}
 	
 	public void updateArmor( int tier ) {
-		CharSprite ref = Dungeon.hero.sprite;
+		if (Dungeon.hero != null) {
+			CharSprite ref = Dungeon.hero.sprite;
 
-		idle = ref.idle.clone();
+			idle = ref.idle.clone();
 
-		run = ref.run.clone();
-		if(Dungeon.hero.heroClass == HeroClass.RAT_KING) run.delay = 0.1f; // this is the actual delay, and on another mob it doesn't make sense to not do this.
+			run = ref.run.clone();
+			if (Dungeon.hero.heroClass == HeroClass.RAT_KING)
+				run.delay = 0.1f; // this is the actual delay, and on another mob it doesn't make sense to not do this.
 
-		attack = ref.attack.clone();
+			attack = ref.attack.clone();
 
-		// a hack to get the first frame, which should be the first idle frame.
-		die = ref.idle.clone();
-		die.frames(ref.idle.frames[0]);
-		die.delay = ref.die.delay;
-		die.looped = ref.die.looped;
+			// a hack to get the first frame, which should be the first idle frame.
+			die = ref.idle.clone();
+			die.frames(ref.idle.frames[0]);
+			die.delay = ref.die.delay;
+			die.looped = ref.die.looped;
+		} else {
+			TextureFilm film = new TextureFilm( HeroSprite.tiers(Assets.Sprites.ROGUE, FRAME_HEIGHT), tier, FRAME_WIDTH, FRAME_HEIGHT );
+
+			idle = new Animation( 1, true );
+			idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
+
+			run = new Animation( 20, true );
+			run.frames( film, 2, 3, 4, 5, 6, 7 );
+
+			die = new Animation( 20, false );
+			die.frames( film, 0 );
+
+			attack = new Animation( 15, false );
+			attack.frames( film, 13, 14, 15, 0 );
+		}
 
 		idle();
 	}

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,24 +40,24 @@ public abstract class BlacksmithWeapon extends MeleeWeapon {
     }
 
     @Override
-    public int min(int lvl) {
-        return  (tier+Dungeon.cycle*5)*2 +  //base
+    public long min(long lvl) {
+        return  (tier()+Dungeon.cycle*5L)*2 +  //base
                 lvl*2;    //level scaling
     }
 
     @Override
-    public int max(int lvl) {
-        return  5*(tier+1+Dungeon.cycle*5) +    //base
-                lvl*(tier+1+Dungeon.cycle*5);   //level scaling
+    public long max(long lvl) {
+        return  5*(tier()+1+Dungeon.cycle*5L) +    //base
+                lvl*(tier()+1+Dungeon.cycle*5L);   //level scaling
     }
 
     @Override
     protected int baseChargeUse(Hero hero, Char target){
-        return 3;
+        return 2;
     }
 
     @Override
-    public int value() {
+    public long value() {
         return Math.round(super.value()*2.2f);
     }
 }

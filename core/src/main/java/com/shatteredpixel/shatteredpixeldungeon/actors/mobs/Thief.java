@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,6 +81,11 @@ public class Thief extends Mob {
                 defenseSkill = 2300;
                 EXP = 57000;
                 break;
+			case 5:
+				HP = HT = 900000000;
+				defenseSkill = 50000;
+				EXP = 23000000;
+				break;
         }
 	}
 
@@ -105,12 +110,13 @@ public class Thief extends Mob {
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(32, 47);
-            case 2: return Random.NormalIntRange(160, 208);
-            case 3: return Random.NormalIntRange(550, 901);
-            case 4: return Random.NormalIntRange(9500, 14000);
+            case 1: return Dungeon.NormalLongRange(32, 47);
+            case 2: return Dungeon.NormalLongRange(160, 208);
+            case 3: return Dungeon.NormalLongRange(550, 901);
+            case 4: return Dungeon.NormalLongRange(9500, 14000);
+			case 5: return Dungeon.NormalLongRange(600000, 1070000);
         }
 		return Random.NormalIntRange( 1, 10 );
 	}
@@ -151,23 +157,25 @@ public class Thief extends Mob {
             case 2: return 238;
             case 3: return 660;
             case 4: return 2600;
+			case 5: return 38500;
         }
 		return 12;
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(8, 20);
-            case 2: return Random.NormalIntRange(60, 137);
-            case 3: return Random.NormalIntRange(380, 625);
-            case 4: return Random.NormalIntRange(5000, 10000);
+            case 1: return Dungeon.NormalLongRange(8, 20);
+            case 2: return Dungeon.NormalLongRange(60, 137);
+            case 3: return Dungeon.NormalLongRange(380, 625);
+            case 4: return Dungeon.NormalLongRange(5000, 10000);
+			case 5: return Dungeon.NormalLongRange(56000, 720000);
         }
-		return Random.NormalIntRange(0, 3);
+		return Dungeon.NormalLongRange(0, 3);
 	}
 
 	@Override
-	public int attackProc( Char enemy, int damage ) {
+	public long attackProc( Char enemy, long damage ) {
 		damage = super.attackProc( enemy, damage );
 		
 		if (alignment == Alignment.ENEMY && item == null
@@ -179,7 +187,7 @@ public class Thief extends Mob {
 	}
 
 	@Override
-	public int defenseProc(Char enemy, int damage) {
+	public long defenseProc(Char enemy, long damage) {
 		if (state == FLEEING) {
 			Dungeon.level.drop( new Gold(), pos ).sprite.drop();
 		}

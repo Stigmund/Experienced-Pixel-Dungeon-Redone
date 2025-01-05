@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,19 +31,43 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.KingBlade;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfForce;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfFuror;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.*;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.*;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Annoying;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Dazzling;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Displacing;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Explosive;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Friendly;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Polarized;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Sacrificial;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Wayward;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazing;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blocking;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blooming;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Chilling;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Corrupting;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Elastic;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Unstable;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Vampiric;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RunicBlade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scimitar;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -64,21 +88,20 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
     public int internalTier;
 
     public enum Augment {
-		SPEED   (0.7f, 2/3f),
-		DAMAGE  (1.5f, 5/3f),
-		NONE	(1.0f, 1f);
+		SPEED   (0.7d, 2/3f),
+		DAMAGE  (1.5d, 5/3f),
+		NONE	(1.0d, 1f);
 
-		private float damageFactor;
+		private double damageFactor;
 		private float delayFactor;
 
-		Augment(float dmg, float dly){
+		Augment(double dmg, float dly){
 			damageFactor = dmg;
 			delayFactor = dly;
 		}
 
-		public int damageFactor(int dmg){
-			int damage = Math.round(dmg * damageFactor);
-			return damage;
+		public long damageFactor(long dmg){
+            return Math.round(dmg * damageFactor);
 		}
 
 		public float delayFactor(float dly){
@@ -97,12 +120,12 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 	public boolean curseInfusionBonus = false;
 	public boolean masteryPotionBonus = false;
 
-	public static float hardenBoost(int upgrades){
-		return 0.0015f * upgrades;
+	public static float hardenBoost(long upgrades){
+		return 0.0002f * upgrades;
 	}
 
 	@Override
-	public int proc( Char attacker, Char defender, int damage ) {
+	public long proc( Char attacker, Char defender, long damage ) {
 		
 		if (enchantment != null && attacker.buff(MagicImmune.class) == null) {
 			damage = enchantment.proc( this, attacker, defender, damage );
@@ -115,9 +138,16 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 			availableUsesToID -= uses;
 			usesLeftToID -= uses;
 			if (usesLeftToID <= 0) {
-				identify();
-				GLog.p( Messages.get(Weapon.class, "identify") );
-				Badges.validateItemLevelAquired( this );
+				if (ShardOfOblivion.passiveIDDisabled()){
+					if (usesLeftToID > -1){
+						GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
+					}
+					usesLeftToID = -1;
+				} else {
+					identify();
+					GLog.p(Messages.get(Weapon.class, "identify"));
+					Badges.validateItemLevelAquired(this);
+				}
 			}
 		}
 
@@ -171,7 +201,31 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 		usesLeftToID = USES_TO_ID;
 		availableUsesToID = USES_TO_ID/2f;
 	}
-	
+
+	@Override
+	public boolean collect(Bag container) {
+		if(super.collect(container)){
+			if (Dungeon.hero != null && Dungeon.hero.isAlive() && isIdentified() && enchantment != null){
+				Catalog.setSeen(enchantment.getClass());
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public Item identify(boolean byHero) {
+		if (enchantment != null && byHero && Dungeon.hero != null && Dungeon.hero.isAlive()){
+			Catalog.setSeen(enchantment.getClass());
+		}
+		return super.identify(byHero);
+	}
+
+	public boolean readyToIdentify(){
+		return !isIdentified() && usesLeftToID <= 0;
+	}
+
 	@Override
 	public float accuracyFactor(Char owner, Char target) {
 		
@@ -234,16 +288,12 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 	}
 
 	public int STRReq(){
-		int req = STRReq(level());
-		if (masteryPotionBonus){
-			req -= 2;
-		}
-		return req;
+		return STRReq(level());
 	}
 
-	public abstract int STRReq(int lvl);
+	public abstract int STRReq(long lvl);
 
-	protected static int STRReq(int tier, int lvl){
+	protected static int STRReq(int tier, long lvl){
 		lvl = Math.max(0, lvl);
 
 		//strength req decreases at +1,+3,+6,+10,etc.
@@ -251,15 +301,29 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 	}
 
 	@Override
-	public int level() {
-		int level = super.level();
+	public long level() {
+		long level = super.level();
 		if (curseInfusionBonus) level += 1 + level/6;
 		return level;
 	}
 
 	@Override
 	public int tier() {
-		return tier;
+		switch (Math.max(0, (tier-1) / 5)){
+			case 0:
+				return tier;
+			case 1:
+				return tier+8;
+			case 2:
+				return Math.round(tier*4f);
+			case 3:
+				return Math.round((tier+20)*5f);
+			case 4:
+				return Math.round((tier*10+75)*15f);
+			case 5:
+			default:
+				return Math.round((tier*55+850)*95f);
+		}
 	}
 
 	@Override
@@ -310,18 +374,21 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 		}
 		level(n);
 
+//we use a separate RNG here so that variance due to things like parchment scrap
+		//does not affect levelgen
+		Random.pushGenerator(Random.Long());
 
-		//30% chance to be cursed
-		//10% chance to be enchanted
-		float effectRoll = Dungeon.Float();
-		if (effectRoll < 0.3f) {
-			enchant(Enchantment.randomCurse());
-			cursed = true;
-		} else if (effectRoll >= 0.9f){
-			enchant();
-		}
+			//30% chance to be cursed
+			//10% chance to be enchanted
+			float effectRoll = Dungeon.Float();
+			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier()) {
+				enchant(Enchantment.randomCurse());
+				cursed = true;
+			} else if (effectRoll >= 1f - (0.1f * ParchmentScrap.enchantChanceMultiplier())){
+				enchant();
+			}
 
-
+		Random.popGenerator();
 
 		return this;
 	}
@@ -330,6 +397,10 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 		if (ench == null || !ench.curse()) curseInfusionBonus = false;
 		enchantment = ench;
 		updateQuickslot();
+		if (ench != null && isIdentified() && Dungeon.hero != null
+				&& Dungeon.hero.isAlive() && Dungeon.hero.belongings.contains(this)){
+			Catalog.setSeen(ench.getClass());
+		}
 		return this;
 	}
 
@@ -376,14 +447,14 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 				40, //6.67% each
 				10  //3.33% each
 		};
-		
-		private static final Class<?>[] curses = new Class<?>[]{
+
+		public static final Class<?>[] curses = new Class<?>[]{
 				Annoying.class, Displacing.class, Dazzling.class, Explosive.class,
 				Sacrificial.class, Wayward.class, Polarized.class, Friendly.class
 		};
 		
 			
-		public abstract int proc( Weapon weapon, Char attacker, Char defender, int damage );
+		public abstract long proc( Weapon weapon, Char attacker, Char defender, long damage );
 
 		protected float procChanceMultiplier( Char attacker ){
 			return genericProcChanceMultiplier( attacker );
@@ -397,7 +468,7 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 			}
 
 			if (attacker.buff(RunicBlade.RunicSlashTracker.class) != null){
-				multi += 2.25f;
+				multi += attacker.buff(RunicBlade.RunicSlashTracker.class).boost;
 				attacker.buff(RunicBlade.RunicSlashTracker.class).detach();
 			}
 
@@ -413,6 +484,9 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 			if (attacker.buff(Talent.StrikingWaveTracker.class) != null
 					&& ((Hero)attacker).pointsInTalent(Talent.STRIKING_WAVE) == 4){
 				multi += 0.2f;
+			}
+			if (attacker instanceof Hero && ((Hero) attacker).heroClass == HeroClass.DUELIST){
+				multi += 0.5f;
 			}
 
 			return multi;

@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,12 +67,21 @@ public class ItemButton extends Component {
 			protected void onClick() {
 				ItemButton.this.onClick();
 			}
+
+			@Override
+			protected boolean onLongClick() {
+				return ItemButton.this.onLongClick();
+			}
 		};
 		slot.enable(true);
 		add(slot);
 	}
 
 	protected void onClick() {}
+
+	protected boolean onLongClick(){
+		return false;
+	}
 
 	@Override
 	protected void layout() {
@@ -82,7 +91,12 @@ public class ItemButton extends Component {
 		bg.y = y;
 		bg.size( width, height );
 
-		slot.setRect( x + 2, y + 2, width - 4, height - 4 );
+		slot.setRect(x, y, width, height);
+		if (width() >= 24 || height >= 24) {
+			slot.setMargins(2, 2, 2, 2);
+		} else {
+			slot.setMargins(1, 1, 1, 1);
+		}
 	}
 
 	public Item item(){

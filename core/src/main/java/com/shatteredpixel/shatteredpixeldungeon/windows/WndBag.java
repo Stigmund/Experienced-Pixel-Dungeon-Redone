@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ public class WndBag extends WndTabbed {
 		slotWidth = PixelScene.landscape() ? SLOT_WIDTH_L : SLOT_WIDTH_P;
 		slotHeight = PixelScene.landscape() ? SLOT_HEIGHT_L : SLOT_HEIGHT_P;
 
-		nCols = PixelScene.landscape() ? COLS_L : COLS_P;
+		nCols = PixelScene.landscape() ? COLS_L*2 : COLS_P;
 		nRows = (int)Math.ceil(60/(float)nCols); //we expect to lay out 25 slots in all cases
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
@@ -171,7 +171,7 @@ public class WndBag extends WndTabbed {
 			PixelScene.align(gold);
 			add(gold);
 
-			BitmapText amt = new BitmapText(Integer.toString(Dungeon.gold), PixelScene.pixelFont);
+			BitmapText amt = new BitmapText(Long.toString(Dungeon.gold), PixelScene.pixelFont);
 			amt.hardlight(TITLE_COLOR);
 			amt.measure();
 			amt.x = width - gold.width() - amt.width() - 1;
@@ -188,7 +188,7 @@ public class WndBag extends WndTabbed {
 			PixelScene.align(gold);
 			add(gold);
 
-			BitmapText amt = new BitmapText(Integer.toString(Dungeon.gold), PixelScene.pixelFont);
+			BitmapText amt = new BitmapText(Long.toString(Dungeon.gold), PixelScene.pixelFont);
 			amt.hardlight(TITLE_COLOR);
 			amt.measure();
 			amt.x = width - gold.width() - amt.width() - 2f;
@@ -204,7 +204,7 @@ public class WndBag extends WndTabbed {
 			PixelScene.align(energy);
 			add(energy);
 
-			amt = new BitmapText(Integer.toString(Dungeon.energy), PixelScene.pixelFont);
+			amt = new BitmapText(Long.toString(Dungeon.energy), PixelScene.pixelFont);
 			amt.hardlight(0x44CCFF);
 			amt.measure();
 			amt.x = width - energy.width() - amt.width() - 1;
@@ -281,7 +281,9 @@ public class WndBag extends WndTabbed {
 
 				} else if (selector != null) {
 
-					hide();
+					if (selector.hideAfterSelecting()){
+						hide();
+					}
 					selector.onSelect( item );
 
 				} else {
@@ -299,7 +301,9 @@ public class WndBag extends WndTabbed {
 
 				} else if (selector != null) {
 
-					hide();
+					if (selector.hideAfterSelecting()){
+						hide();
+					}
 					selector.onSelect( item );
 
 				} else {
@@ -465,6 +469,9 @@ public class WndBag extends WndTabbed {
 		public abstract String textPrompt();
 		public Class<?extends Bag> preferredBag(){
 			return null; //defaults to last bag opened
+		}
+		public boolean hideAfterSelecting(){
+			return true; //defaults to hiding the window when an item is picked
 		}
 		public abstract boolean itemSelectable( Item item );
 		public abstract void onSelect( Item item );

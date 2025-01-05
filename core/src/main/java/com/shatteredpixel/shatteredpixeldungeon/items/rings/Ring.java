@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.ItemStatusHandler;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindofMisc;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -77,6 +79,10 @@ public class Ring extends KindofMisc {
 	public static void initGems() {
 		handler = new ItemStatusHandler<>( (Class<? extends Ring>[])Generator.Category.RING.classes, gems );
 	}
+
+	public static void clearGems(){
+		handler = null;
+	}
 	
 	public static void save( Bundle bundle ) {
 		handler.save( bundle );
@@ -111,6 +117,9 @@ public class Ring extends KindofMisc {
 		if (handler != null && handler.contains(this)){
 			image = handler.image(this);
 			gem = handler.label(this);
+		} else {
+			image = ItemSpriteSheet.RING_GARNET;
+			gem = "garnet";
 		}
 	}
 	
@@ -161,12 +170,33 @@ public class Ring extends KindofMisc {
 	public String name() {
 		return isKnown() ? super.name() : Messages.get(Ring.class, gem);
 	}
+
+	@Override
+	public String desc() {
+		return isKnown() ? super.desc() : Messages.get(this, "unknown_desc");
+	}
 	
 	@Override
 	public String info(){
-		
-		String desc = isKnown() ? super.desc() : Messages.get(this, "unknown_desc");
-		
+
+		//skip custom notes if anonymized and un-Ided
+		String desc;
+		if (anonymous && (handler == null || !handler.isKnown( this ))){
+			desc = desc();
+
+		//otherwise, check for item type note, rings can have either but not both
+		} else if (Notes.findCustomRecord(customNoteID) == null) {
+			Notes.CustomRecord note = Notes.findCustomRecord(getClass());
+			if (note != null){
+				//we swap underscore(0x5F) with low macron(0x2CD) here to avoid highlighting in the item window
+				desc = Messages.get(this, "custom_note", note.title().replace('_', 'ˍ')) + "\n\n" + super.info();
+			} else {
+				desc = super.info();
+			}
+		} else {
+			desc = super.info();
+		}
+
 		if (cursed && isEquipped( Dungeon.hero )) {
 			desc += "\n\n" + Messages.get(Ring.class, "cursed_worn");
 			
@@ -187,6 +217,18 @@ public class Ring extends KindofMisc {
 	
 	protected String statsInfo(){
 		return "";
+	}
+
+	public String upgradeStat1(long level){
+		return null;
+	}
+
+	public String upgradeStat2(long level){
+		return null;
+	}
+
+	public String upgradeStat3(long level){
+		return null;
 	}
 	
 	@Override
@@ -210,6 +252,10 @@ public class Ring extends KindofMisc {
 		setKnown();
 		levelsToID = 0;
 		return super.identify(byHero);
+	}
+
+	public boolean readyToIdentify(){
+		return !isIdentified() && levelsToID <= 0;
 	}
 	
 	@Override
@@ -238,11 +284,11 @@ public class Ring extends KindofMisc {
 	}
 	
 	public static boolean allKnown() {
-		return handler.known().size() == Generator.Category.RING.classes.length;
+		return handler != null && handler.known().size() == Generator.Category.RING.classes.length;
 	}
 	
 	@Override
-	public int value() {
+	public long value() {
 		int price = 75;
 		if (cursed && cursedKnown) {
 			price /= 2;
@@ -284,15 +330,22 @@ public class Ring extends KindofMisc {
 		//becomes IDed after 1 level
 		levelsToID -= levelPercent;
 		if (levelsToID <= 0){
-			identify();
-			GLog.p( Messages.get(Ring.class, "identify") );
-			Badges.validateItemLevelAquired( this );
+			if (ShardOfOblivion.passiveIDDisabled()){
+				if (levelsToID > -1){
+					GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
+				}
+				levelsToID = -1;
+			} else {
+				identify();
+				GLog.p(Messages.get(Ring.class, "identify"));
+				Badges.validateItemLevelAquired(this);
+			}
 		}
 	}
 
 	@Override
-	public int buffedLvl() {
-		int lvl = super.buffedLvl();
+	public long buffedLvl() {
+		long lvl = super.buffedLvl();
 		if (Dungeon.hero.buff(EnhancedRings.class) != null){
 			lvl++;
 		}
@@ -308,17 +361,17 @@ public class Ring extends KindofMisc {
 		return bonus;
 	}
 
-	public static int getBuffedBonus(Char target, Class<?extends RingBuff> type){
+	public static long getBuffedBonus(Char target, Class<?extends RingBuff> type){
 		if (target.buff(MagicImmune.class) != null) return 0;
-		int bonus = -1;
+		long bonus = -1;
 		for (RingBuff buff : target.buffs(type)) {
 			bonus += buff.buffedLvl();
 		}
-		return bonus;
+		return Math.min(200_000_000_000L, bonus);
 	}
 
 	//just used for ring descriptions
-	public int soloBonus(){
+	public long soloBonus(){
 		if (cursed){
 			return Math.min( 0, Ring.this.level()-2 );
 		} else {
@@ -327,7 +380,7 @@ public class Ring extends KindofMisc {
 	}
 
 	//just used for ring descriptions
-	public int soloBuffedBonus(){
+	public long soloBuffedBonus(){
 		if (cursed){
 			return Math.min( 0, Ring.this.buffedLvl()-2 );
 		} else {
@@ -335,7 +388,7 @@ public class Ring extends KindofMisc {
 		}
 	}
 
-    public int soloVisualBonus(){
+    public long soloVisualBonus(){
         if (cursed){
             return Math.min( 0, Ring.this.buffedLvl()-2 );
         } else {
@@ -344,10 +397,25 @@ public class Ring extends KindofMisc {
     }
 
 	//just used for ring descriptions
-	public static int combinedBuffedBonus(Char target, Class<?extends RingBuff> type){
+	public long combinedBonus(Hero hero){
 		int bonus = 0;
-		for (RingBuff buff : target.buffs(type)) {
-			bonus += buff.buffedLvl();
+		if (hero.belongings.ring() != null && hero.belongings.ring().getClass() == getClass()){
+			bonus += hero.belongings.ring().soloBonus();
+		}
+		if (hero.belongings.misc() != null && hero.belongings.misc().getClass() == getClass()){
+			bonus += ((Ring)hero.belongings.misc()).soloBonus();
+		}
+		return bonus;
+	}
+
+	//just used for ring descriptions
+	public long combinedBuffedBonus(Hero hero){
+		int bonus = 0;
+		if (hero.belongings.ring() != null && hero.belongings.ring().getClass() == getClass()){
+			bonus += hero.belongings.ring().soloBuffedBonus();
+		}
+		if (hero.belongings.misc() != null && hero.belongings.misc().getClass() == getClass()){
+			bonus += ((Ring)hero.belongings.misc()).soloBuffedBonus();
 		}
 		return bonus;
 	}
@@ -371,11 +439,11 @@ if (target instanceof Hero && Dungeon.hero == null && cooldown() == 0 && target.
 			return true;
 		}
 
-		public int level(){
+		public long level(){
 			return Ring.this.soloBonus();
 		}
 
-		public int buffedLvl(){
+		public long buffedLvl(){
 			return Ring.this.soloBuffedBonus();
 		}
 

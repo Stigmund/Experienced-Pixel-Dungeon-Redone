@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,8 @@ public class PhaseShift extends TargetedSpell {
 		image = ItemSpriteSheet.PHASE_SHIFT;
 
 		usesTargeting = true;
+
+		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
 	
 	@Override
@@ -67,21 +69,27 @@ public class PhaseShift extends TargetedSpell {
 	}
 	
 	@Override
-	public int value() {
-		//prices of ingredients, divided by output quantity, rounds down
-		return (int)((30 + 40) * (quantity/8f));
+	public long value() {
+		return (long)(60 * (quantity/(float)Recipe.OUT_QUANTITY));
+	}
+
+	@Override
+	public long energyVal() {
+		return (long)(12 * (quantity/(float)Recipe.OUT_QUANTITY));
 	}
 	
 	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
-		
+
+		private static final int OUT_QUANTITY = 6;
+
 		{
-			inputs =  new Class[]{ScrollOfTeleportation.class, ArcaneCatalyst.class};
-			inQuantity = new int[]{1, 1};
+			inputs =  new Class[]{ScrollOfTeleportation.class};
+			inQuantity = new int[]{1};
 			
-			cost = 4;
+			cost = 10;
 			
 			output = PhaseShift.class;
-			outQuantity = 8;
+			outQuantity = OUT_QUANTITY;
 		}
 		
 	}

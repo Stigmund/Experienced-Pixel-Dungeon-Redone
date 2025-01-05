@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,16 @@
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.ui.*;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Archs;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ExitButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.NinePatch;
@@ -57,10 +64,10 @@ public class SupporterScene extends PixelScene {
 		btnExit.setPos(w - btnExit.width(), 0);
 		add(btnExit);
 
-		RenderedTextBlock title = PixelScene.renderTextBlock(Messages.get(this, "title"), 9);
-		title.hardlight(Window.TITLE_COLOR);
+		IconTitle title = new IconTitle(Icons.GOLD.get(), Messages.get(this, "title"));
+		title.setSize(200, 0);
 		title.setPos(
-				(w - title.width()) / 2f,
+				(w - title.reqWidth()) / 2f,
 				(20 - title.height()) / 2f
 		);
 		align(title);
@@ -81,7 +88,22 @@ public class SupporterScene extends PixelScene {
 		link.icon(Icons.get(Icons.NEWS));
 		link.textColor(Window.TITLE_COLOR);
 		link.setSize(elementWidth, BTN_HEIGHT);
+		link.enable(false);
 		add(link);
+
+		StyledButton link2 = new StyledButton(Chrome.Type.GREY_BUTTON_TR, Messages.get(this, "issues_link")){
+			@Override
+			protected void onClick() {
+				super.onClick();
+				String link = "https://github.com/TrashboxBobylev/Experienced-Pixel-Dungeon-Redone/issues";
+				ShatteredPixelDungeon.platform.openURI(link);
+			}
+		};
+		link2.icon(Icons.get(Icons.CHANGES));
+		link2.textColor(Window.TITLE_COLOR);
+		link2.setSize(elementWidth, BTN_HEIGHT);
+		link2.enable(false);
+		add(link2);
 
 		float elementHeight = msg.height() + BTN_HEIGHT + GAP;
 
@@ -93,6 +115,9 @@ public class SupporterScene extends PixelScene {
 
 		link.setPos(left, msg.bottom()+GAP);
 		align(link);
+
+		link2.setPos(left, link.bottom()+GAP);
+		align(link2);
 
 	}
 
@@ -112,9 +137,7 @@ public class SupporterScene extends PixelScene {
 			bg = Chrome.get(Chrome.Type.GREY_BUTTON_TR);
 			add(bg);
 
-			String message = Messages.get(this, "intro");
-			message += "\n\n" + Messages.get(this, "patreon_msg");
-				message += "\n" + Messages.get(this, "patreon_english");
+			String message = Messages.get(Dungeon.class, "last_words");
 			message += "\n\n- TrashboxBobylev";
 
 			text = PixelScene.renderTextBlock(message, 6);

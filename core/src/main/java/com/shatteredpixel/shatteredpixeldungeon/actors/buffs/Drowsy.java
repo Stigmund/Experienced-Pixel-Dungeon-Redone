@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 
-public class Drowsy extends Buff {
+public class Drowsy extends FlavourBuff {
 
 	public static final float DURATION = 5f;
 
@@ -47,16 +46,8 @@ public class Drowsy extends Buff {
 		return Math.max(0, (DURATION - visualcooldown()) / DURATION);
 	}
 
-	@Override
-	public String iconTextDisplay() {
-		return Integer.toString((int)visualcooldown());
-	}
-
 	public boolean attachTo(Char target ) {
 		if (!target.isImmune(Sleep.class) && super.attachTo(target)) {
-			if (cooldown() == 0) {
-				spend(DURATION);
-			}
 			return true;
 		}
 		return false;
@@ -66,12 +57,7 @@ public class Drowsy extends Buff {
 	public boolean act(){
 		Buff.affect(target, MagicalSleep.class);
 
-		detach();
-		return true;
+		return super.act();
 	}
 
-	@Override
-	public String desc() {
-		return Messages.get(this, "desc", dispTurns(visualcooldown()));
-	}
 }

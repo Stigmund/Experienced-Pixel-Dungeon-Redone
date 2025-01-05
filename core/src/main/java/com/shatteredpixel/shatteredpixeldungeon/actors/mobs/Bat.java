@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +26,11 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BatSprite;
-import com.watabou.utils.Random;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 
 public class Bat extends Mob {
 
@@ -69,18 +69,24 @@ public class Bat extends Mob {
                 defenseSkill = 3000;
                 EXP = 74000;
                 break;
+			case 5:
+				HP = HT = 1355000000;
+				defenseSkill = 56500;
+				EXP = 35500000;
+				break;
         }
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(50, 65);
-            case 2: return Random.NormalIntRange(240, 312);
-            case 3: return Random.NormalIntRange(800, 1100);
-            case 4: return Random.NormalIntRange(14000, 25000);
+            case 1: return Dungeon.NormalLongRange(50, 65);
+            case 2: return Dungeon.NormalLongRange(240, 312);
+            case 3: return Dungeon.NormalLongRange(800, 1100);
+            case 4: return Dungeon.NormalLongRange(14000, 25000);
+			case 5: return Dungeon.NormalLongRange(1000000, 2150000);
         }
-		return Random.NormalIntRange( 5, 18 );
+		return Dungeon.NormalLongRange( 5, 18 );
 	}
 	
 	@Override
@@ -90,29 +96,37 @@ public class Bat extends Mob {
             case 2: return 260;
             case 3: return 700;
             case 4: return 3390;
+			case 5: return 51500;
         }
 		return 16;
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(13, 28);
-            case 2: return Random.NormalIntRange(70, 170);
-            case 3: return Random.NormalIntRange(500, 700);
-            case 4: return Random.NormalIntRange(8000, 16000);
+            case 1: return Dungeon.NormalLongRange(13, 28);
+            case 2: return Dungeon.NormalLongRange(70, 170);
+            case 3: return Dungeon.NormalLongRange(500, 700);
+            case 4: return Dungeon.NormalLongRange(8000, 16000);
+			case 5: return Dungeon.NormalLongRange(650000, 1250000);
         }
-		return Random.NormalIntRange(0, 4);
+		return Dungeon.NormalLongRange(0, 4);
 	}
-	
+
+    @Override
+    public void die(Object cause) {
+        flying = false;
+        super.die(cause);
+    }
+
 	@Override
-	public int attackProc( Char enemy, int damage ) {
+	public long attackProc( Char enemy, long damage ) {
 		damage = super.attackProc( enemy, damage );
-		int reg = Math.min( damage - 4 - Dungeon.cycle * 60, HT - HP );
+		long reg = Math.min( damage - 4 - Dungeon.cycle * 60L, HT - HP );
 		
 		if (reg > 0) {
 			HP += reg;
-			sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
+			sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(reg), FloatingText.HEALING);
 		}
 		
 		return damage;

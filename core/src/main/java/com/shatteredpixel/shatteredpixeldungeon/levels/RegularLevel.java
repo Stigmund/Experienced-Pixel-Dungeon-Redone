@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.EbonyMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -45,12 +46,14 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
-import com.shatteredpixel.shatteredpixeldungeon.items.food.SmallRation;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.SupplyRation;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.DocumentPage;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.GuidePage;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.RegionLorePage;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.Key;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.builders.Builder;
@@ -63,11 +66,14 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MagicalFire
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.PitRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.ShopRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
-import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.EntranceRoom;
-import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.ExitRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StandardRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.entrance.EntranceRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.exit.ExitRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.*;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.ShadowCaster;
+import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
@@ -107,8 +113,8 @@ public abstract class RegularLevel extends Level {
 	
 	protected ArrayList<Room> initRooms() {
 		ArrayList<Room> initRooms = new ArrayList<>();
-		initRooms.add ( roomEntrance = new EntranceRoom());
-		initRooms.add( roomExit = new ExitRoom());
+		initRooms.add ( roomEntrance = EntranceRoom.createEntrance());
+		initRooms.add( roomExit = ExitRoom.createExit());
 
 		//force max standard rooms and multiple by 1.5x for large levels
 		int standards = standardRooms(feeling == Feeling.LARGE);
@@ -120,7 +126,7 @@ public abstract class RegularLevel extends Level {
 			do {
 				s = StandardRoom.createRoom();
 			} while (!s.setSizeCat( standards-i ));
-			i += Random.Int(Math.round((s.sizeCat.roomValue-1)*1.5f));
+			i += Random.Int(Math.round((s.sizeFactor()-1)*1.5f));
 			initRooms.add(s);
 		}
 		
@@ -206,8 +212,8 @@ public abstract class RegularLevel extends Level {
 
 		ArrayList<Room> stdRooms = new ArrayList<>();
 		for (Room room : rooms) {
-			if (room instanceof StandardRoom && room != roomEntrance) {
-				for (int i = 0; i < ((StandardRoom) room).sizeCat.roomValue; i++) {
+			if (room instanceof StandardRoom) {
+				for (int i = 0; i < ((StandardRoom) room).mobSpawnWeight(); i++) {
 					stdRooms.add(room);
 				}
 			}
@@ -215,8 +221,16 @@ public abstract class RegularLevel extends Level {
 		Random.shuffle(stdRooms);
 		Iterator<Room> stdRoomIter = stdRooms.iterator();
 
+		//enemies cannot be within an 8-tile FOV of the entrance
+		// or a 6-tile open space distance from the entrance
+		boolean[] entranceFOV = new boolean[length()];
+		Point c = cellToPoint(entrance());
+		ShadowCaster.castShadow(c.x, c.y, width(), entranceFOV, losBlocking, 6);
+		PathFinder.buildDistanceMap(entrance(), BArray.not(solid, null), 8);
+
+		Mob mob = null;
 		while (mobsToSpawn > 0) {
-			Mob mob = createMob();
+			if (mob == null) mob = createMob();
 			Room roomToSpawn;
 			
 			if (!stdRoomIter.hasNext()) {
@@ -229,6 +243,7 @@ public abstract class RegularLevel extends Level {
 				mob.pos = pointToCell(roomToSpawn.random());
 				tries--;
 			} while (tries >= 0 && (findMob(mob.pos) != null
+					|| entranceFOV[mob.pos] || PathFinder.distance[mob.pos] != Integer.MAX_VALUE
 					|| !passable[mob.pos]
 					|| solid[mob.pos]
 					|| !roomToSpawn.canPlaceCharacter(cellToPoint(mob.pos), this)
@@ -239,6 +254,7 @@ public abstract class RegularLevel extends Level {
 			if (tries >= 0) {
 				mobsToSpawn--;
 				mobs.add(mob);
+				mob = null;
 
 				//chance to add a second mob to this room, except on floor 1
 				if (Dungeon.depth > 1 && mobsToSpawn > 0 && Random.Int(4) == 0){
@@ -249,6 +265,7 @@ public abstract class RegularLevel extends Level {
 						mob.pos = pointToCell(roomToSpawn.random());
 						tries--;
 					} while (tries >= 0 && (findMob(mob.pos) != null
+							|| entranceFOV[mob.pos] || PathFinder.distance[mob.pos] != Integer.MAX_VALUE
 							|| !passable[mob.pos]
 							|| solid[mob.pos]
 							|| !roomToSpawn.canPlaceCharacter(cellToPoint(mob.pos), this)
@@ -259,6 +276,7 @@ public abstract class RegularLevel extends Level {
 					if (tries >= 0) {
 						mobsToSpawn--;
 						mobs.add(mob);
+						mob = null;
 					}
 				}
 			}
@@ -362,6 +380,13 @@ public abstract class RegularLevel extends Level {
 			case 2:
 			case 3:
 			case 4:
+				//base mimic chance is 1/20, regular chest is 4/20
+				// so each +1x mimic spawn rate converts to a 25% chance here
+				if (Random.Float() < (MimicTooth.mimicChanceMultiplier() - 1f)/4f  && findMob(cell) == null){
+					mobs.add(Mimic.spawnAt(cell, toDrop));
+					continue;
+				}
+
 				type = Heap.Type.CHEST;
 				break;
 			case 5:
@@ -377,9 +402,10 @@ public abstract class RegularLevel extends Level {
 			}
 
 			if ((toDrop instanceof Artifact && Random.Int(2) == 0) ||
-					(toDrop.isUpgradable() && Random.Int(4 - toDrop.level()) == 0)){
+					(toDrop.isUpgradable() && Random.Long(4 - toDrop.level()) == 0)){
 
-				if (Dungeon.depth > 1 && Random.Int(10) == 0 && findMob(cell) == null){
+				float mimicChance = 1/10f * MimicTooth.mimicChanceMultiplier();
+				if (Dungeon.depth > 1 && Random.Float() < mimicChance && findMob(cell) == null){
 					mobs.add(Mimic.spawnAt(cell, GoldenMimic.class, toDrop));
 				} else {
 					Heap dropped = drop(toDrop, cell);
@@ -400,7 +426,17 @@ public abstract class RegularLevel extends Level {
 
 		for (Item item : itemsToSpawn) {
 			int cell = randomDropCell();
-			drop( item, cell ).type = Heap.Type.HEAP;
+			if (item instanceof TrinketCatalyst){
+				drop( item, cell ).type = Heap.Type.LOCKED_CHEST;
+				int keyCell = randomDropCell();
+				drop( new GoldenKey(Dungeon.depth), keyCell ).type = Heap.Type.HEAP;
+				if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
+					map[keyCell] = Terrain.GRASS;
+					losBlocking[keyCell] = false;
+				}
+			} else {
+				drop( item, cell ).type = Heap.Type.HEAP;
+			}
 			if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
 				map[cell] = Terrain.GRASS;
 				losBlocking[cell] = false;
@@ -431,14 +467,16 @@ public abstract class RegularLevel extends Level {
 		Random.popGenerator();
 
 		Random.pushGenerator( Random.Long() );
-			Item item = Bones.get();
-			if (item != null) {
+			ArrayList<Item> bonesItems = Bones.get();
+			if (bonesItems != null) {
 				int cell = randomDropCell();
 				if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
 					map[cell] = Terrain.GRASS;
 					losBlocking[cell] = false;
 				}
-				drop( item, cell ).setHauntedIfCursed().type = Heap.Type.REMAINS;
+				for (Item i : bonesItems) {
+					drop(i, cell).setHauntedIfCursed().type = Heap.Type.REMAINS;
+				}
 			}
 		Random.popGenerator();
 
@@ -451,7 +489,7 @@ public abstract class RegularLevel extends Level {
 				for (int i=1; i <= petalsNeeded; i++) {
 					//the player may miss a single petal and still max their rose.
 					if (rose.droppedPetals < 11) {
-						item = new DriedRose.Petal();
+						Item item = new DriedRose.Petal();
 						int cell = randomDropCell();
 						drop( item, cell ).type = Heap.Type.HEAP;
 						if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
@@ -464,11 +502,14 @@ public abstract class RegularLevel extends Level {
 			}
 		Random.popGenerator();
 
-		//cached rations try to drop in a special room on floors 2/3/4/6/7/8, to a max of 4/6
+		//cached rations try to drop in a special room on floors 2/4/7, to a max of 2/3
+		//we incremented dropped by 2 for compatibility with pre-v2.4 saves (when the talent dropped 4/6 items)
 		Random.pushGenerator( Random.Long() );
 			if (Dungeon.hero.hasTalent(Talent.CACHED_RATIONS)){
 				Talent.CachedRationsDropped dropped = Buff.affect(Dungeon.hero, Talent.CachedRationsDropped.class);
-				if (dropped.count() < 2 + 2*Dungeon.hero.pointsInTalent(Talent.CACHED_RATIONS)){
+				int targetFloor = (int)(2 + dropped.count());
+				if (dropped.count() > 4) targetFloor++;
+				if (Dungeon.depth >= targetFloor && dropped.count() < 2 + 2*Dungeon.hero.pointsInTalent(Talent.CACHED_RATIONS)){
 					int cell;
 					int tries = 100;
 					boolean valid;
@@ -485,8 +526,8 @@ public abstract class RegularLevel extends Level {
 							map[cell] = Terrain.GRASS;
 							losBlocking[cell] = false;
 						}
-						drop(new SmallRation(), cell).type = Heap.Type.CHEST;
-						dropped.countUp(1);
+						drop(new SupplyRation(), cell).type = Heap.Type.CHEST;
+						dropped.countUp(2);
 					}
 				}
 			}
@@ -578,6 +619,35 @@ public abstract class RegularLevel extends Level {
 
 				}
 
+			}
+		Random.popGenerator();
+
+		//ebony mimics >:)
+		Random.pushGenerator(Random.Long());
+			if (Random.Float() < MimicTooth.ebonyMimicChance()){
+				ArrayList<Integer> candidateCells = new ArrayList<>();
+				if (Random.Int(2) == 0){
+					for (Heap h : heaps.valueList()){
+						if (h.type == Heap.Type.HEAP
+								&& !(room(h.pos) instanceof SpecialRoom)
+								&& findMob(h.pos) == null){
+							candidateCells.add(h.pos);
+						}
+					}
+				} else {
+					if (Random.Int(5) == 0 && findMob(exit()) == null){
+						candidateCells.add(exit());
+					} else {
+						for (int i = 0; i < length(); i++) {
+							if (map[i] == Terrain.DOOR && findMob(i) == null) {
+								candidateCells.add(i);
+							}
+						}
+					}
+				}
+
+				int pos = Random.element(candidateCells);
+				mobs.add(Mimic.spawnAt(pos, EbonyMimic.class, false));
 			}
 		Random.popGenerator();
 
@@ -744,9 +814,9 @@ public abstract class RegularLevel extends Level {
 		rooms = new ArrayList<>( (Collection<Room>) ((Collection<?>) bundle.getCollection( "rooms" )) );
 		for (Room r : rooms) {
 			r.onLevelLoad( this );
-			if (r instanceof EntranceRoom ){
+			if (r.isEntrance()){
 				roomEntrance = r;
-			} else if (r instanceof ExitRoom ){
+			} else if (r.isExit()){
 				roomExit = r;
 			}
 		}

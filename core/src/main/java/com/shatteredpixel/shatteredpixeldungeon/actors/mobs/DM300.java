@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,15 +24,30 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
-import com.shatteredpixel.shatteredpixeldungeon.*;
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
-import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
-import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Slow;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon;
@@ -49,17 +64,20 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.DM300Sprite;
-import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.noosa.particles.Emitter;
-import com.watabou.utils.*;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.GameMath;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Point;
+import com.watabou.utils.Random;
+import com.watabou.utils.Rect;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static com.shatteredpixel.shatteredpixeldungeon.Badges.Badge.BOSS_SLAIN_3;
 
@@ -92,22 +110,28 @@ public class DM300 extends Mob {
                 EXP = 110000;
                 break;
             case 4:
-                HP = HT = 12000000;
+                HP = HT = 120000000;
                 defenseSkill = 5000;
                 EXP = 2000000;
                 break;
+			case 5:
+				HP = HT = 11000000000L;
+				defenseSkill = 81000;
+				EXP = 1500000000;
+				break;
         }
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(67, 86);
-            case 2: return Random.NormalIntRange(340, 445);
-            case 3: return Random.NormalIntRange(1500, 1943);
-            case 4: return Random.NormalIntRange(47000, 84000);
+            case 1: return Dungeon.NormalLongRange(67, 86);
+            case 2: return Dungeon.NormalLongRange(340, 445);
+            case 3: return Dungeon.NormalLongRange(1500, 1943);
+            case 4: return Dungeon.NormalLongRange(47000, 84000);
+			case 5: return Dungeon.NormalLongRange(4500000, 6500000);
         }
-		return Random.NormalIntRange( 15, 25 );
+		return Dungeon.NormalLongRange( 15, 25 );
 	}
 
 	@Override
@@ -117,19 +141,21 @@ public class DM300 extends Mob {
             case 2: return 375;
             case 3: return 835;
             case 4: return 5400;
+			case 5: return 80000;
         }
 		return 20;
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(38, 53);
-            case 2: return Random.NormalIntRange(120, 275);
-            case 3: return Random.NormalIntRange(562, 1310);
-            case 4: return Random.NormalIntRange(19000, 45000);
+            case 1: return Dungeon.NormalLongRange(38, 53);
+            case 2: return Dungeon.NormalLongRange(120, 275);
+            case 3: return Dungeon.NormalLongRange(562, 1310);
+            case 4: return Dungeon.NormalLongRange(19000, 45000);
+			case 5: return Dungeon.NormalLongRange(2250000, 3500000);
         }
-		return Random.NormalIntRange(0, 10);
+		return Dungeon.NormalLongRange(0, 10);
 	}
 
 	public int pylonsActivated = 0;
@@ -233,11 +259,10 @@ public class DM300 extends Mob {
 					if (turnsSinceLastAbility >= MIN_COOLDOWN){
 						//use a coneAOE to try and account for trickshotting angles
 						ConeAOE aim = new ConeAOE(new Ballistica(pos, enemy.pos, Ballistica.WONT_STOP), Float.POSITIVE_INFINITY, 30, Ballistica.STOP_SOLID);
-						if (aim.cells.contains(enemy.pos)) {
+						if (aim.cells.contains(enemy.pos) && !Char.hasProp(enemy, Property.INORGANIC)) {
 							lastAbility = GAS;
 							turnsSinceLastAbility = 0;
 
-							GLog.w(Messages.get(this, "vent"));
 							if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
 								sprite.zap(enemy.pos);
 								return false;
@@ -246,12 +271,11 @@ public class DM300 extends Mob {
 								Sample.INSTANCE.play(Assets.Sounds.GAS);
 								return true;
 							}
-						//if we can't gas, then drop rocks
+						//if we can't gas, or if target is inorganic then drop rocks
 						//unless enemy is already stunned, we don't want to stunlock them
 						} else if (enemy.paralysed <= 0) {
 							lastAbility = ROCKS;
 							turnsSinceLastAbility = 0;
-							GLog.w(Messages.get(this, "rocks"));
 							if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
 								((DM300Sprite)sprite).slam(enemy.pos);
 								return false;
@@ -278,6 +302,10 @@ public class DM300 extends Mob {
 							lastAbility = Random.Int(4) != 0 ? GAS : ROCKS;
 						}
 
+						if (Char.hasProp(enemy, Property.INORGANIC)){
+							lastAbility = ROCKS;
+						}
+
 						//doesn't spend a turn if enemy is at a distance
 						if (Dungeon.level.adjacent(pos, enemy.pos)){
 							spend(TICK);
@@ -287,7 +315,6 @@ public class DM300 extends Mob {
 						abilityCooldown = Random.NormalIntRange(MIN_COOLDOWN, MAX_COOLDOWN);
 
 						if (lastAbility == GAS) {
-							GLog.w(Messages.get(this, "vent"));
 							if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
 								sprite.zap(enemy.pos);
 								return false;
@@ -297,7 +324,6 @@ public class DM300 extends Mob {
 								return true;
 							}
 						} else {
-							GLog.w(Messages.get(this, "rocks"));
 							if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
 								((DM300Sprite)sprite).slam(enemy.pos);
 								return false;
@@ -351,19 +377,20 @@ public class DM300 extends Mob {
 
 		if (travelling) PixelScene.shake( supercharged ? 3 : 1, 0.25f );
 
-		if (Dungeon.level.map[step] == Terrain.INACTIVE_TRAP && state == HUNTING) {
+		if (!flying && Dungeon.level.map[pos] == Terrain.INACTIVE_TRAP && state == HUNTING) {
 
 			//don't gain energy from cells that are energized
 			if (CavesBossLevel.PylonEnergy.volumeAt(pos, CavesBossLevel.PylonEnergy.class) > 0){
 				return;
 			}
 
-			if (Dungeon.level.heroFOV[step]) {
+			if (Dungeon.level.heroFOV[pos]) {
 				if (buff(Barrier.class) == null) {
 					GLog.w(Messages.get(this, "shield"));
 				}
 				Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
 				sprite.emitter().start(SparkParticle.STATIC, 0.05f, 20);
+				sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(30 + (HT - HP)/10), FloatingText.SHIELDING);
 			}
 
 			Buff.affect(this, Barrier.class).setShield( 30 + (HT - HP)/10);
@@ -477,47 +504,50 @@ public class DM300 extends Mob {
 				}
 				//add rock cell to pos, if it is not solid, and isn't the safecell
 				if (!Dungeon.level.solid[pos] && pos != safeCell && Random.Int(Dungeon.level.distance(rockCenter, pos)) == 0) {
-					//don't want to overly punish players with slow move or attack speed
 					rockCells.add(pos);
 				}
 				pos++;
 			}
 		}
-		Buff.append(this, FallingRockBuff.class, GameMath.gate(TICK, target.cooldown(), 3*TICK)).setRockPositions(rockCells);
+		for (int i : rockCells){
+			sprite.parent.add(new TargetedCell(i, 0xFF0000));
+		}
+		//don't want to overly punish players with slow move or attack speed
+		Buff.append(this, FallingRockBuff.class, GameMath.gate(TICK, (int)Math.ceil(target.cooldown()), 3*TICK)).setRockPositions(rockCells);
 
 	}
 
 	private boolean invulnWarned = false;
 
 	@Override
-	public void damage(int dmg, Object src) {
+	public void damage(long dmg, Object src) {
 		if (!BossHealthBar.isAssigned()){
 			notice();
 		}
 
-		int preHP = HP;
+		long preHP = HP;
 		super.damage(dmg, src);
 		if (isInvulnerable(src.getClass())){
 			return;
 		}
 
-		int dmgTaken = preHP - HP;
+		long dmgTaken = preHP - HP;
 		if (dmgTaken > 0) {
 			LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-			if (lock != null && !isImmune(src.getClass())){
+			if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
 				if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmgTaken/2f);
 				else                                                    lock.addTime(dmgTaken);
 			}
 		}
 
-		int threshold;
+		long threshold;
 		if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)){
 			threshold = HT / 4 * (3 - pylonsActivated);
 		} else {
 			threshold = HT / 3 * (2 - pylonsActivated);
 		}
 
-		if (HP < threshold){
+		if (HP <= threshold && threshold > 0){
 			HP = threshold;
 			supercharge();
 		}
@@ -699,70 +729,17 @@ public class DM300 extends Mob {
 		resistances.add(Slow.class);
 	}
 
-	public static class FallingRockBuff extends FlavourBuff {
-
-		private int[] rockPositions;
-		private ArrayList<Emitter> rockEmitters = new ArrayList<>();
-
-		public void setRockPositions( List<Integer> rockPositions ) {
-			this.rockPositions = new int[rockPositions.size()];
-			for (int i = 0; i < rockPositions.size(); i++){
-				this.rockPositions[i] = rockPositions.get(i);
-			}
-
-			fx(true);
-		}
+	public static class FallingRockBuff extends DelayedRockFall {
 
 		@Override
-		public boolean act() {
-			for (int i : rockPositions){
-				CellEmitter.get( i ).start( Speck.factory( Speck.ROCK ), 0.07f, 10 );
-
-				Char ch = Actor.findChar(i);
-				if (ch != null && !(ch instanceof DM300)){
-					Buff.prolong( ch, Paralysis.class, Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 5 : 3 );
-					if (ch == Dungeon.hero){
-						Statistics.bossScores[2] -= 100;
-					}
-				}
-			}
-
-			PixelScene.shake( 3, 0.7f );
-			Sample.INSTANCE.play(Assets.Sounds.ROCKS);
-
-			detach();
-			return super.act();
-		}
-
-		@Override
-		public void fx(boolean on) {
-			if (on && rockPositions != null){
-				for (int i : this.rockPositions){
-					Emitter e = CellEmitter.get(i);
-					e.y -= DungeonTilemap.SIZE*0.2f;
-					e.height *= 0.4f;
-					e.pour(EarthParticle.FALLING, 0.1f);
-					rockEmitters.add(e);
-				}
-			} else {
-				for (Emitter e : rockEmitters){
-					e.on = false;
+		public void affectChar(Char ch) {
+			if (!(ch instanceof DM300)){
+				Buff.prolong(ch, Paralysis.class, Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 5 : 3);
+				if (ch == Dungeon.hero) {
+					Statistics.bossScores[2] -= 100;
 				}
 			}
 		}
 
-		private static final String POSITIONS = "positions";
-
-		@Override
-		public void storeInBundle(Bundle bundle) {
-			super.storeInBundle(bundle);
-			bundle.put(POSITIONS, rockPositions);
-		}
-
-		@Override
-		public void restoreFromBundle(Bundle bundle) {
-			super.restoreFromBundle(bundle);
-			rockPositions = bundle.getIntArray(POSITIONS);
-		}
 	}
 }

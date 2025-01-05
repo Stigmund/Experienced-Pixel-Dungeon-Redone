@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,22 +31,18 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
-import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
-import com.watabou.utils.BArray;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 
 abstract public class KindOfWeapon extends EquipableItem {
-	
-	protected static final float TIME_TO_EQUIP = 1f;
 
 	protected String hitSound = Assets.Sounds.HIT;
 	protected float hitSoundPitch = 1f;
@@ -100,10 +96,24 @@ abstract public class KindOfWeapon extends EquipableItem {
 	public boolean isEquipped( Hero hero ) {
 		return hero.belongings.weapon() == this || hero.belongings.secondWep() == this;
 	}
-	
+
+	private static boolean isSwiftEquipping = false;
+
+	protected float timeToEquip( Hero hero ) {
+		return isSwiftEquipping ? 0f : super.timeToEquip(hero);
+	}
+
 	@Override
 	public boolean doEquip( Hero hero ) {
-		boolean wasInInv = hero.belongings.contains(this);
+
+		isSwiftEquipping = false;
+		if (hero.belongings.contains(this) && hero.hasTalent(Talent.SWIFT_EQUIP)){
+			if (hero.buff(Talent.SwiftEquipCooldown.class) == null
+					|| hero.buff(Talent.SwiftEquipCooldown.class).hasSecondUse()){
+				isSwiftEquipping = true;
+			}
+		}
+
 		detachAll( hero.belongings.backpack );
 		
 		if (hero.belongings.weapon == null || hero.belongings.weapon.doUnequip( hero, true )) {
@@ -112,7 +122,6 @@ abstract public class KindOfWeapon extends EquipableItem {
 			activate( hero );
 			Talent.onItemEquipped(hero, this);
 			Badges.validateDuelistUnlock();
-			ActionIndicator.refresh();
 			updateQuickslot();
 
 			cursedKnown = true;
@@ -121,32 +130,36 @@ abstract public class KindOfWeapon extends EquipableItem {
 				GLog.n( Messages.get(KindOfWeapon.class, "equip_cursed") );
 			}
 
-			if (wasInInv && hero.heroClass == HeroClass.DUELIST) {
+			hero.spendAndNext( timeToEquip(hero) );
+			if (isSwiftEquipping) {
+				GLog.i(Messages.get(this, "swift_equip"));
 				if (hero.buff(Talent.SwiftEquipCooldown.class) == null){
-					hero.spendAndNext(-hero.cooldown());
 					Buff.affect(hero, Talent.SwiftEquipCooldown.class, 24f)
 							.secondUse = true;
-					GLog.i(Messages.get(this, "swift_equip"));
 				} else if (hero.buff(Talent.SwiftEquipCooldown.class).hasSecondUse()) {
-					hero.spendAndNext(-hero.cooldown());
 					hero.buff(Talent.SwiftEquipCooldown.class).secondUse = false;
-					GLog.i(Messages.get(this, "swift_equip"));
-				} else {
-					hero.spendAndNext(TIME_TO_EQUIP);
 				}
-			} else {
-				hero.spendAndNext(TIME_TO_EQUIP);
+				isSwiftEquipping = false;
 			}
 			return true;
 			
 		} else {
-			
+			isSwiftEquipping = false;
 			collect( hero.belongings.backpack );
 			return false;
 		}
 	}
 
 	public boolean equipSecondary( Hero hero ){
+
+		isSwiftEquipping = false;
+		if (hero.belongings.contains(this) && hero.hasTalent(Talent.SWIFT_EQUIP)){
+			if (hero.buff(Talent.SwiftEquipCooldown.class) == null
+					|| hero.buff(Talent.SwiftEquipCooldown.class).hasSecondUse()){
+				isSwiftEquipping = true;
+			}
+		}
+
 		boolean wasInInv = hero.belongings.contains(this);
 		detachAll( hero.belongings.backpack );
 
@@ -156,7 +169,6 @@ abstract public class KindOfWeapon extends EquipableItem {
 			activate( hero );
 			Talent.onItemEquipped(hero, this);
 			Badges.validateDuelistUnlock();
-			ActionIndicator.refresh();
 			updateQuickslot();
 
 			cursedKnown = true;
@@ -165,26 +177,21 @@ abstract public class KindOfWeapon extends EquipableItem {
 				GLog.n( Messages.get(KindOfWeapon.class, "equip_cursed") );
 			}
 
-			if (wasInInv && hero.heroClass == HeroClass.DUELIST) {
+			hero.spendAndNext( timeToEquip(hero) );
+			if (isSwiftEquipping) {
+				GLog.i(Messages.get(this, "swift_equip"));
 				if (hero.buff(Talent.SwiftEquipCooldown.class) == null){
-					hero.spendAndNext(-hero.cooldown());
 					Buff.affect(hero, Talent.SwiftEquipCooldown.class, 24f)
 							.secondUse = true;
-					GLog.i(Messages.get(this, "swift_equip"));
 				} else if (hero.buff(Talent.SwiftEquipCooldown.class).hasSecondUse()) {
-					hero.spendAndNext(-hero.cooldown());
 					hero.buff(Talent.SwiftEquipCooldown.class).secondUse = false;
-					GLog.i(Messages.get(this, "swift_equip"));
-				} else {
-					hero.spendAndNext(TIME_TO_EQUIP);
 				}
-			} else {
-				hero.spendAndNext(TIME_TO_EQUIP);
+				isSwiftEquipping = false;
 			}
 			return true;
 
 		} else {
-
+			isSwiftEquipping = false;
 			collect( hero.belongings.backpack );
 			return false;
 		}
@@ -216,19 +223,23 @@ abstract public class KindOfWeapon extends EquipableItem {
 		}
 	}
 
-	public int min(){
+	public long min(){
 		return min(buffedLvl());
 	}
 
-	public int max(){
+	public long max(){
 		return max(buffedLvl());
 	}
 
-	abstract public int min(int lvl);
-	abstract public int max(int lvl);
+	abstract public long min(long lvl);
+	abstract public long max(long lvl);
 
-	public int damageRoll( Char owner ) {
-		return Dungeon.NormalIntRange( min(), max() );
+	public long damageRoll( Char owner ) {
+		if (owner instanceof Hero){
+			return Hero.heroDamageIntRange(min(), max());
+		} else {
+			return Dungeon.NormalLongRange(min(), max());
+		}
 	}
 	
 	public float accuracyFactor( Char owner, Char target ) {
@@ -259,11 +270,11 @@ abstract public class KindOfWeapon extends EquipableItem {
 		}
 	}
 
-	public int defenseFactor( Char owner ) {
+	public long defenseFactor( Char owner ) {
 		return 0;
 	}
 	
-	public int proc( Char attacker, Char defender, int damage ) {
+	public long proc( Char attacker, Char defender, long damage ) {
 		return damage;
 	}
 

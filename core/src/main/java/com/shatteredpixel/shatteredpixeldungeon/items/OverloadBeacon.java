@@ -6,7 +6,7 @@
  * Copyright (C) 2014-2023 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SacrificialParticle;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -67,6 +68,7 @@ public class OverloadBeacon extends Item {
         super.execute(hero, action);
 
         if (action.equals(AC_USE)) {
+            Catalog.countUse(getClass());
             detach( hero.belongings.backpack );
             Sample.INSTANCE.play( Assets.Sounds.BEACON );
             Sample.INSTANCE.play( Assets.Sounds.BURNING );
@@ -91,7 +93,7 @@ public class OverloadBeacon extends Item {
     }
 
     @Override
-    public int value() {
+    public long value() {
         return 125 * quantity;
     }
 

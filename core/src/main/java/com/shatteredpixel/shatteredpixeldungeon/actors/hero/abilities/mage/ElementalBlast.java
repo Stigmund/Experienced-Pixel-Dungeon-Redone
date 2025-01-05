@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,18 +25,13 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
-import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
+import com.shatteredpixel.shatteredpixeldungeon.effects.*;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
@@ -47,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.ConeAOE;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
@@ -77,6 +73,7 @@ public class ElementalBlast extends ArmorAbility {
 		effectTypes.put(WandOfTransfusion.class,    MagicMissile.BLOOD_CONE);
 		effectTypes.put(WandOfCorruption.class,     MagicMissile.SHADOW_CONE);
 		effectTypes.put(WandOfRegrowth.class,       MagicMissile.FOLIAGE_CONE);
+		effectTypes.put(WandOfEarthblast.class,     MagicMissile.EARTHBLAST_CONE);
 	}
 
 	private static final HashMap<Class<?extends Wand>, Float> damageFactors = new HashMap<>();
@@ -94,6 +91,7 @@ public class ElementalBlast extends ArmorAbility {
 		damageFactors.put(WandOfTransfusion.class,      0f);
 		damageFactors.put(WandOfCorruption.class,       0f);
 		damageFactors.put(WandOfRegrowth.class,         0f);
+		damageFactors.put(WandOfEarthblast.class,       1.3f);
 	}
 
 	{
@@ -127,6 +125,12 @@ public class ElementalBlast extends ArmorAbility {
 			wandCls = hero.belongings.getItem(MagesStaff.class).wandClass();
 		}
 
+		boolean isUnstable = false;
+		if (wandCls == WandOfUnstable.class){
+			isUnstable = true;
+			wandCls = Random.element(WandOfUnstable.wands);
+		}
+
 		if (wandCls == null){
 			GLog.w(Messages.get(this, "no_staff"));
 			return;
@@ -142,7 +146,7 @@ public class ElementalBlast extends ArmorAbility {
 			projectileProps = Ballistica.STOP_TARGET;
 
 		//*** Wand of Fireblast ***
-		} else if (wandCls == WandOfFireblast.class){
+		} else if (wandCls == WandOfFireblast.class || wandCls == WandOfEarthblast.class){
 			projectileProps = projectileProps | Ballistica.IGNORE_SOFT_SOLID;
 
 		//*** Wand of Warding ***
@@ -162,7 +166,7 @@ public class ElementalBlast extends ArmorAbility {
 			);
 		}
 
-		final float effectMulti = 1f + 0.25f*hero.pointsInTalent(Talent.ELEMENTAL_POWER);
+		final float effectMulti = (1f + 0.25f*hero.pointsInTalent(Talent.ELEMENTAL_POWER)) * (isUnstable ? 1.5f : 1f);
 
 		//cast a ray 2/3 the way, and do effects
 		Class<? extends Wand> finalWandCls = wandCls;
@@ -237,11 +241,37 @@ public class ElementalBlast extends ArmorAbility {
 										GameScene.updateMap(cell);
 									}
 								}
+							//*** Wand of Avalanche ***
+							} else if (finalWandCls == WandOfEarthblast.class){
+								int terr = Dungeon.level.map[cell];
+								if (freeze != null){
+									freeze.clear(cell);
+								}
+								if (fire != null){
+									fire.clear(cell);
+								}
+								Plant plant = Dungeon.level.plants.get(cell);
+								if (plant != null){
+									plant.wither();
+								}
+								Blob web = Dungeon.level.blobs.get(Web.class);
+								if (web != null){
+									web.clear(cell);
+								}
+								if (terr == Terrain.DOOR || terr == Terrain.OPEN_DOOR ||
+										terr == Terrain.GRASS || terr == Terrain.FURROWED_GRASS ||
+										terr == Terrain.HIGH_GRASS || terr == Terrain.BARRICADE ||
+										terr == Terrain.BOOKSHELF || terr == Terrain.PEDESTAL) {
+									Level.set(cell, Terrain.EMPTY);
+									GameScene.updateMap(cell);
+									Sample.INSTANCE.play( Assets.Sounds.ROCKS );
+								}
+								CellEmitter.bottom(cell).burst(Speck.factory(Speck.ROCK), 10);
 							}
 
 							//### Deal damage ###
 							Char mob = Actor.findChar(cell);
-							int damage = Math.round(Random.NormalIntRange(15, 25)
+							long damage = Math.round(Hero.heroDamageIntRange(15, 25)
 									* effectMulti
 									* damageFactors.get(finalWandCls));
 
@@ -308,8 +338,8 @@ public class ElementalBlast extends ArmorAbility {
 								//*** Wand of Transfusion ***
 								} else if (finalWandCls == WandOfTransfusion.class){
 									if(mob.alignment == Char.Alignment.ALLY || mob.buff(Charm.class) != null){
-										int healing = Math.round(10*effectMulti);
-										int shielding = (mob.HP + healing) - mob.HT;
+										long healing = Math.round(10*effectMulti);
+										long shielding = (mob.HP + healing) - mob.HT;
 										if (shielding > 0){
 											healing -= shielding;
 											Buff.affect(mob, Barrier.class).setShield(shielding);
@@ -319,7 +349,13 @@ public class ElementalBlast extends ArmorAbility {
 										mob.HP += healing;
 
 										mob.sprite.emitter().burst(Speck.factory(Speck.HEALING), 4);
-										mob.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", healing + shielding);
+
+										if (healing > 0) {
+											mob.sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(healing), FloatingText.HEALING);
+										}
+										if (shielding > 0){
+											mob.sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(shielding), FloatingText.SHIELDING);
+										}
 									} else {
 										if (!mob.properties().contains(Char.Property.UNDEAD)) {
 											Charm charm = Buff.affect(mob, Charm.class, effectMulti*Charm.DURATION/2f);
@@ -327,7 +363,7 @@ public class ElementalBlast extends ArmorAbility {
 											charm.ignoreHeroAllies = true;
 											mob.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 3);
 										} else {
-											damage = Math.round(Random.NormalIntRange(15, 25) * effectMulti);
+											damage = Math.round(Hero.heroDamageIntRange(15, 25) * effectMulti);
 											mob.damage(damage, Reflection.newInstance(finalWandCls));
 											mob.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10);
 										}
@@ -346,6 +382,12 @@ public class ElementalBlast extends ArmorAbility {
 									if (mob.alignment != Char.Alignment.ALLY) {
 										Buff.prolong( mob, Roots.class, effectMulti*Roots.DURATION );
 										charsHit++;
+									}
+								//*** Wand of Avalanche ***
+								} else if (finalWandCls == WandOfEarthblast.class){
+									if (mob.isAlive() && mob.alignment != Char.Alignment.ALLY) {
+										Buff.affect(mob, Paralysis.class, Paralysis.DURATION);
+										Sample.INSTANCE.play( Assets.Sounds.ROCKS );
 									}
 								}
 							}
@@ -383,6 +425,7 @@ public class ElementalBlast extends ArmorAbility {
 						charsHit = Math.min(4 + hero.pointsInTalent(Talent.REACTIVE_BARRIER), charsHit);
 						if (charsHit > 0 && hero.hasTalent(Talent.REACTIVE_BARRIER)){
 							int shielding = Math.round(charsHit*2.5f*hero.pointsInTalent(Talent.REACTIVE_BARRIER));
+							hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shielding), FloatingText.SHIELDING);
 							Buff.affect(hero, Barrier.class).setShield(shielding);
 						}
 

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,10 +38,33 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.*;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.*;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.AntiEntropy;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Bulk;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Corrosion;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Displacement;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Metabolism;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Multiplicity;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Overgrowth;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Stench;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Affection;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Brimstone;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Camouflage;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Entanglement;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Flow;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Obfuscation;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Potential;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Repulsion;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Stone;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Swiftness;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Thorns;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
@@ -49,7 +72,11 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.particles.Emitter;
-import com.watabou.utils.*;
+import com.watabou.utils.Bundlable;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,11 +98,11 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 			defenceFactor = df;
 		}
 		
-		public int evasionFactor(int level){
+		public long evasionFactor(long level){
 			return Math.round((2 + level) * evasionFactor);
 		}
 		
-		public int defenseFactor(int level){
+		public long defenseFactor(long level){
 			return Math.round((2 + level) * defenceFactor);
 		}
 	}
@@ -186,6 +213,30 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 	}
 
 	@Override
+	public boolean collect(Bag container) {
+		if(super.collect(container)){
+			if (Dungeon.hero != null && Dungeon.hero.isAlive() && isIdentified() && glyph != null){
+				Catalog.setSeen(glyph.getClass());
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public Item identify(boolean byHero) {
+		if (glyph != null && byHero && Dungeon.hero != null && Dungeon.hero.isAlive()){
+			Catalog.setSeen(glyph.getClass());
+		}
+		return super.identify(byHero);
+	}
+
+	public boolean readyToIdentify(){
+		return !isIdentified() && usesLeftToID <= 0;
+	}
+
+	@Override
 	public boolean doEquip( Hero hero ) {
 		
 		detach(hero.belongings.backpack);
@@ -203,7 +254,7 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 			((HeroSprite)hero.sprite).updateArmor();
 			activate(hero);
 			Talent.onItemEquipped(hero, this);
-			hero.spendAndNext( time2equip( hero ) );
+			hero.spendAndNext( timeToEquip( hero ) );
 			return true;
 			
 		} else {
@@ -223,7 +274,7 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 		this.seal = seal;
 		if (seal.level() > 0){
 			//doesn't trigger upgrading logic such as affecting curses/glyphs
-			int newLevel = trueLevel()+1;
+			long newLevel = trueLevel()+1;
 			level(newLevel);
 			Badges.validateItemLevelAquired(this);
 		}
@@ -237,11 +288,6 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 
 	public BrokenSeal checkSeal(){
 		return seal;
-	}
-
-	@Override
-	protected float time2equip( Hero hero ) {
-		return 2 / hero.speed();
 	}
 
 	@Override
@@ -268,16 +314,16 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 		return hero.belongings.armor() == this;
 	}
 
-	public final int DRMax(){
-		return Math.round(DRMax(buffedLvl())*(1f + Weapon.hardenBoost(buffedLvl())));
+	public final long DRMax(){
+		return Math.round(DRMax(buffedLvl())*(1d + (glyphHardened ? Weapon.hardenBoost(buffedLvl()) : 0d)));
 	}
 
-	public int DRMax(int lvl){
+	public long DRMax(long lvl){
 		if (Dungeon.isChallenged(Challenges.NO_ARMOR)){
-			return 1 + tier + lvl + augment.defenseFactor(lvl);
+			return 1 + tier() + lvl + augment.defenseFactor(lvl);
 		}
 
-		int max = tier * (2 + lvl) + augment.defenseFactor(lvl);
+		long max = tier() * (2 + lvl) + augment.defenseFactor(lvl);
 		if (lvl > max){
 			return ((lvl - max)+1)/2;
 		} else {
@@ -285,16 +331,16 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 		}
 	}
 
-	public final int DRMin(){
-		return Math.round(DRMin(buffedLvl())*(1f + Weapon.hardenBoost(buffedLvl())));
+	public final long DRMin(){
+		return Math.round(DRMin(buffedLvl())*(1d + (glyphHardened ? Weapon.hardenBoost(buffedLvl()) : 0d)));
 	}
 
-	public int DRMin(int lvl){
+	public long DRMin(long lvl){
 		if (Dungeon.isChallenged(Challenges.NO_ARMOR)){
 			return 0;
 		}
 
-		int max = DRMax(lvl);
+		long max = DRMax(lvl);
 		if (lvl >= max){
 			return (lvl - max);
 		} else {
@@ -309,7 +355,7 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 		}
 		
 		if (owner instanceof Hero){
-			int aEnc = STRReq() - ((Hero) owner).STR();
+			long aEnc = STRReq() - ((Hero) owner).STR();
 			if (aEnc > 0) evasion /= Math.pow(1.5, aEnc);
 			
 			Momentum momentum = owner.buff(Momentum.class);
@@ -324,22 +370,31 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 	public float speedFactor( Char owner, float speed ){
 		
 		if (owner instanceof Hero) {
-			int aEnc = STRReq() - ((Hero) owner).STR();
+			long aEnc = STRReq() - ((Hero) owner).STR();
 			if (aEnc > 0) speed /= Math.pow(1.2, aEnc);
 		}
 		
 		if (hasGlyph(Swiftness.class, owner)) {
 			boolean enemyNear = false;
-			PathFinder.buildDistanceMap(owner.pos, Dungeon.level.passable, 2);
+			//for each enemy, check if they are adjacent, or within 2 tiles and an adjacent cell is open
 			for (Char ch : Actor.chars()){
-				if ( PathFinder.distance[ch.pos] != Integer.MAX_VALUE && owner.alignment != ch.alignment){
-					enemyNear = true;
-					break;
+				if ( Dungeon.level.distance(ch.pos, owner.pos) <= 2 && owner.alignment != ch.alignment && ch.alignment != Char.Alignment.NEUTRAL){
+					if (Dungeon.level.adjacent(ch.pos, owner.pos)){
+						enemyNear = true;
+						break;
+					} else {
+						for (int i : PathFinder.NEIGHBOURS8){
+							if (Dungeon.level.adjacent(owner.pos+i, ch.pos) && !Dungeon.level.solid[owner.pos+i]){
+								enemyNear = true;
+								break;
+							}
+						}
+					}
 				}
 			}
-			if (!enemyNear) speed *= (1.2f + 0.04f * buffedLvl()) * glyph.procChanceMultiplier(owner);
+			if (!enemyNear) speed *= (0.95f - 0.05f * buffedLvl()) / glyph.procChanceMultiplier(owner);
 		} else if (hasGlyph(Flow.class, owner) && Dungeon.level.water[owner.pos]){
-			speed *= (2f + 0.5f*buffedLvl()) * glyph.procChanceMultiplier(owner);
+			speed *= (1.25f + 0.0005f*buffedLvl()) * glyph.procChanceMultiplier(owner);
 		}
 		
 		if (hasGlyph(Bulk.class, owner) &&
@@ -363,12 +418,26 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 
 	@Override
 	public int tier() {
-		return tier;
+		switch (Math.max(0, (tier-1) / 5)){
+			case 0:
+				return tier;
+			case 1:
+				return tier+8;
+			case 2:
+				return Math.round(tier*4f);
+			case 3:
+				return Math.round((tier+20)*5f);
+			case 4:
+				return Math.round((tier*10+75)*15f);
+			case 5:
+			default:
+				return Math.round((tier*55+850)*95f);
+		}
 	}
-	
+
 	@Override
-	public int level() {
-		int level = super.level();
+	public long level() {
+		long level = super.level();
 		//TODO warrior's seal upgrade should probably be considered here too
 		// instead of being part of true level
 		if (curseInfusionBonus) level += 1 + level/6;
@@ -394,7 +463,7 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 		return super.upgrade();
 	}
 	
-	public int proc( Char attacker, Char defender, int damage ) {
+	public long proc( Char attacker, Char defender, long damage ) {
 		
 		if (glyph != null && defender.buff(MagicImmune.class) == null) {
 			damage = glyph.proc( this, attacker, defender, damage );
@@ -405,9 +474,16 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 			availableUsesToID -= uses;
 			usesLeftToID -= uses;
 			if (usesLeftToID <= 0) {
-				identify();
-				GLog.p( Messages.get(Armor.class, "identify") );
-				Badges.validateItemLevelAquired( this );
+				if (ShardOfOblivion.passiveIDDisabled()){
+					if (usesLeftToID > -1){
+						GLog.p(Messages.get(ShardOfOblivion.class, "identify_ready"), name());
+					}
+					usesLeftToID = -1;
+				} else {
+					identify();
+					GLog.p(Messages.get(Armor.class, "identify"));
+					Badges.validateItemLevelAquired(this);
+				}
 			}
 		}
 		
@@ -430,19 +506,19 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 	
 	@Override
 	public String info() {
-		String info = desc();
+		String info = super.info();
 		
 		if (levelKnown) {
 
 			info += "\n\n" + Messages.get(Armor.class, "curr_absorb", tier, DRMin(), DRMax(), STRReq());
 			
-			if (STRReq() > Dungeon.hero.STR()) {
+			if (Dungeon.hero != null && STRReq() > Dungeon.hero.STR()) {
 				info += " " + Messages.get(Armor.class, "too_heavy");
 			}
 		} else {
 			info += "\n\n" + Messages.get(Armor.class, "avg_absorb", tier, DRMin(0), DRMax(0), STRReq(0));
 
-			if (STRReq(0) > Dungeon.hero.STR()) {
+			if (Dungeon.hero != null && STRReq(0) > Dungeon.hero.STR()) {
 				info += " " + Messages.get(Armor.class, "probably_too_heavy");
 			}
 		}
@@ -463,7 +539,7 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 		}
 
 		if (glyphHardened) info += "\n\n" + Messages.get(Armor.class, "glyph_hardened", Messages.decimalFormat("#.##", 100f * Weapon.hardenBoost(buffedLvl())));
-		
+
 		if (cursed && isEquipped( Dungeon.hero )) {
 			info += "\n\n" + Messages.get(Armor.class, "cursed_worn");
 		} else if (cursedKnown && cursed) {
@@ -504,34 +580,40 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 			}
 		}
 		level(n);
-		
-		//30% chance to be cursed
-		//15% chance to be inscribed
-		float effectRoll = Dungeon.Float();
-		if (effectRoll < 0.3f) {
-			inscribe(Glyph.randomCurse());
-			cursed = true;
-		} else if (effectRoll >= 0.85f){
-			inscribe();
-		}
+
+		//we use a separate RNG here so that variance due to things like parchment scrap
+		//does not affect levelgen
+		Random.pushGenerator(Random.Long());
+
+			//30% chance to be cursed
+			//15% chance to be inscribed
+			float effectRoll = Dungeon.Float();
+			if (effectRoll < 0.3f * ParchmentScrap.curseChanceMultiplier()) {
+				inscribe(Glyph.randomCurse());
+				cursed = true;
+			} else if (effectRoll >= 1f - (0.15f * ParchmentScrap.enchantChanceMultiplier())){
+				inscribe();
+			}
 		tier += Dungeon.cycle * 5;
+
+		Random.popGenerator();
 
 		return this;
 	}
 
-	public int STRReq(){
-		int req = STRReq(level());
+	public long STRReq(){
+		return STRReq(level());
+	}
+
+	public long STRReq(long lvl){
+		long req = STRReq(tier, lvl);
 		if (masteryPotionBonus){
 			req -= 2;
 		}
 		return req;
 	}
 
-	public int STRReq(int lvl){
-		return STRReq(tier, lvl);
-	}
-
-	protected static int STRReq(int tier, int lvl){
+	protected static long STRReq(int tier, long lvl){
 		lvl = Math.max(0, lvl);
 
 		//strength req decreases at +1,+3,+6,+10,etc.
@@ -539,7 +621,7 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 	}
 	
 	@Override
-	public int value() {
+	public long value() {
 		if (seal != null) return 0;
 
 		int price = 20 * tier;
@@ -566,6 +648,10 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 		// in case they take that talent in the future
 		if (seal != null){
 			seal.setGlyph(glyph);
+		}
+		if (glyph != null && isIdentified() && Dungeon.hero != null
+				&& Dungeon.hero.isAlive() && Dungeon.hero.belongings.contains(this)){
+			Catalog.setSeen(glyph.getClass());
 		}
 		return this;
 	}
@@ -599,7 +685,7 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 	public static abstract class Glyph implements Bundlable {
 		
 		public static final Class<?>[] common = new Class<?>[]{
-				Obfuscation.class, Swiftness.class, Viscosity.class, Potential.class };
+				Obfuscation.class, Viscosity.class, Potential.class };
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
 				Brimstone.class, Stone.class, Entanglement.class,
@@ -614,12 +700,12 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 				10  //3.33% each
 		};
 
-		private static final Class<?>[] curses = new Class<?>[]{
+		public static final Class<?>[] curses = new Class<?>[]{
 				AntiEntropy.class, Corrosion.class, Displacement.class, Metabolism.class,
-				Multiplicity.class, Stench.class, Overgrowth.class, Bulk.class
+				Multiplicity.class, Stench.class, Overgrowth.class, Bulk.class, Swiftness.class
 		};
 		
-		public abstract int proc( Armor armor, Char attacker, Char defender, int damage );
+		public abstract long proc( Armor armor, Char attacker, Char defender, long damage );
 
 		protected float procChanceMultiplier( Char defender ){
 			return genericProcChanceMultiplier( defender );

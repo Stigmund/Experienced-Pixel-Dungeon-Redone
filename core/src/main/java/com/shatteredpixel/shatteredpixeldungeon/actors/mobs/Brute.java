@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,15 +28,15 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ShieldBuff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BruteSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.utils.Bundle;
-import com.watabou.utils.Random;
 
 public class Brute extends Mob {
 	
@@ -72,30 +72,38 @@ public class Brute extends Mob {
                 defenseSkill = 3400;
                 EXP = 90000;
                 break;
+			case 5:
+				HP = HT = 1600000000;
+				defenseSkill = 57500;
+				EXP = 36500000;
+				break;
         }
 	}
 	
 	protected boolean hasRaged = false;
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
             case 1: return buff(BruteRage.class) != null ?
-                    Random.NormalIntRange( 70, 123 ) :
-                    Random.NormalIntRange( 58, 70 );
+                    Dungeon.NormalLongRange( 70, 123 ) :
+                    Dungeon.NormalLongRange( 58, 70 );
             case 2: return buff(BruteRage.class) != null ?
-                    Random.NormalIntRange( 340, 541 ) :
-                    Random.NormalIntRange( 240, 368 );
+                    Dungeon.NormalLongRange( 340, 541 ) :
+                    Dungeon.NormalLongRange( 240, 368 );
             case 3: return buff(BruteRage.class) != null ?
-                    Random.NormalIntRange( 1200, 1640 ) :
-                    Random.NormalIntRange(900, 1340);
+                    Dungeon.NormalLongRange( 1200, 1640 ) :
+                    Dungeon.NormalLongRange(900, 1340);
             case 4: return buff(BruteRage.class) != null ?
-                    Random.NormalIntRange( 30000, 64000 ) :
-                    Random.NormalIntRange(16500, 40000);
+                    Dungeon.NormalLongRange( 30000, 64000 ) :
+                    Dungeon.NormalLongRange(16500, 40000);
+			case 5: return buff(BruteRage.class) != null ?
+					Dungeon.NormalLongRange(2250000, 3500000) :
+					Dungeon.NormalLongRange(1650000, 2500000);
         }
 		return buff(BruteRage.class) != null ?
-			Random.NormalIntRange( 15, 40 ) :
-			Random.NormalIntRange( 5, 25 );
+				Dungeon.NormalLongRange( 15, 40 ) :
+				Dungeon.NormalLongRange( 5, 25 );
 	}
 	
 	@Override
@@ -105,19 +113,21 @@ public class Brute extends Mob {
             case 2: return 300;
             case 3: return 740;
             case 4: return 3600;
+			case 5: return 57500;
         }
 		return 20;
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(20, 39);
-            case 2: return Random.NormalIntRange(120, 231);
-            case 3: return Random.NormalIntRange(500, 890);
-            case 4: return Random.NormalIntRange(10000, 22000);
+            case 1: return Dungeon.NormalLongRange(20, 39);
+            case 2: return Dungeon.NormalLongRange(120, 231);
+            case 3: return Dungeon.NormalLongRange(500, 890);
+            case 4: return Dungeon.NormalLongRange(10000, 22000);
+			case 5: return Dungeon.NormalLongRange(750000, 1450000);
         }
-		return Random.NormalIntRange(0, 8);
+		return Dungeon.NormalLongRange(0, 8);
 	}
 
 	@Override
@@ -143,6 +153,7 @@ public class Brute extends Mob {
 	
 	protected void triggerEnrage(){
 		Buff.affect(this, BruteRage.class).setShield(HT/2 + 4);
+		sprite.showStatusWithIcon( CharSprite.POSITIVE, Long.toString(HT/2 + 4), FloatingText.SHIELDING );
 		if (Dungeon.level.heroFOV[pos]) {
 			SpellSprite.show( this, SpellSprite.BERSERK);
 		}
@@ -199,8 +210,5 @@ public class Brute extends Mob {
 			return Messages.get(this, "desc", shielding());
 		}
 
-		{
-			immunities.add(Terror.class);
-		}
 	}
 }

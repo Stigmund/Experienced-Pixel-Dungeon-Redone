@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
@@ -89,7 +90,7 @@ public class WndRanking extends WndTabbed {
 
 		if (Dungeon.hero != null) {
 			Icons[] icons =
-					{Icons.RANKINGS, Icons.BACKPACK_LRG, Icons.BADGES, Icons.CHALLENGE_ON};
+					{Icons.RANKINGS, Icons.BACKPACK_LRG, Icons.BADGES, Icons.CHALLENGE_COLOR};
 			Group[] pages =
 					{new StatsTab(), new ItemsTab(), new BadgesTab(), null};
 
@@ -324,11 +325,22 @@ public class WndRanking extends WndTabbed {
 				}
 			}
 
+			Trinket trinket = stuff.getItem(Trinket.class);
+			if (trinket != null){
+				slotsActive++;
+			}
+
 			float slotWidth = Math.min(28, ((WIDTH - slotsActive + 1) / (float)slotsActive));
 
-			for (int i = 0; i < QuickSlot.SIZE; i++){
-				if (Dungeon.quickslot.isNonePlaceholder(i)){
-					QuickSlotButton slot = new QuickSlotButton(Dungeon.quickslot.getItem(i));
+			for (int i = -1; i < QuickSlot.SIZE; i++){
+				Item item = null;
+				if (i == -1){
+					item = trinket;
+				} else if (Dungeon.quickslot.isNonePlaceholder(i)) {
+					item = Dungeon.quickslot.getItem(i);
+				}
+				if (item != null){
+					QuickSlotButton slot = new QuickSlotButton(item);
 
 					slot.setRect( pos, 120, slotWidth, 23 );
 					PixelScene.align(slot);

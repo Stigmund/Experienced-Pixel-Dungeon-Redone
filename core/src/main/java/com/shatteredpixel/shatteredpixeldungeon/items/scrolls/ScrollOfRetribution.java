@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
+import java.util.ArrayList;
+
 public class ScrollOfRetribution extends Scroll {
 
 	{
@@ -49,19 +51,26 @@ public class ScrollOfRetribution extends Scroll {
 		GameScene.flash( 0x80FFFFFF );
 		
 		//scales from 0x to 1x power, maxing at ~10% HP
-		float hpPercent = (curUser.HT - curUser.HP)/(float)(curUser.HT);
-		float power = Math.min( 4f, 4.45f*hpPercent);
+		double hpPercent = (curUser.HT - curUser.HP)/(double)(curUser.HT);
+		double power = Math.min( 4f, 4.45f*hpPercent);
 		
 		Sample.INSTANCE.play( Assets.Sounds.BLAST );
 		GLog.i(Messages.get(this, "blast"));
-		
+
+		ArrayList<Mob> targets = new ArrayList<>();
+
+		//calculate targets first, in case damaging/blinding a target affects hero vision
 		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
 			if (Dungeon.level.heroFOV[mob.pos]) {
-				//deals 10%HT, plus 0-90%HP based on scaling
-				mob.damage(Math.round(mob.HT/10f + (mob.HP * power * 0.225f)), this);
-				if (mob.isAlive()) {
-					Buff.prolong(mob, Blindness.class, Blindness.DURATION);
-				}
+				targets.add(mob);
+			}
+		}
+
+		for (Mob mob : targets){
+			//deals 10%HT, plus 0-90%HP based on scaling
+			mob.damage(Math.round(mob.HT/10d + (mob.HP * power * 0.225d)), this);
+			if (mob.isAlive()) {
+				Buff.prolong(mob, Blindness.class, Blindness.DURATION);
 			}
 		}
 		
@@ -76,7 +85,7 @@ public class ScrollOfRetribution extends Scroll {
 	}
 	
 	@Override
-	public int value() {
+	public long value() {
 		return isKnown() ? 40 * quantity : super.value();
 	}
 }

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,18 +76,24 @@ public class Scorpio extends Mob {
                 defenseSkill = 16000;
                 EXP = 9000000;
                 break;
+			case 5:
+				HP = HT = 9000000000L;
+				defenseSkill = 145000;
+				EXP = 400000000;
+				break;
         }
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(100, 123);
-            case 2: return Random.NormalIntRange(450, 564);
-            case 3: return Random.NormalIntRange(2780, 4350);
-            case 4: return Random.NormalIntRange(324000, 410000);
+            case 1: return Dungeon.NormalLongRange(100, 123);
+            case 2: return Dungeon.NormalLongRange(450, 564);
+            case 3: return Dungeon.NormalLongRange(2780, 4350);
+            case 4: return Dungeon.NormalLongRange(324000, 410000);
+			case 5: return Dungeon.NormalLongRange(7000000, 11000000);
         }
-		return Random.NormalIntRange( 30, 40 );
+		return Dungeon.NormalLongRange( 30, 40 );
 	}
 	
 	@Override
@@ -97,19 +103,21 @@ public class Scorpio extends Mob {
             case 2: return 500;
             case 3: return 1190;
             case 4: return 18000;
+			case 5: return 235000;
         }
 		return 36;
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(50, 89);
-            case 2: return Random.NormalIntRange(240, 400);
-            case 3: return Random.NormalIntRange(1750, 3200);
-            case 4: return Random.NormalIntRange(300000, 400000);
+            case 1: return Dungeon.NormalLongRange(50, 89);
+            case 2: return Dungeon.NormalLongRange(240, 400);
+            case 3: return Dungeon.NormalLongRange(1750, 3200);
+            case 4: return Dungeon.NormalLongRange(300000, 400000);
+			case 5: return Dungeon.NormalLongRange(10000000, 18000000);
         }
-		return Random.NormalIntRange(0, 16);
+		return Dungeon.NormalLongRange(0, 16);
 	}
 	
 	@Override
@@ -119,7 +127,7 @@ public class Scorpio extends Mob {
 	}
 	
 	@Override
-	public int attackProc( Char enemy, int damage ) {
+	public long attackProc( Char enemy, long damage ) {
 		damage = super.attackProc( enemy, damage );
 		if (Random.Int( 2 ) == 0) {
 			Buff.prolong( enemy, Cripple.class, Cripple.DURATION );

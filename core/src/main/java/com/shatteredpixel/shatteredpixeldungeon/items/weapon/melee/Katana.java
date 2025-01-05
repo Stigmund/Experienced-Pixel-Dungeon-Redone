@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,13 +38,13 @@ public class Katana extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  4*(tier+1) +    //20 base, down from 25
-				lvl*(tier+1);   //scaling unchanged
+	public long max(long lvl) {
+		return  4L*(tier()+1) +    //20 base, down from 25
+				lvl*(tier()+1);   //scaling unchanged
 	}
 
 	@Override
-	public int defenseFactor( Char owner ) {
+	public long defenseFactor( Char owner ) {
 		return 3;	//3 extra defence
 	}
 
@@ -55,6 +55,24 @@ public class Katana extends MeleeWeapon {
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
-		Rapier.lungeAbility(hero, target, 1.35f, 0, this);
+		//+(8+2*lvl) damage, roughly +67% damage
+		long dmgBoost = augment.damageFactor(8 + Math.round(2f*buffedLvl()));
+		Rapier.lungeAbility(hero, target, 1, dmgBoost, this);
 	}
+
+	@Override
+	public String abilityInfo() {
+		long dmgBoost = levelKnown ? 8 + Math.round(2f*buffedLvl()) : 8;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(min()+dmgBoost), augment.damageFactor(max()+dmgBoost));
+		} else {
+			return Messages.get(this, "typical_ability_desc", min(0)+dmgBoost, max(0)+dmgBoost);
+		}
+	}
+
+	public String upgradeAbilityStat(long level){
+		long dmgBoost = 8 + Math.round(2f*level);
+		return augment.damageFactor(min(level)+dmgBoost) + "-" + augment.damageFactor(max(level)+dmgBoost);
+	}
+
 }

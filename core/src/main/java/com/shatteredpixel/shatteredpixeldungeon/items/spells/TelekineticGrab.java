@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,11 +38,14 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
+import com.watabou.utils.PathFinder;
 
 public class TelekineticGrab extends TargetedSpell {
 
 	{
 		image = ItemSpriteSheet.TELE_GRAB;
+
+		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
 
 	@Override
@@ -86,25 +89,30 @@ public class TelekineticGrab extends TargetedSpell {
 
 		} else if (Dungeon.level.heaps.get(bolt.collisionPos) != null){
 
-			Heap h = Dungeon.level.heaps.get(bolt.collisionPos);
+			for (int n : PathFinder.NEIGHBOURS9){
+				int cell = bolt.collisionPos + n;
 
-			if (h.type != Heap.Type.HEAP){
-				GLog.w(Messages.get(this, "cant_grab"));
-				h.sprite.drop();
-				return;
-			}
+				Heap h = Dungeon.level.heaps.get(cell);
+				if (h != null) {
 
-			while (!h.isEmpty()) {
-				Item item = h.peek();
-				if (item.doPickUp(hero, h.pos)) {
-					h.pickUp();
-					hero.spend(-Item.TIME_TO_PICK_UP); //casting the spell already takes a turn
-					GLog.i( Messages.capitalize(Messages.get(hero, "you_now_have", item.name())) );
+					if (h.type != Heap.Type.HEAP) {
+						GLog.w(Messages.get(this, "cant_grab"));
+						h.sprite.drop();
+						continue;
+					}
 
-				} else {
-					GLog.w(Messages.get(this, "cant_grab"));
-					h.sprite.drop();
-					return;
+					while (!h.isEmpty()) {
+						Item item = h.peek();
+						if (item.doPickUp(hero, h.pos)) {
+							h.pickUp();
+							hero.spend(-Item.TIME_TO_PICK_UP); //casting the spell already takes a turn
+							GLog.i(Messages.capitalize(Messages.get(hero, "you_now_have", item.name())));
+						} else {
+							GLog.w(Messages.get(this, "cant_grab"));
+							h.sprite.drop();
+							break;
+						}
+					}
 				}
 			}
 
@@ -115,21 +123,27 @@ public class TelekineticGrab extends TargetedSpell {
 	}
 
 	@Override
-	public int value() {
-		//prices of ingredients, divided by output quantity, rounds down
-		return (int)((10 + 40) * (quantity/6f));
+	public long value() {
+		return (long)(60 * (quantity/(float)Recipe.OUT_QUANTITY));
+	}
+
+	@Override
+	public long energyVal() {
+		return (long)(12 * (quantity/(float)Recipe.OUT_QUANTITY));
 	}
 
 	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
 
-		{
-			inputs =  new Class[]{LiquidMetal.class, ArcaneCatalyst.class};
-			inQuantity = new int[]{10, 1};
+		private static final int OUT_QUANTITY = 8;
 
-			cost = 2;
+		{
+			inputs =  new Class[]{LiquidMetal.class};
+			inQuantity = new int[]{10};
+
+			cost = 10;
 
 			output = TelekineticGrab.class;
-			outQuantity = 6;
+			outQuantity = OUT_QUANTITY;
 		}
 
 	}

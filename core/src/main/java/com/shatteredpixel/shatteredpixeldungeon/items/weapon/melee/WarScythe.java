@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -39,14 +38,9 @@ public class WarScythe extends MeleeWeapon {
     }
 
     @Override
-    public int max(int lvl) {
-        return  Math.round(6.67f*(tier+1)) +    //40 base, up from 30
-                lvl*(tier+1);                   //scaling unchanged
-    }
-
-    @Override
-    protected int baseChargeUse(Hero hero, Char target){
-        return 2;
+    public long max(long lvl) {
+        return  Math.round(6.67d*(tier()+1)) +    //40 base, up from 30
+                lvl*(tier()+1);                   //scaling unchanged
     }
 
     @Override
@@ -54,9 +48,26 @@ public class WarScythe extends MeleeWeapon {
         return Messages.get(this, "prompt");
     }
 
-    @Override
-    protected void duelistAbility(Hero hero, Integer target) {
-        Sickle.harvestAbility(hero, target, 0.9f, this);
+	@Override
+	protected void duelistAbility(Hero hero, Integer target) {
+		//replaces damage with 30+4.5*lvl bleed, roughly 133% avg base dmg, 129% avg scaling
+		long bleedAmt = augment.damageFactor(Math.round(30f + 4.5f*buffedLvl()));
+		Sickle.harvestAbility(hero, target, 0f, bleedAmt, this);
+	}
+
+	@Override
+	public String abilityInfo() {
+		long bleedAmt = levelKnown ? Math.round(30f + 4.5f*buffedLvl()) : 30;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(bleedAmt));
+		} else {
+			return Messages.get(this, "typical_ability_desc", bleedAmt);
+		}
     }
+
+	@Override
+	public String upgradeAbilityStat(long level) {
+		return Long.toString(augment.damageFactor(Math.round(30f + 4.5f*level)));
+	}
 
 }

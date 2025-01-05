@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Hook;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -64,13 +65,18 @@ public abstract class FishingRod extends Item {
         return actions;
     }
 
-    public float amplifier = 1f;
-    public int fishingStr = 1;
+    public double amplifier = 1f;
+    public int baseFishingStr = 1;
+    public int bonusFishingStr = 0;
     public int tier;
     public boolean hook;
 
-    public float fishingPower(){
-        return level()*amplifier;
+    public double fishingPower(){
+        return (level()+1)*amplifier;
+    }
+
+    public int fishingStrength(){
+        return baseFishingStr + bonusFishingStr;
     }
 
     @Override
@@ -129,11 +135,12 @@ public abstract class FishingRod extends Item {
                     public void call() {
                         Hook hook = new Hook();
                         hook.tier = tier;
-                        hook.tries = fishingStr;
-                        hook.power = (int) fishingPower();
+                        hook.tries = fishingStrength();
+                        hook.power = (long) fishingPower();
                         GameScene.add(hook);
-                        ScrollOfTeleportation.appear(hook, target);
+                        ScrollOfTeleportation.appear(hook, hooking.collisionPos);
                         defaultAction = AC_UNCAST;
+                        Catalog.countUse(getClass());
                     }
                 });
 
@@ -152,9 +159,20 @@ public abstract class FishingRod extends Item {
     };
 
     @Override
+    public void onDetach() {
+        hook = false;
+        defaultAction = AC_CAST;
+        for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
+            if (Dungeon.level.heroFOV[mob.pos] && mob instanceof Hook) {
+                mob.die(new Doom());
+            }
+        }
+    }
+
+    @Override
     public Item upgrade() {
         super.upgrade();
-        if (level() % 5 == 0) fishingStr++;
+        bonusFishingStr = (int) Math.min(15000, level() / 5);
         return this;
     }
 
@@ -162,7 +180,7 @@ public abstract class FishingRod extends Item {
     public void storeInBundle(Bundle bundle) {
         super.storeInBundle(bundle);
         bundle.put("hook", hook);
-        bundle.put("amp", fishingStr);
+        bundle.put("amp", bonusFishingStr);
     }
 
     @Override
@@ -171,28 +189,36 @@ public abstract class FishingRod extends Item {
         hook = bundle.getBoolean("hook");
         if (hook) defaultAction = AC_UNCAST;
         else defaultAction = AC_CAST;
-        fishingStr = bundle.getInt("amp");
+        bonusFishingStr = bundle.getInt("amp");
     }
 
     @Override
-    public int visiblyUpgraded() {
+    public long visiblyUpgraded() {
         return level();
     }
 
     @Override
-    public int buffedVisiblyUpgraded() {
+    public long buffedVisiblyUpgraded() {
         return level();
+    }
+
+    public String upgradeStat1(long level){
+        return Long.toString(Math.round((level+1)*amplifier*100)) + '%';
+    }
+
+    public String upgradeStat2(long level){
+        return Long.toString(baseFishingStr + Math.min(15000, level/5));
     }
 
     @Override
     public String desc() {
         String desc = super.desc();
-        desc += "\n\n" + Messages.get(FishingRod.class, "basics", Math.round(fishingPower()*100), fishingStr);
+        desc += "\n\n" + Messages.get(FishingRod.class, "basics", Math.round(fishingPower()*100), fishingStrength());
         return desc;
     }
 
     @Override
-    public int value() {
+    public long value() {
         return 60 * Dungeon.escalatingDepth() / 5;
     }
 }

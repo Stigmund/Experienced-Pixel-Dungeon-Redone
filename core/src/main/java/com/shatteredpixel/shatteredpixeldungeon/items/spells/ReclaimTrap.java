@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,12 @@ package com.shatteredpixel.shatteredpixeldungeon.items.spells;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.MetalShard;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Bestiary;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -46,6 +49,8 @@ public class ReclaimTrap extends TargetedSpell {
 	
 	{
 		image = ItemSpriteSheet.RECLAIM_TRAP;
+
+		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
 	
 	private Class<?extends Trap> storedTrap = null;
@@ -72,6 +77,7 @@ public class ReclaimTrap extends TargetedSpell {
 				Sample.INSTANCE.play(Assets.Sounds.LIGHTNING);
 				ScrollOfRecharging.charge(hero);
 				storedTrap = t.getClass();
+				Bestiary.setSeen(t.getClass());
 				
 			} else {
 				GLog.w(Messages.get(this, "no_trap"));
@@ -82,6 +88,8 @@ public class ReclaimTrap extends TargetedSpell {
 			storedTrap = null;
 			
 			t.pos = bolt.collisionPos;
+			t.reclaimed = true;
+			Bestiary.countEncounter(t.getClass());
 			t.activate();
 			
 		}
@@ -117,9 +125,13 @@ public class ReclaimTrap extends TargetedSpell {
 	}
 	
 	@Override
-	public int value() {
-		//prices of ingredients, divided by output quantity, rounds down
-		return (int)((40 + 50) * (quantity/4f));
+	public long value() {
+		return (long)(60 * (quantity/(float)Recipe.OUT_QUANTITY));
+	}
+
+	@Override
+	public long energyVal() {
+		return (long)(12 * (quantity/(float)Recipe.OUT_QUANTITY));
 	}
 	
 	private static final String STORED_TRAP = "stored_trap";
@@ -137,17 +149,24 @@ public class ReclaimTrap extends TargetedSpell {
 	}
 	
 	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
-		
+
+		private static final int OUT_QUANTITY = 5;
+
 		{
 			inputs =  new Class[]{ScrollOfMagicMapping.class, MetalShard.class};
 			inQuantity = new int[]{1, 1};
 			
-			cost = 6;
+			cost = 8;
 			
 			output = ReclaimTrap.class;
-			outQuantity = 4;
+			outQuantity = OUT_QUANTITY;
 		}
-		
+
+		@Override
+		public Item brew(ArrayList<Item> ingredients) {
+			Catalog.countUse(MetalShard.class);
+			return super.brew(ingredients);
+		}
 	}
 	
 }

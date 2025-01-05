@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -31,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -77,6 +79,26 @@ public class PsycheChest extends Item {
     }
 
     @Override
+    public String desc() {
+        return Messages.get(this, "desc", neededExp());
+    }
+
+    public static long neededExp(){
+        long neededExp = 100;
+        switch (Dungeon.cycle){
+            case 1: neededExp = 200; break;
+            case 2: neededExp = 1250; break;
+            case 3: neededExp = 11750; break;
+            case 4: neededExp = 75000; break;
+            case 5: neededExp = 500000; break;
+        }
+        if (Dungeon.isChallenged(Challenges.NO_SCROLLS)){
+            neededExp *= 2.5f;
+        }
+        return neededExp;
+    }
+
+    @Override
     public void execute( Hero hero, String action ) {
 
         super.execute( hero, action );
@@ -89,7 +111,7 @@ public class PsycheChest extends Item {
             hero.grinding = false;
             GLog.w( Messages.get(this, "deactivated") );
         }
-        if (action.contains(AC_RESET) && (hero.HP > hero.HT / 2)){
+        if (action.contains(AC_RESET) && (hero.HP > hero.HT * 0.55d)){
             switch (Dungeon.depth){
                 case 2: case 3: case 4:
                     for (Mob m: Dungeon.level.mobs){
@@ -132,9 +154,11 @@ public class PsycheChest extends Item {
                 }
             }
             InterlevelScene.mode = InterlevelScene.Mode.RESET;
-            if (hero.HP > hero.HT / 2) hero.HP -= hero.HT / 2;
+            if (hero.HP > hero.HT * 0.55d) hero.HP -= Math.round(hero.HT * 0.55d);
+            Dungeon.resetDamage *= 1.045d;
             Game.switchScene(InterlevelScene.class);
-        } else if (action.contains(AC_RESET) && (hero.HP < hero.HT / 2)){
+            Catalog.countUse(getClass());
+        } else if (action.contains(AC_RESET) && (hero.HP < Math.round(hero.HT * 0.55d))){
             GLog.w( Messages.get(this, "no_reset") );
         }
     }

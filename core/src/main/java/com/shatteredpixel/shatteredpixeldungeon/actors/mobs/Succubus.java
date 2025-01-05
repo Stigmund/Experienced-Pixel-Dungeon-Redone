@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -40,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SuccubusSprite;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
@@ -88,34 +90,45 @@ public class Succubus extends Mob {
                 defenseSkill = 11000;
                 EXP = 3000000;
                 break;
+			case 5:
+				HP = HT = 5000000000L;
+				defenseSkill = 150000;
+				EXP = 245000000;
+				break;
         }
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(80, 101);
-            case 2: return Random.NormalIntRange(420, 533);
-            case 3: return Random.NormalIntRange(2300, 3170);
-            case 4: return Random.NormalIntRange(170000, 250000);
+            case 1: return Dungeon.NormalLongRange(80, 101);
+            case 2: return Dungeon.NormalLongRange(420, 533);
+            case 3: return Dungeon.NormalLongRange(2300, 3170);
+            case 4: return Dungeon.NormalLongRange(170000, 250000);
+			case 5: return Dungeon.NormalLongRange(7000000, 10000000);
         }
-		return Random.NormalIntRange( 25, 30 );
+		return Dungeon.NormalLongRange( 25, 30 );
 	}
 	
 	@Override
-	public int attackProc( Char enemy, int damage ) {
+	public long attackProc( Char enemy, long damage ) {
 		damage = super.attackProc( enemy, damage );
 		
 		if (enemy.buff(Charm.class) != null ){
-			int shield = (HP - HT) + (5 + damage);
+			long shield = (HP - HT) + (5 + damage);
 			if (shield > 0){
 				HP = HT;
+				if (shield < 5){
+					sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(5-shield), FloatingText.HEALING);
+				}
+
 				Buff.affect(this, Barrier.class).setShield(shield);
+				sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(shield), FloatingText.SHIELDING);
 			} else {
 				HP += 5 + damage;
+				sprite.showStatusWithIcon(CharSprite.POSITIVE, "5", FloatingText.HEALING);
 			}
 			if (Dungeon.level.heroFOV[pos]) {
-				sprite.emitter().burst( Speck.factory( Speck.HEALING ), 2 );
 				Sample.INSTANCE.play( Assets.Sounds.CHARMS );
 			}
 		} else if (Random.Int( 3 ) == 0) {
@@ -190,19 +203,21 @@ public class Succubus extends Mob {
             case 2: return 480;
             case 3: return 1175;
             case 4: return 13000;
+			case 5: return 185750;
         }
 		return 40;
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(40, 63);
-            case 2: return Random.NormalIntRange(150, 300);
-            case 3: return Random.NormalIntRange(1500, 2400);
-            case 4: return Random.NormalIntRange(135000, 190000);
+            case 1: return Dungeon.NormalLongRange(40, 63);
+            case 2: return Dungeon.NormalLongRange(150, 300);
+            case 3: return Dungeon.NormalLongRange(1500, 2400);
+            case 4: return Dungeon.NormalLongRange(135000, 190000);
+			case 5: return Dungeon.NormalLongRange(4750000, 8500000);
         }
-		return Random.NormalIntRange(0, 10);
+		return Dungeon.NormalLongRange(0, 10);
 	}
 
 	@Override

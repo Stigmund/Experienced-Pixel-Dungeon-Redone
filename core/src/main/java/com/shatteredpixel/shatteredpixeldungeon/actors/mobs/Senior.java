@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Pasty;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SeniorSprite;
-import com.watabou.utils.Random;
 
 public class Senior extends Monk {
 
@@ -47,14 +46,15 @@ public class Senior extends Monk {
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(71, 83);
-            case 2: return Random.NormalIntRange(313, 431);
-            case 3: return Random.NormalIntRange(1800, 2340);
-            case 4: return Random.NormalIntRange(60000, 100000);
+            case 1: return Dungeon.NormalLongRange(71, 83);
+            case 2: return Dungeon.NormalLongRange(313, 431);
+            case 3: return Dungeon.NormalLongRange(1800, 2340);
+            case 4: return Dungeon.NormalLongRange(60000, 100000);
+			case 5: return Dungeon.NormalLongRange(4000000, 7900000);
         }
-		return Random.NormalIntRange( 16, 25 );
+		return Dungeon.NormalLongRange( 16, 25 );
 	}
 	
 }

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bat;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bee;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Crab;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Scorpio;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Spinner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Swarm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -77,8 +82,14 @@ public class Pickaxe extends MeleeWeapon {
 	public boolean bloodStained = false;
 
 	@Override
-	public int STRReq(int lvl) {
+	public int STRReq(long lvl) {
 		return super.STRReq(lvl) + 2; //tier 3 strength requirement with tier 2 damage stats
+	}
+
+	@Override
+	public long max(long lvl) {
+		return  12*(tier()+1) +    //36 base, up from 24
+				lvl*(tier());   //+2, down from +3
 	}
 
 	@Override
@@ -146,7 +157,7 @@ public class Pickaxe extends MeleeWeapon {
 	}
 	
 	@Override
-	public int proc( Char attacker, Char defender, int damage ) {
+	public long proc( Char attacker, Char defender, long damage ) {
 		if (Blacksmith.Quest.oldBloodQuest() && !bloodStained && defender instanceof Bat) {
 			Actor.add(new Actor() {
 
@@ -205,7 +216,7 @@ public class Pickaxe extends MeleeWeapon {
 
 		hero.belongings.abilityWeapon = this;
 		if (!hero.canAttack(enemy)){
-			GLog.w(Messages.get(this, "ability_bad_position"));
+			GLog.w(Messages.get(this, "ability_target_range"));
 			hero.belongings.abilityWeapon = null;
 			return;
 		}
@@ -214,18 +225,19 @@ public class Pickaxe extends MeleeWeapon {
 		hero.sprite.attack(enemy.pos, new Callback() {
 			@Override
 			public void call() {
-				float damageMulti = 1f;
+				long damageBoost = 0;
 				if (Char.hasProp(enemy, Char.Property.INORGANIC)
 						|| enemy instanceof Swarm
 						|| enemy instanceof Bee
 						|| enemy instanceof Crab
 						|| enemy instanceof Spinner
 						|| enemy instanceof Scorpio) {
-					damageMulti = 2f;
+					//+(8+2*lvl) damage, equivalent to +100% damage
+					damageBoost = augment.damageFactor(8 + 2*buffedLvl());
 				}
 				beforeAbilityUsed(hero, enemy);
 				AttackIndicator.target(enemy);
-				if (hero.attack(enemy, damageMulti, 0, Char.INFINITE_ACCURACY)) {
+				if (hero.attack(enemy, 1, damageBoost, Char.INFINITE_ACCURACY)) {
 					if (enemy.isAlive()) {
 						Buff.affect(enemy, Vulnerable.class, 3f);
 					} else {
@@ -238,6 +250,17 @@ public class Pickaxe extends MeleeWeapon {
 				afterAbilityUsed(hero);
 			}
 		});
+	}
+
+	@Override
+	public String abilityInfo() {
+		long dmgBoost = 8 + 2*buffedLvl();
+		return Messages.get(this, "ability_desc", augment.damageFactor(min()+dmgBoost), augment.damageFactor(max()+dmgBoost));
+	}
+
+	public String upgradeAbilityStat(long level){
+		long dmgBoost = 8 + 2*level;
+		return augment.damageFactor(min(level)+dmgBoost) + "-" + augment.damageFactor(max(level)+dmgBoost);
 	}
 
 	private static final String BLOODSTAINED = "bloodStained";

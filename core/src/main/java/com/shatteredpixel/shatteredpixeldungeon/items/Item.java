@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWea
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.TippedDart;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -82,10 +83,10 @@ public class Item implements Bundlable {
 	public int icon = -1; //used as an identifier for items with randomized images
 	
 	public boolean stackable = false;
-	protected int quantity = 1;
+	protected long quantity = 1;
 	public boolean dropsDownHeap = false;
 	
-	private int level = 0;
+	private long level = 0;
 
 	public boolean levelKnown = false;
 	
@@ -285,12 +286,12 @@ public class Item implements Bundlable {
 
 	}
 	
-	public boolean collect() {
+	public final boolean collect() {
 		return collect( Dungeon.hero.belongings.backpack );
 	}
 	
 	//returns a new item if the split was sucessful and there are now 2 items, otherwise null
-	public Item split( int amount ){
+	public Item split( long amount ){
 		if (amount <= 0 || amount >= quantity()) {
 			return null;
 		} else {
@@ -309,6 +310,17 @@ public class Item implements Bundlable {
 			
 			return split;
 		}
+	}
+
+	public Item duplicate(){
+		Item dupe = Reflection.newInstance(getClass());
+		if (dupe == null){
+			return null;
+		}
+		Bundle copy = new Bundle();
+		this.storeInBundle(copy);
+		dupe.restoreFromBundle(copy);
+		return dupe;
 	}
 	
 	public final Item detach( Bag container ) {
@@ -360,26 +372,26 @@ public class Item implements Bundlable {
 	}
 	
 	public boolean isSimilar( Item item ) {
-		return level == item.level && getClass() == item.getClass();
+		return getClass() == item.getClass();
 	}
 
 	public void onDetach(){}
 
 	//returns the true level of the item, ignoring all modifiers aside from upgrades
-	public final int trueLevel(){
+	public final long trueLevel(){
 		return level;
 	}
 
 	//returns the persistant level of the item, only affected by modifiers which are persistent (e.g. curse infusion)
-	public int level(){
+	public long level(){
 		return level;
 	}
 	
 	//returns the level of the item, after it may have been modified by temporary boosts/reductions
 	//note that not all item properties should care about buffs/debuffs! (e.g. str requirement)
-	public int buffedLvl(){
+	public long buffedLvl(){
 		//only the hero can be affected by Degradation
-		if (Dungeon.hero.buff( Degrade.class ) != null
+		if (Dungeon.hero != null && Dungeon.hero.buff( Degrade.class ) != null
 			&& (isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this ))) {
 			return Degrade.reduceLevel(level());
 		} else {
@@ -387,7 +399,7 @@ public class Item implements Bundlable {
 		}
 	}
 
-	public void level( int value ){
+	public void level(long value ){
 		level = value;
 
 		updateQuickslot();
@@ -402,9 +414,17 @@ public class Item implements Bundlable {
 		return this;
 	}
 	
-	final public Item upgrade( int n ) {
-		for (int i=0; i < n; i++) {
-			upgrade();
+	final public Item upgrade(long n ) {
+		if (n > 20){
+			this.level += n - 20;
+			for (long i=0; i < 20; i++) {
+				upgrade();
+			}
+			updateQuickslot();
+		} else {
+			for (long i = 0; i < n; i++) {
+				upgrade();
+			}
 		}
 		
 		return this;
@@ -417,19 +437,27 @@ public class Item implements Bundlable {
 		return this;
 	}
 	
-	final public Item degrade( int n ) {
-		for (int i=0; i < n; i++) {
-			degrade();
+	final public Item degrade(long n ) {
+		if (n > 20){
+			this.level -= n - 20;
+			for (long i=0; i < 20; i++) {
+				degrade();
+			}
+			updateQuickslot();
+		} else {
+			for (long i = 0; i < n; i++) {
+				degrade();
+			}
 		}
 		
 		return this;
 	}
 	
-	public int visiblyUpgraded() {
+	public long visiblyUpgraded() {
 		return levelKnown ? level() : 0;
 	}
 
-	public int buffedVisiblyUpgraded() {
+	public long buffedVisiblyUpgraded() {
 		return levelKnown ? buffedLvl() : 0;
 	}
 	
@@ -508,6 +536,20 @@ public class Item implements Bundlable {
 	public Emitter emitter() { return null; }
 	
 	public String info() {
+
+		if (Dungeon.hero != null) {
+			Notes.CustomRecord note;
+			if (this instanceof EquipableItem) {
+				note = Notes.findCustomRecord(((EquipableItem) this).customNoteID);
+			} else {
+				note = Notes.findCustomRecord(getClass());
+			}
+			if (note != null){
+				//we swap underscore(0x5F) with low macron(0x2CD) here to avoid highlighting in the item window
+				return Messages.get(this, "custom_note", note.title().replace('_', 'ˍ')) + "\n\n" + desc();
+			}
+		}
+
 		return desc();
 	}
 	
@@ -515,26 +557,26 @@ public class Item implements Bundlable {
 		return Messages.get(this, "desc");
 	}
 	
-	public int quantity() {
+	public long quantity() {
 		return quantity;
 	}
 	
-	public Item quantity( int value ) {
+	public Item quantity(long value ) {
 		quantity = value;
 		return this;
 	}
 
 	//item's value in gold coins
-	public int value() {
+	public long value() {
 		return 0;
 	}
 
 	//item's value in energy crystals
-	public int energyVal() {
+	public long energyVal() {
 		return 0;
 	}
 
-	public final int sellPrice(){
+	public final long sellPrice(){
 		return value() * 5 * (Dungeon.depth / 5 + 1);
 	}
 	
@@ -552,7 +594,7 @@ public class Item implements Bundlable {
 	}
 	
 	public String status() {
-		return quantity != 1 ? Integer.toString( quantity ) : null;
+		return quantity != 1 ? Long.toString( quantity ) : null;
 	}
 
 	public static void updateQuickslot() {
@@ -584,12 +626,12 @@ public class Item implements Bundlable {
 	
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
-		quantity	= bundle.getInt( QUANTITY );
+		quantity	= bundle.getLong( QUANTITY );
 		levelKnown	= bundle.getBoolean( LEVEL_KNOWN );
 		cursedKnown	= bundle.getBoolean( CURSED_KNOWN );
 		wereOofed = bundle.getBoolean(WERE_OOFED);
 		
-		int level = bundle.getInt( LEVEL );
+		long level = bundle.getLong( LEVEL );
 		if (level > 0) {
 			upgrade( level );
 		} else if (level < 0) {
@@ -675,8 +717,9 @@ public class Item implements Bundlable {
 						public void call() {
 							curUser = user;
 							Item i = Item.this.detach(user.belongings.backpack);
+							user.spend(delay);
 							if (i != null) i.onThrow(cell);
-							user.spendAndNext(delay);
+							user.next();
 						}
 					});
 		}

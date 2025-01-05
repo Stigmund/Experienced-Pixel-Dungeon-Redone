@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfUnstable;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.MassGraveRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.quest.RitualSiteRoom;
@@ -72,15 +73,17 @@ public class Wandmaker extends NPC {
 
 		properties.add(Property.IMMOVABLE);
 	}
-	
+
+	@Override
+	public Notes.Landmark landmark() {
+		return Notes.Landmark.WANDMAKER;
+	}
+
 	@Override
 	protected boolean act() {
 		if (Dungeon.hero.buff(AscensionChallenge.class) != null){
 			die(null);
 			return true;
-		}
-		if (Dungeon.level.visited[pos] && Quest.wand1 != null){
-			Notes.add( Notes.Landmark.WANDMAKER );
 		}
 		return super.act();
 	}
@@ -91,7 +94,7 @@ public class Wandmaker extends NPC {
 	}
 
 	@Override
-	public void damage( int dmg, Object src ) {
+	public void damage( long dmg, Object src ) {
 		//do nothing
 	}
 
@@ -262,7 +265,6 @@ public class Wandmaker extends NPC {
 			});
 
 			Quest.given = true;
-			Notes.add( Notes.Landmark.WANDMAKER );
 		}
 
 		return true;
@@ -355,10 +357,10 @@ public class Wandmaker extends NPC {
 				
 				Wandmaker npc = new Wandmaker();
 				boolean validPos;
-				//Do not spawn wandmaker on the entrance, a trap, or in front of a door.
+				//Do not spawn wandmaker on the entrance, in front of a door, or on bad terrain.
 				do {
 					validPos = true;
-					npc.pos = level.pointToCell(room.random());
+					npc.pos = level.pointToCell(room.random((room.width() > 6 && room.height() > 6) ? 2 : 1));
 					if (npc.pos == level.entrance()){
 						validPos = false;
 					}
@@ -367,7 +369,9 @@ public class Wandmaker extends NPC {
 							validPos = false;
 						}
 					}
-					if (level.traps.get(npc.pos) != null){
+					if (level.traps.get(npc.pos) != null
+							|| !level.passable[npc.pos]
+							|| level.map[npc.pos] == Terrain.EMPTY_SP){
 						validPos = false;
 					}
 				} while (!validPos);
@@ -407,7 +411,6 @@ public class Wandmaker extends NPC {
 			questRoomSpawned = false;
 			if (!spawned && (type != 0 || (Dungeon.depth == PsycheChest.questDepth ||
 					(Dungeon.depth > 6 && Random.Int( 10 - Dungeon.depth ) == 0)))) {
-				
 				// decide between 1,2, or 3 for quest type.
 				if (type == 0) type = Random.Int(3)+1;
 				
@@ -425,7 +428,7 @@ public class Wandmaker extends NPC {
 		
 				questRoomSpawned = true;
 				PsycheChest.questDepth = -1;
-				
+
 			}
 			return rooms;
 		}
@@ -463,7 +466,7 @@ public class Wandmaker extends NPC {
 
 				//or hero is in the ritual room and all 4 candles are with them
 				if (((RegularLevel) Dungeon.level).room(Dungeon.hero.pos) instanceof RitualSiteRoom) {
-					int candles = 0;
+					long candles = 0;
 					if (Dungeon.hero.belongings.getItem(CeremonialCandle.class) != null){
 						candles += Dungeon.hero.belongings.getItem(CeremonialCandle.class).quantity();
 					}

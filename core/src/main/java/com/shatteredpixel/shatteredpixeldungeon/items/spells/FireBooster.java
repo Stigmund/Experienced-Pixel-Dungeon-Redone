@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,42 +27,55 @@ package com.shatteredpixel.shatteredpixeldungeon.items.spells;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.PathFinder;
 
 public class FireBooster extends Spell {
     {
         image = ItemSpriteSheet.FIREBOOSTER;
+
+        talentChance = 1/(float) Recipe.OUT_QUANTITY;
     }
 
     @Override
     protected void onCast(Hero hero) {
-        Dungeon.fireDamage *= 1.1f;
+        Dungeon.fireDamage *= 1.1d;
+        hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, "+1.1x", FloatingText.FIRE_BOOST);
         for (int i : PathFinder.NEIGHBOURS9){
             CellEmitter.center(hero.pos + i).burst(FlameParticle.FACTORY, 10);
         }
+        Catalog.countUse(getClass());
         detach( curUser.belongings.backpack );
     }
 
     @Override
-    public int value() {
-        //prices of ingredients, divided by output quantity
-        return Math.round(quantity * ((30 + 50 + 40)));
+    public long value() {
+        return (long)(60 * (quantity/(float) Recipe.OUT_QUANTITY));
+    }
+
+    @Override
+    public long energyVal() {
+        return (long)(12 * (quantity/(float) Recipe.OUT_QUANTITY));
     }
 
     public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
 
-        {
-            inputs =  new Class[]{PotionOfLiquidFlame.class, ScrollOfUpgrade.class, ArcaneCatalyst.class};
-            inQuantity = new int[]{1, 1, 1};
+        private static final int OUT_QUANTITY = 1;
 
-            cost = 20;
+        {
+            inputs =  new Class[]{PotionOfLiquidFlame.class, ScrollOfUpgrade.class};
+            inQuantity = new int[]{1, 1};
+
+            cost = 29;
 
             output = FireBooster.class;
-            outQuantity = 1;
+            outQuantity = OUT_QUANTITY;
         }
 
     }

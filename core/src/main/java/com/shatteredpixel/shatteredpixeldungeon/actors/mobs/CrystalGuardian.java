@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,8 +28,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Doom;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -78,6 +79,11 @@ public class CrystalGuardian extends Mob{
 				defenseSkill = 4750;
 				EXP = 195000;
 				break;
+			case 5:
+				HP = HT = 2900000000L;
+				defenseSkill = 59500;
+				EXP = 48000000;
+				break;
 		}
 	}
 
@@ -93,7 +99,7 @@ public class CrystalGuardian extends Mob{
 			throwItems();
 			HP = Math.min(HT, HP+(Math.max(1, HP/20)));
 			if (Dungeon.level.heroFOV[pos]) {
-				sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
+				sprite.showStatusWithIcon(CharSprite.POSITIVE, "5", FloatingText.HEALING);
 			}
 			if (HP == HT){
 				recovering = false;
@@ -106,14 +112,15 @@ public class CrystalGuardian extends Mob{
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
 		switch (Dungeon.cycle) {
-			case 1: return Random.NormalIntRange(60, 70);
-			case 2: return Random.NormalIntRange(280, 350);
-			case 3: return Random.NormalIntRange(1300, 1475);
-			case 4: return Random.NormalIntRange(20000, 45000);
+			case 1: return Dungeon.NormalLongRange(60, 70);
+			case 2: return Dungeon.NormalLongRange(280, 350);
+			case 3: return Dungeon.NormalLongRange(1300, 1475);
+			case 4: return Dungeon.NormalLongRange(20000, 45000);
+			case 5: return Dungeon.NormalLongRange(2200000, 3800000);
 		}
-		return Random.NormalIntRange( 10, 16 );
+		return Dungeon.NormalLongRange( 10, 16 );
 	}
 
 	@Override
@@ -123,6 +130,7 @@ public class CrystalGuardian extends Mob{
 			case 2: return 335;
 			case 3: return 800;
 			case 4: return 4600;
+			case 5: return 65000;
 		}
 		return 20;
 	}
@@ -140,14 +148,15 @@ public class CrystalGuardian extends Mob{
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
 		switch (Dungeon.cycle){
-			case 1: return Random.NormalIntRange(30, 60);
-			case 2: return Random.NormalIntRange(100, 270);
-			case 3: return Random.NormalIntRange(570, 1300);
-			case 4: return Random.NormalIntRange(16000, 42000);
+			case 1: return Dungeon.NormalLongRange(30, 60);
+			case 2: return Dungeon.NormalLongRange(100, 270);
+			case 3: return Dungeon.NormalLongRange(570, 1300);
+			case 4: return Dungeon.NormalLongRange(16000, 42000);
+			case 5: return Dungeon.NormalLongRange(2500000, 4000000);
 		}
-		return Random.NormalIntRange(0, 10);
+		return Dungeon.NormalLongRange(0, 10);
 	}
 
 	@Override
@@ -156,9 +165,10 @@ public class CrystalGuardian extends Mob{
 	}
 
 	@Override
-	public int defenseProc(Char enemy, int damage) {
+	public long defenseProc(Char enemy, long damage) {
 		if (recovering){
-			sprite.showStatus(CharSprite.NEGATIVE, Integer.toString(damage));
+			if (sprite != null)
+				sprite.showStatus(CharSprite.NEGATIVE, Long.toString(damage));
 			HP = Math.max(1, HP-damage);
 			damage = -1;
 		}
@@ -179,6 +189,8 @@ public class CrystalGuardian extends Mob{
 
 			if (!recovering) {
 				recovering = true;
+				Bestiary.setSeen(getClass());
+				Bestiary.countEncounter(getClass());
 				if (sprite != null) ((CrystalGuardianSprite) sprite).crumple();
 			}
 		}

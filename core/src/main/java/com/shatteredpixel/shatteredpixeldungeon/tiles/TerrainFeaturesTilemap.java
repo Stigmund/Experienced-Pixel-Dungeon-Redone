@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,9 @@ public class TerrainFeaturesTilemap extends DungeonTilemap {
 		this.plants = plants;
 		this.traps = traps;
 
-		map( Dungeon.level.map, Dungeon.level.width() );
+		if (Dungeon.level != null) {
+			map(Dungeon.level.map, Dungeon.level.width());
+		}
 
 		instance = this;
 	}
@@ -69,6 +71,7 @@ public class TerrainFeaturesTilemap extends DungeonTilemap {
 
 		int stage = (Dungeon.depth-1)/5;
 		if (Dungeon.depth == 21 && Dungeon.level instanceof LastShopLevel) stage--;
+		stage = Math.min(stage, 4);
 		if (tile == Terrain.HIGH_GRASS){
 			return 9 + 16*stage + (DungeonTileSheet.tileVariance[pos] >= 50 ? 1 : 0);
 		} else if (tile == Terrain.FURROWED_GRASS){
@@ -76,10 +79,32 @@ public class TerrainFeaturesTilemap extends DungeonTilemap {
 		} else if (tile == Terrain.GRASS) {
 			return 13 + 16*stage + (DungeonTileSheet.tileVariance[pos] >= 50 ? 1 : 0);
 		} else if (tile == Terrain.EMBERS) {
-			return 9 * (16*5) + (DungeonTileSheet.tileVariance[pos] >= 50 ? 1 : 0);
+			return 9 + (16*5) + (DungeonTileSheet.tileVariance[pos] >= 50 ? 1 : 0);
 		}
 
 		return -1;
+	}
+
+	public static Image getTrapVisual( Trap trap ){
+		if (instance == null) instance = new TerrainFeaturesTilemap(null, null);
+
+		RectF uv = instance.tileset.get((trap.active ? trap.color : Trap.BLACK) + (trap.shape * 16));
+		if (uv == null) return null;
+
+		Image img = new Image( instance.texture );
+		img.frame(uv);
+		return img;
+	}
+
+	public static Image getPlantVisual( Plant plant ){
+		if (instance == null) instance = new TerrainFeaturesTilemap(null, null);
+
+		RectF uv = instance.tileset.get(plant.image + 7*16);
+		if (uv == null) return null;
+
+		Image img = new Image( instance.texture );
+		img.frame(uv);
+		return img;
 	}
 
 	public static Image tile(int pos, int tile ) {

@@ -6,7 +6,7 @@
  * Copyright (C) 2014-2023 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,14 +26,14 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AnkhInvulnerability;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invulnerability;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.BiggerGambleBag;
+import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.IdealBag;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -57,8 +57,8 @@ public class OOFThief extends Mob {
 		EXP = 0;
 		maxLvl = 11;
 
-		loot = BiggerGambleBag.class;
-		lootChance = 0.5f; //initially, see lootChance()
+		loot = IdealBag.class;
+		lootChance = 1f; //initially, see lootChance()
 
 		properties.add(Property.UNDEAD);
 
@@ -79,6 +79,10 @@ public class OOFThief extends Mob {
                 HP = HT = 10000000;
                 defenseSkill = 4500;
                 break;
+			case 5:
+				HP = HT = 1850000000;
+				defenseSkill = 120000;
+				break;
         }
 	}
 
@@ -100,14 +104,15 @@ public class OOFThief extends Mob {
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(53, 70);
-            case 2: return Random.NormalIntRange(255, 320);
-            case 3: return Random.NormalIntRange(905, 1455);
-            case 4: return Random.NormalIntRange(14300, 21500);
+            case 1: return Dungeon.NormalLongRange(53, 70);
+            case 2: return Dungeon.NormalLongRange(255, 320);
+            case 3: return Dungeon.NormalLongRange(905, 1455);
+            case 4: return Dungeon.NormalLongRange(14300, 21500);
+			case 5: return Dungeon.NormalLongRange(400000, 850000);
         }
-		return Random.NormalIntRange( 8, 14 );
+		return Dungeon.NormalLongRange( 8, 14 );
 	}
 
 	@Override
@@ -132,6 +137,7 @@ public class OOFThief extends Mob {
 	@Override
 	public Item createLoot() {
 		Dungeon.LimitedDrops.OOF_DROP.count++;
+		Dungeon.hero.earnExp(Math.round(Dungeon.hero.maxExp()*Math.pow(25, Dungeon.cycle+1)), getClass());
 		return super.createLoot();
 	}
 
@@ -142,19 +148,21 @@ public class OOFThief extends Mob {
             case 2: return 375;
             case 3: return 1000;
             case 4: return 4222;
+			case 5: return 60575;
         }
 		return 18;
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(15, 40);
-            case 2: return Random.NormalIntRange(110, 250);
-            case 3: return Random.NormalIntRange(575, 1100);
-            case 4: return Random.NormalIntRange(15000, 24000);
+            case 1: return Dungeon.NormalLongRange(15, 40);
+            case 2: return Dungeon.NormalLongRange(110, 250);
+            case 3: return Dungeon.NormalLongRange(575, 1100);
+            case 4: return Dungeon.NormalLongRange(15000, 24000);
+			case 5: return Dungeon.NormalLongRange(75500, 955000);
         }
-		return Random.NormalIntRange(4, 8);
+		return Dungeon.NormalLongRange(4, 8);
 	}
 
 	@Override
@@ -180,17 +188,22 @@ public class OOFThief extends Mob {
 
 	protected void triggerEnrage(){
 		HP = 1;
-		Buff.affect(this, AnkhInvulnerability.class, 3f);
+		Buff.affect(this, Invulnerability.class, 3f);
 		if (Dungeon.level.heroFOV[pos]) {
 			SpellSprite.show( this, SpellSprite.BERSERK);
 		}
 		hasRaged = true;
 	}
 
-	private static final int STEAL_COUNT = 3;
+	@Override
+	public boolean isInvulnerable(Class effect) {
+		return super.isInvulnerable(effect) || buff(Invulnerability.class) != null;
+	}
+
+	private static final int STEAL_COUNT = 4;
 
 	@Override
-	public int attackProc( Char enemy, int damage ) {
+	public long attackProc( Char enemy, long damage ) {
 		damage = super.attackProc( enemy, damage );
 		counter++;
 

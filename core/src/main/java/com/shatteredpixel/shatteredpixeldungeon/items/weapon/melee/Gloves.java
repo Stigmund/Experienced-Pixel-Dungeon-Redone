@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,17 +48,17 @@ public class Gloves extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		if (Dungeon.hero.buff(AttackBuff.class) != null){
-			return  (int)(3f*(tier+1)) +    //6 base, down from 10
-					lvl*tier + Dungeon.hero.buff(AttackBuff.class).stack;
+	public long max(long lvl) {
+		if (Dungeon.hero != null && Dungeon.hero.buff(AttackBuff.class) != null){
+			return  (long)(3d*(tier()+1)) +    //6 base, down from 10
+					lvl*tier() + Dungeon.hero.buff(AttackBuff.class).stack;
 		}
-		return  Math.round(2.5f*(tier+1)) +     //5 base, down from 10
-				lvl*Math.round(0.5f*(tier+1));  //+1 per level, down from +2
+		return  Math.round(2.5d*(tier()+1)) +     //5 base, down from 10
+				lvl*Math.round(0.5d*(tier()+1));  //+1 per level, down from +2
 	}
 
 	@Override
-	public int proc(Char attacker, Char defender, int damage) {
+	public long proc(Char attacker, Char defender, long damage) {
 		if (damage == 0) Buff.affect(attacker, AttackBuff.class, 2f).stack++;
 		return super.proc(attacker, defender, damage);
 	}
@@ -94,7 +94,23 @@ public class Gloves extends MeleeWeapon {
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
-		Sai.comboStrikeAbility(hero, target, 0.45f, this);
+		//+(2+0.5*lvl) damage, roughly +67% base damage, +50% scaling
+		long dmgBoost = augment.damageFactor(2 + Math.round(0.5d*buffedLvl()));
+		Sai.comboStrikeAbility(hero, target, 0, dmgBoost, this);
+	}
+
+	@Override
+	public String abilityInfo() {
+		int dmgBoost = levelKnown ? 2 + Math.round(0.5f*buffedLvl()) : 2;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(dmgBoost));
+		} else {
+			return Messages.get(this, "typical_ability_desc", augment.damageFactor(dmgBoost));
+		}
+	}
+
+	public String upgradeAbilityStat(long level){
+		return "+" + augment.damageFactor(2 + Math.round(0.5f*level));
 	}
 
 }

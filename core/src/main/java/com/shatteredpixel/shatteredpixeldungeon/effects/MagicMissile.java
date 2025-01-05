@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,14 +61,15 @@ public class MagicMissile extends Emitter {
 	public static final int RAINBOW         = 8;
 	public static final int EARTH           = 9;
 	public static final int WARD            = 10;
-	
 	public static final int SHAMAN_RED      = 11;
 	public static final int SHAMAN_BLUE     = 12;
 	public static final int SHAMAN_PURPLE   = 13;
-	public static final int TOXIC_VENT      = 14;
-	public static final int ELMO            = 15;
-	public static final int INVISI          = 16;
-	public static final int HOLYEXP         = 17;
+	public static final int ELMO            = 14;
+	public static final int POISON          = 15;
+
+    public static final int INVISI          = 17;
+    public static final int HOLYEXP         = 18;
+    public static final int EARTHBLAST      = 19;
 
 	public static final int MAGIC_MISS_CONE = 100;
 	public static final int FROST_CONE      = 101;
@@ -83,8 +84,13 @@ public class MagicMissile extends Emitter {
 	public static final int PURPLE_CONE     = 111;
 	public static final int SPARK_CONE      = 112;
 	public static final int BLOOD_CONE      = 113;
+
+	//use SPECK + the constant of the Speck you want. e.g. MagicMissile.SPECK + Speck.TOXIC
+	public static final int SPECK           = 1000;
+
 	public static final int HOLY_EXP_CONE   = 114;
-	
+	public static final int EARTHBLAST_CONE = 115;
+
 	public void reset( int type, int from, int to, Callback callback ) {
 		reset( type,
 				DungeonTilemap.raisedTileCenterToWorld( from ),
@@ -121,6 +127,14 @@ public class MagicMissile extends Emitter {
 		sx = speed.x;
 		sy = speed.y;
 		time = d.length() / SPEED;
+
+		//for now all specks share the same size and volume, this can easily be customized later if needed
+		if (type >= SPECK){
+			size( 10 );
+			pour( Speck.factory(type-SPECK), 0.02f);
+			revive();
+			return;
+		}
 
 		switch(type){
 			case MAGIC_MISSILE: default:
@@ -160,11 +174,14 @@ public class MagicMissile extends Emitter {
 				size( 4 );
 				pour( EarthParticle.FACTORY, 0.01f );
 				break;
+			case EARTHBLAST:
+				size( 6 );
+				pour( EarthblastParticle.FACTORY, 0.01f );
+				break;
 			case WARD:
 				size( 4 );
 				pour( WardParticle.FACTORY, 0.01f );
 				break;
-				
 			case SHAMAN_RED:
 				size( 2 );
 				pour( ShamanParticle.RED, 0.01f );
@@ -176,10 +193,6 @@ public class MagicMissile extends Emitter {
 			case SHAMAN_PURPLE:
 				size( 2 );
 				pour( ShamanParticle.PURPLE, 0.01f );
-				break;
-			case TOXIC_VENT:
-				size( 10 );
-				pour( Speck.factory(Speck.TOXIC), 0.02f );
 				break;
 			case ELMO:
 				size( 5 );
@@ -193,6 +206,11 @@ public class MagicMissile extends Emitter {
 				size( 6 );
 				pour( HolyExpParticle.FACTORY, 0.01f );
 				break;
+			case POISON:
+				size( 3 );
+				pour( PoisonParticle.MISSILE, 0.01f );
+				break;
+
 			case MAGIC_MISS_CONE:
 				size( 10 );
 				pour( WhiteParticle.FACTORY, 0.03f );
@@ -228,6 +246,10 @@ public class MagicMissile extends Emitter {
 			case EARTH_CONE:
 				size( 10 );
 				pour( EarthParticle.FACTORY, 0.03f );
+				break;
+			case EARTHBLAST_CONE:
+				size( 12 );
+				pour( EarthblastParticle.FACTORY, 0.03f );
 				break;
 			case WARD_CONE:
 				size( 10 );
@@ -358,7 +380,9 @@ public class MagicMissile extends Emitter {
 			size( 4 - (am = left / lifespan) * 3 );
 		}
 	}
-	
+
+
+
 	public static class EarthParticle extends PixelParticle.Shrinking {
 		
 		public static final Emitter.Factory FACTORY = new Factory() {
@@ -425,7 +449,74 @@ public class MagicMissile extends Emitter {
 			acc.set( 0, 0 );
 		}
 	}
-	
+
+	public static class EarthblastParticle extends PixelParticle.Shrinking {
+
+		public static final Emitter.Factory FACTORY = new Factory() {
+			@Override
+			public void emit( Emitter emitter, int index, float x, float y ) {
+				((EarthblastParticle)emitter.recycle( EarthblastParticle.class )).reset( x, y );
+			}
+		};
+
+		public static final Emitter.Factory BURST = new Factory() {
+			@Override
+			public void emit( Emitter emitter, int index, float x, float y ) {
+				((EarthblastParticle)emitter.recycle( EarthblastParticle.class )).resetBurst( x, y );
+			}
+		};
+
+		public static final Emitter.Factory ATTRACT = new Factory() {
+			@Override
+			public void emit( Emitter emitter, int index, float x, float y ) {
+				((EarthblastParticle)emitter.recycle( EarthblastParticle.class )).resetAttract( x, y );
+			}
+		};
+
+		public EarthblastParticle() {
+			super();
+
+			lifespan = 0.75f;
+
+			acc.set( 0, +40 );
+		}
+
+		public void reset( float x, float y ) {
+			revive();
+
+			this.x = x;
+			this.y = y;
+
+			left = lifespan;
+			size = 6;
+
+			if (Random.Int(6) == 0){
+				color(ColorMath.random(0xA4E8C8, 0x4C8B68));
+			} else {
+				color(ColorMath.random(0xB88865, 0x4A3524));
+			}
+
+			speed.set( Random.Float( -10, +10 ), Random.Float( -12, +12 ) );
+		}
+
+		public void resetBurst( float x, float y ){
+			reset(x, y);
+
+			speed.polar( Random.Float( PointF.PI2 ), Random.Float( 45, 70 ) );
+		}
+
+		public void resetAttract( float x, float y ){
+			reset(x, y);
+
+			speed.polar( Random.Float( PointF.PI2 ), Random.Float( 28, 38 ) );
+
+			this.x = x - speed.x * lifespan;
+			this.y = y - speed.y * lifespan;
+
+			acc.set( 0, 0 );
+		}
+	}
+
 	public static class ShamanParticle extends EarthParticle{
 		
 		public static final Emitter.Factory RED = new Factory() {

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class RingOfMight extends Ring {
 	}
 
 	@Override
-	public void level(int value) {
+	public void level(long value) {
 		super.level(value);
 		updateTargetHT();
 	}
@@ -81,9 +81,9 @@ public class RingOfMight extends Ring {
 		if (isIdentified()){
 			String info = Messages.get(this, "stats",
 					soloBuffedBonus()-1, (soloBuffedBonus()-1)*2);
-			if (isEquipped(Dungeon.hero) && soloBuffedBonus() != combinedBuffedBonus(Dungeon.hero, Might.class)){
+			if (isEquipped(Dungeon.hero) && soloBuffedBonus() != combinedBuffedBonus(Dungeon.hero)){
 				info += "\n\n" + Messages.get(this, "combined_stats",
-						combinedBuffedBonus(Dungeon.hero, Might.class)-1, (combinedBuffedBonus(Dungeon.hero, Might.class)-1)*2);
+						combinedBuffedBonus(Dungeon.hero)-1, (combinedBuffedBonus(Dungeon.hero)-1)*2);
 			}
 			return info;
 		} else {
@@ -92,12 +92,25 @@ public class RingOfMight extends Ring {
 	}
 
 	@Override
+	public String upgradeStat1(long level) {
+		if (cursed && cursedKnown) level = Math.min(-1, level-3)-1;
+		return Long.toString(level+1);
+	}
+
+	@Override
+	public String upgradeStat2(long level) {
+		if (cursed && cursedKnown) level = Math.min(-1, level-3)-1;
+		return Long.toString(level*2);
+	}
+
+	@Override
 	protected RingBuff buff( ) {
 		return new Might();
 	}
 	
 	public static int strengthBonus( Char target ){
-		return (getBuffedBonus(target, Might.class) >= 1) ? getBuffedBonus(target, Might.class) : 0;
+		int boost = (int)Math.min(2000000000L, getBuffedBonus(target, Might.class));
+		return (boost >= 1) ? boost : 0;
     }
 	
 	public static int HTMultiplier( Char target ){

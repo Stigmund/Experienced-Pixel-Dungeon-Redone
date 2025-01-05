@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,9 @@ public class SmartTexture extends Texture {
 	}
 	
 	public int getPixel( int x, int y ){
-		return bitmap.getPixel(x, y);
+		int color = bitmap.getPixel(x, y);
+		// convert from libGdx RGBA to Noosa ARGB
+		return ( (color << 24) | (color >>> 8) );
 	}
 	
 	public void reload() {

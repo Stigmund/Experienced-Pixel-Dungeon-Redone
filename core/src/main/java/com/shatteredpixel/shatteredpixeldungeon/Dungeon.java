@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,13 +27,31 @@ package com.shatteredpixel.shatteredpixeldungeon;
 import com.badlogic.gdx.files.FileHandle;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awareness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSight;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.*;
-import com.shatteredpixel.shatteredpixeldungeon.items.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Bbat;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
+import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
+import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.OverloadBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
@@ -43,7 +61,23 @@ import com.shatteredpixel.shatteredpixeldungeon.items.spells.BeaconOfReturning;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
-import com.shatteredpixel.shatteredpixeldungeon.levels.*;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ArenaLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.BlackMimicLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CavesBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CavesLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CityLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.DeadEndLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.HallsBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.HallsLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.LastLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
@@ -60,13 +94,23 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndResurrect;
 import com.watabou.noosa.Game;
+import com.watabou.utils.BArray;
+import com.watabou.utils.Bundlable;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.FileUtils;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
-import com.watabou.utils.*;
+import com.watabou.utils.SparseArray;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.slotStates;
 import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.ROGUE;
@@ -85,6 +129,10 @@ public class Dungeon {
 		UPGRADE_SCROLLS,
 		ARCANE_STYLI,
         BBAT,
+		ENCH_STONE,
+		INT_STONE,
+		TRINKET_CATA,
+		LAB_ROOM, //actually a room, but logic is the same
 
 		//Health potion sources
 		//enemies
@@ -194,7 +242,7 @@ public class Dungeon {
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static ArrayList<Integer> generatedLevels = new ArrayList<>();
 
-	public static int gold;
+	public static long gold;
 	public static int cycle;
 
 	public static ArrayList<Item> oofedItems = new ArrayList<>();
@@ -202,9 +250,10 @@ public class Dungeon {
 	public static float respawn_timer;
 	public static int additionalMobs;
 
-	public static float fireDamage;
+	public static double fireDamage;
 	public static int luck;
-	public static int energy;
+	public static long energy;
+	public static double resetDamage;
 
 	public static HashSet<Integer> chapters;
 
@@ -218,13 +267,9 @@ public class Dungeon {
 	public static boolean dailyReplay;
 	public static String customSeedText = "";
 	public static long seed;
-	
-	public static void init() {
 
-		initialVersion = version = Game.versionCode;
-		challenges = SPDSettings.challenges();
-		mobsToChampion = -1;
-
+	//we initialize the seed separately so that things like interlevelscene can access it early
+	public static void initSeed(){
 		if (daily) {
 			//Ensures that daily seeds are not in the range of user-enterable seeds
 			seed = SPDSettings.lastDaily() + DungeonSeed.TOTAL_SEEDS;
@@ -238,6 +283,13 @@ public class Dungeon {
 			customSeedText = "";
 			seed = DungeonSeed.randomSeed();
 		}
+	}
+
+	public static void init() {
+
+		initialVersion = version = Game.versionCode;
+		challenges = SPDSettings.challenges();
+		mobsToChampion = -1;
 
 		Actor.clear();
 		Actor.resetNextID();
@@ -268,14 +320,15 @@ public class Dungeon {
 		generatedLevels.clear();
 		oofedItems.clear();
 
-		gold = 0;
+		gold = 0L;
 		cycle = 0;
 		Bbat.level = 1;
 		respawn_timer = 50;
 		additionalMobs = 0;
-		fireDamage = 1;
+		fireDamage = 1d;
 		luck = 1;
-		energy = 0;
+		energy = 0L;
+		resetDamage = 1d;
 
 		droppedItems = new SparseArray<>();
 
@@ -309,8 +362,11 @@ public class Dungeon {
         for (LimitedDrops a : LimitedDrops.values())
             if (a != LimitedDrops.BBAT && a != LimitedDrops.CHEESY_CHEEST)  a.count = 0;
         Notes.reset();
-        if (cycle < 4) cycle += 1;
+        if (cycle < 5) cycle += 1;
+		Dungeon.resetDamage = 1d + (Dungeon.resetDamage - 1d) * 0.5d;
         GameLog.wipe();
+		SpecialRoom.initForRun();
+		SecretRoom.initForRun();
         Generator.generalReset();
 		generatedLevels.clear();
 		BeaconOfReturning beacon = Dungeon.hero.belongings.getItem(BeaconOfReturning.class);
@@ -328,10 +384,11 @@ public class Dungeon {
     public static int escalatingDepth(int depth){
 	    switch (cycle){
             case 0: return depth;
-            case 1: return (int) (depth*1.4f +31);
-            case 2: return depth*5+200;
-            case 3: return depth*50+2500;
-            case 4: return depth*100 + 4300;
+            case 1: return (int) (depth*2f + 55);
+            case 2: return depth*25+750;
+            case 3: return depth*300+12500;
+            case 4: return depth*3000 + 100000;
+			case 5: return depth*40000 + 410000;
         }
         return depth;
     }
@@ -448,6 +505,8 @@ public class Dungeon {
 				}
 			}
 		}
+
+		Statistics.qualifiedForBossRemainsBadge = false;
 		
 		level.create();
 		
@@ -507,7 +566,12 @@ public class Dungeon {
 	}
 
 	public static boolean interfloorTeleportAllowed(){
-		if (Dungeon.level.locked || (Dungeon.hero != null && Dungeon.hero.belongings.getItem(Amulet.class) != null)){
+		if (Dungeon.branch == BRANCH_ARENA || Dungeon.branch == BRANCH_BLACK)
+			//no
+			return false;
+		if (Dungeon.level.locked
+				|| Dungeon.level instanceof MiningLevel
+				|| (Dungeon.hero != null && Dungeon.hero.belongings.getItem(Amulet.class) != null)){
 			return false;
 		}
 		return true;
@@ -521,10 +585,9 @@ public class Dungeon {
 			if (t != null) pos = t.cell();
 		}
 
-		//Place hero at the entrance if they are out of the map (often used for pox = -1)
-		// or if they are in solid terrain (except in the mining level, where that happens normally)
-		if (pos < 0 || pos >= level.length()
-				|| (!(level instanceof MiningLevel) && !level.passable[pos] && !level.avoid[pos])){
+		//Place hero at the entrance if they are out of the map (often used for pos = -1)
+		// or if they are in invalid terrain terrain (except in the mining level, where that happens normally)
+		if (pos < 0 || pos >= level.length() || level.invalidHeroPos(pos)){
 			pos = level.getTransition(null).cell();
 		}
 		
@@ -651,8 +714,47 @@ public class Dungeon {
 		return Random.Int(5 - floorThisSet) < asLeftThisSet;
 	}
 
+	public static double resetDamage(){
+		return resetDamage;
+	}
+
+	public static boolean enchStoneNeeded(){
+		//1 enchantment stone, spawns on chapter 2 or 3
+		if (!LimitedDrops.ENCH_STONE.dropped()){
+			int region = 1+depth/5;
+			if (region > 1){
+				int floorsVisited = depth - 5;
+				if (floorsVisited > 4) floorsVisited--; //skip floor 10
+				return Random.Int(9-floorsVisited) == 0; //1/8 chance each floor
+			}
+		}
+		return false;
+	}
+
+	public static boolean intStoneNeeded(){
+		//one stone on floors 1-3
+		return depth < 5 && !LimitedDrops.INT_STONE.dropped() && Random.Int(4-depth) == 0;
+	}
+
+	public static boolean trinketCataNeeded(){
+		//one trinket catalyst on floors 1-3
+		return depth < 5 && !LimitedDrops.TRINKET_CATA.dropped() && Random.Int(4-depth) == 0;
+	}
+
+	public static boolean labRoomNeeded(){
+		//one laboratory each floor set, in floor 3 or 4, 1/2 chance each floor
+		int region = 1+depth/5;
+		if (region > LimitedDrops.LAB_ROOM.count){
+			int floorThisRegion = depth%5;
+			if (floorThisRegion >= 4 || (floorThisRegion == 3 && Random.Int(2) == 0)){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private static final String INIT_VER	= "init_ver";
-	private static final String VERSION		= "version";
+	public  static final String VERSION		= "version";
 	private static final String SEED		= "seed";
 	private static final String CUSTOM_SEED	= "custom_seed";
 	private static final String DAILY	    = "daily";
@@ -665,6 +767,7 @@ public class Dungeon {
     private static final String RESPAWN_TIMER		= "respawntimer";
     private static final String ADDMOBS		= "additionalMobs";
     private static final String FIREDANAGE = "firedamage";
+	private static final String RESETDAMAGE = "resetdamage";
     private static final String LUCK        = "luck";
 	private static final String BRANCH		= "branch";
 	private static final String GENERATED_LEVELS    = "generated_levels";
@@ -701,6 +804,7 @@ public class Dungeon {
 			bundle.put( RESPAWN_TIMER, respawn_timer);
 			bundle.put( ADDMOBS, additionalMobs);
 			bundle.put(FIREDANAGE, fireDamage);
+			bundle.put(RESETDAMAGE, resetDamage);
 			bundle.put(LUCK, luck);
 			Bbat.saveLevel(bundle);
 
@@ -871,14 +975,19 @@ public class Dungeon {
 		depth = bundle.getInt( DEPTH );
 		branch = bundle.getInt( BRANCH );
 
-		gold = bundle.getInt( GOLD );
-		energy = bundle.getInt( ENERGY );
+		gold = bundle.getLong( GOLD );
+		energy = bundle.getLong( ENERGY );
 
 		cycle = bundle.getInt( CYCLE);
 		respawn_timer = bundle.getFloat(RESPAWN_TIMER);
 		additionalMobs = bundle.getInt(ADDMOBS);
-		fireDamage = bundle.getFloat(FIREDANAGE);
+		fireDamage = bundle.getDouble(FIREDANAGE);
 		luck = bundle.getInt(LUCK);
+		if (bundle.contains(RESETDAMAGE)){
+			resetDamage = bundle.getDouble(RESETDAMAGE);
+		} else {
+			resetDamage = 1d;
+		}
 
 		Statistics.restoreFromBundle( bundle );
 		Generator.restoreFromBundle( bundle );
@@ -999,6 +1108,7 @@ public class Dungeon {
 		info.depth = bundle.getInt( DEPTH );
 		info.version = bundle.getInt( VERSION );
 		info.challenges = bundle.getInt( CHALLENGES );
+		info.cycle = bundle.getInt( CYCLE );
 		info.seed = bundle.getLong( SEED );
 		info.customSeed = bundle.getString( CUSTOM_SEED );
 		info.daily = bundle.getBoolean( DAILY );
@@ -1036,6 +1146,7 @@ public class Dungeon {
 	public static void observe(){
 		int dist = Math.max(Dungeon.hero.viewDistance, 8);
 		dist *= 1f + 0.25f*Dungeon.hero.pointsInTalent(Talent.FARSIGHT);
+		if (Dungeon.hero.isSubclass(HeroSubClass.SNIPER)) dist = Math.round(dist * 1.5f);
 
 		if (Dungeon.hero.buff(MagicalSight.class) != null){
 			dist = Math.max( dist, MagicalSight.DISTANCE );
@@ -1070,11 +1181,20 @@ public class Dungeon {
 			BArray.or( level.visited, level.heroFOV, pos, width, level.visited );
 			pos+=level.width();
 		}
-	
+
+		//always visit adjacent tiles, even if they aren't seen
+		for (int i : PathFinder.NEIGHBOURS9){
+			level.visited[hero.pos+i] = true;
+		}
+
 		GameScene.updateFog(l, t, width, height);
 
 		if (hero.buff(MindVision.class) != null){
 			for (Mob m : level.mobs.toArray(new Mob[0])){
+				if (m instanceof Mimic && m.alignment == Char.Alignment.NEUTRAL && ((Mimic) m).stealthy()){
+					continue;
+				}
+
 				BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
 				BArray.or( level.visited, level.heroFOV, m.pos - 1, 3, level.visited );
 				BArray.or( level.visited, level.heroFOV, m.pos - 1 + level.width(), 3, level.visited );
@@ -1259,6 +1379,33 @@ public class Dungeon {
 		return highest;
 	}
 
+	public static long Long(long min, long max){
+		long highest = Long.MIN_VALUE;
+		for (int i = 0; i < luck; i++){
+			long roll = Random.Long(min, max);
+			if (roll > highest) highest = roll;
+		}
+		return highest;
+	}
+
+	public static long LongRange(long min, long max){
+		long highest = Long.MIN_VALUE;
+		for (int i = 0; i < luck; i++){
+			long roll = Random.LongRange(min, max);
+			if (roll > highest) highest = roll;
+		}
+		return highest;
+	}
+
+	public static long NormalLongRange(long min, long max){
+		long highest = Long.MIN_VALUE;
+		for (int i = 0; i < luck; i++){
+			long roll = Random.NormalLongRange(min, max);
+			if (roll > highest) highest = roll;
+		}
+		return highest;
+	}
+
 	public static float Float(){
 		float highest = Float.MIN_VALUE;
 		for (int i = 0; i < luck; i++){
@@ -1301,6 +1448,53 @@ public class Dungeon {
 		float highest = Float.MIN_VALUE;
 		for (int i = 0; i < luck; i++){
 			float roll = Random.NormalFloat(min, max);
+			if (roll > highest) highest = roll;
+		}
+		return highest;
+	}
+
+	public static double Double(){
+		double highest = Double.MIN_VALUE;
+		for (int i = 0; i < luck; i++){
+			double roll = Random.Double();
+			if (roll > highest) highest = roll;
+		}
+		return highest;
+	}
+
+	public static double Double(double max){
+		return Double(max, LuckDirection.DOWN);
+	}
+
+	public static double Double(double max, LuckDirection direction){
+		double highest = Double.MIN_VALUE;
+		for (int i = 0; i < luck; i++){
+			double roll = Random.Double(max);
+			if (i == 0)
+				highest = roll;
+			else {
+				switch (direction) {
+					case UP: if (roll > highest) highest = roll; break;
+					case DOWN: if (roll < highest) highest = roll; break;
+				}
+			}
+		}
+		return highest;
+	}
+
+	public static double Double(double min, double max){
+		double highest = Double.MIN_VALUE;
+		for (int i = 0; i < luck; i++){
+			double roll = Random.Double(min, max);
+			if (roll > highest) highest = roll;
+		}
+		return highest;
+	}
+
+	public static double NormalDouble(double min, double max){
+		double highest = Double.MIN_VALUE;
+		for (int i = 0; i < luck; i++){
+			double roll = Random.NormalDouble(min, max);
 			if (roll > highest) highest = roll;
 		}
 		return highest;

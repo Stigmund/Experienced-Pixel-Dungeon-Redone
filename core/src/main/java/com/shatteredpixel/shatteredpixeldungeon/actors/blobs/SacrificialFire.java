@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bee;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Piranha;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Swarm;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Wraith;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.*;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SacrificialParticle;
@@ -65,6 +59,11 @@ public class SacrificialFire extends Blob {
 	private Item prize;
 
 	@Override
+	public Notes.Landmark landmark() {
+		return Notes.Landmark.SACRIFICIAL_FIRE;
+	}
+
+	@Override
 	protected void evolve() {
 		int cell;
 		for (int i=area.top-1; i <= area.bottom; i++) {
@@ -86,8 +85,6 @@ public class SacrificialFire extends Blob {
 						}
 
 						if (off[cell] > 0 && Dungeon.level.visited[cell]) {
-
-							Notes.add( Notes.Landmark.SACRIFICIAL_FIRE);
 
 							if (Dungeon.level.mobCount() == 0
 									&& bonusSpawns > 0) {
@@ -154,7 +151,7 @@ public class SacrificialFire extends Blob {
 
 		if (firePos != -1) {
 
-			int exp = 0;
+			long exp = 0;
 			if (ch instanceof Mob) {
 				//same rates as used in wand of corruption, except for swarms
 				if (ch instanceof Statue || ch instanceof Mimic){
@@ -177,7 +174,7 @@ public class SacrificialFire extends Blob {
 
 			if (exp > 0) {
 
-				int volumeLeft = cur[firePos] - exp;
+				int volumeLeft = cur[firePos] - (int)Math.min(Integer.MAX_VALUE, exp);
 				if (volumeLeft > 0) {
 					cur[firePos] -= exp;
 					volume -= exp;
@@ -187,7 +184,7 @@ public class SacrificialFire extends Blob {
 					GLog.w( Messages.get(SacrificialFire.class, "worthy"));
 				} else {
 					clear(firePos);
-					Notes.remove(Notes.Landmark.SACRIFICIAL_FIRE);
+					if (volume <= 0) Notes.remove( landmark() );
 
 					for (int i : PathFinder.NEIGHBOURS9){
 						CellEmitter.get(firePos+i).burst( SacrificialParticle.FACTORY, 20 );

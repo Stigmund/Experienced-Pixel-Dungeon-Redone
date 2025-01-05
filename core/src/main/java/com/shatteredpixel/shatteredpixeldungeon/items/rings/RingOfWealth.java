@@ -6,7 +6,7 @@
  * Copyright (C) 2014-2019 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,14 +34,17 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.AlchemicalCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.brews.UnstableBrew;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.ExoticPotion;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfOverload;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScroll;
-import com.shatteredpixel.shatteredpixeldungeon.items.spells.ArcaneCatalyst;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfMidas;
+import com.shatteredpixel.shatteredpixeldungeon.items.spells.UnstableSpell;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.AlchemyBag;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.noosa.Visual;
@@ -59,7 +62,7 @@ public class RingOfWealth extends Ring {
 
     public static float triesToDrop = Float.MIN_VALUE;
     public static int dropsToRare = Integer.MIN_VALUE;
-    public static int level = 0;
+    public static long level = 0;
 	
 	public static ArrayList<Item> tryForBonusDrop(int tries){
 
@@ -92,7 +95,7 @@ public class RingOfWealth extends Ring {
 				drops.add(i);
 				dropsToRare--;
 			}
-			triesToDrop += Random.NormalIntRange(0, 20);
+			triesToDrop += Random.NormalIntRange(0, 15);
 		}
 		
 		return drops;
@@ -123,7 +126,7 @@ public class RingOfWealth extends Ring {
 		latestDropTier = 0;
 	}
 	
-	public static Item genConsumableDrop(int level) {
+	public static Item genConsumableDrop(long level) {
 		float roll = Dungeon.Float();
 		//60% chance - 4% per level. Starting from +15: 0%
 		if (roll < (0.6f - 0.04f * level)) {
@@ -161,12 +164,20 @@ public class RingOfWealth extends Ring {
 				return i.quantity(i.quantity()*2);
 			case 1:
 				i = Generator.randomUsingDefaults(Generator.Category.POTION);
-				return Reflection.newInstance(ExoticPotion.regToExo.get(i.getClass()));
+				if (!(i instanceof ExoticPotion)) {
+					return Reflection.newInstance(ExoticPotion.regToExo.get(i.getClass()));
+				} else {
+					return Reflection.newInstance(i.getClass());
+				}
 			case 2:
 				i = Generator.randomUsingDefaults(Generator.Category.SCROLL);
-				return Reflection.newInstance(ExoticScroll.regToExo.get(i.getClass()));
+				if (!(i instanceof ExoticScroll)){
+					return Reflection.newInstance(ExoticScroll.regToExo.get(i.getClass()));
+				} else {
+					return Reflection.newInstance(i.getClass());
+				}
 			case 3:
-				return Dungeon.Int(2) == 0 ? new ArcaneCatalyst() : new AlchemicalCatalyst();
+				return Dungeon.Int(2) == 0 ? new UnstableBrew() : new UnstableSpell();
 			case 4:
 				return new Bomb();
             case 5:
@@ -186,15 +197,15 @@ public class RingOfWealth extends Ring {
 			case 1:
 				return new StoneOfEnchantment();
 			case 2:
-				return new PotionOfExperience();
+				return Random.Float() < ExoticCrystals.consumableExoticChance() ? new PotionOfOverload() : new PotionOfExperience();
 			case 3:
-				return new ScrollOfTransmutation();
+				return Random.Float() < ExoticCrystals.consumableExoticChance() ? new ScrollOfMidas() : new ScrollOfTransmutation();
             case 4:
                 return new AlchemyBag();
 		}
 	}
 
-	private static Item genEquipmentDrop( int level ){
+	private static Item genEquipmentDrop(long level ){
 		Item result;
 		int floorset = (Dungeon.depth)/5;
 		switch (Random.Int(5)){
@@ -219,8 +230,8 @@ public class RingOfWealth extends Ring {
 		}
 		//minimum level of sqrt(ringLvl)
 		if (result.isUpgradable()){
-			if (result.level() < Math.floor(level) / 12){
-				result.level((int)Math.floor(level) / 12);
+			if (result.level() < Math.floor(level / Math.pow(6, (Dungeon.cycle+1)))){
+				result.level((long)Math.floor(level / Math.pow(6, (Dungeon.cycle+1))));
 			}
 		}
 		result.cursed = false;

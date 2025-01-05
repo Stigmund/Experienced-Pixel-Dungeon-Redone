@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -51,13 +52,13 @@ public class Rapier extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  4*(tier+1) +    //8 base, down from 10
-				lvl*(tier+1);   //scaling unchanged
+	public long max(long lvl) {
+		return  4L*(tier()+1) +    //8 base, down from 10
+				lvl*(tier()+1);   //scaling unchanged
 	}
 
 	@Override
-	public int defenseFactor( Char owner ) {
+	public long defenseFactor( Char owner ) {
 		return 1;	//1 extra defence
 	}
 
@@ -68,12 +69,27 @@ public class Rapier extends MeleeWeapon {
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
-		//+(3+lvl) damage, equivalent to +67% damage, but more consistent
-		int dmgBoost = augment.damageFactor(3 + level());
+		//+(5+1.5*lvl) damage, roughly +111% base damage, +100% scaling
+		long dmgBoost =  augment.damageFactor(5 + Math.round(1.5f*buffedLvl()));
 		lungeAbility(hero, target, 1, dmgBoost, this);
 	}
 
-	public static void lungeAbility(Hero hero, Integer target, float dmgMulti, int dmgBoost, MeleeWeapon wep){
+	@Override
+	public String abilityInfo() {
+		long dmgBoost = levelKnown ? 5 + Math.round(1.5f*buffedLvl()) : 5;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(min()+dmgBoost), augment.damageFactor(max()+dmgBoost));
+		} else {
+			return Messages.get(this, "typical_ability_desc", min(0)+dmgBoost, max(0)+dmgBoost);
+		}
+	}
+
+	public String upgradeAbilityStat(long level){
+		int dmgBoost = 5 + Math.round(1.5f*level);
+		return augment.damageFactor(min(level)+dmgBoost) + "-" + augment.damageFactor(max(level)+dmgBoost);
+	}
+
+	public static void lungeAbility(Hero hero, Integer target, float dmgMulti, long dmgBoost, MeleeWeapon wep){
 		if (target == null){
 			return;
 		}
@@ -90,7 +106,7 @@ public class Rapier extends MeleeWeapon {
 		if (hero.rooted
 				//|| Dungeon.level.distance(hero.pos, target) < 2
 				|| Dungeon.level.distance(hero.pos, target)-1 > wep.reachFactor(hero)){
-			GLog.w(Messages.get(wep, "ability_bad_position"));
+			GLog.w(Messages.get(wep, "ability_target_range"));
 			if (hero.rooted) PixelScene.shake( 1, 1f );
 			return;
 		}
@@ -142,6 +158,7 @@ public class Rapier extends MeleeWeapon {
 		}
 
 		final int dest = lungeCell;
+
 		hero.busy();
 		Sample.INSTANCE.play(Assets.Sounds.MISS);
 		hero.sprite.jump(hero.pos, dest, 0, 0.1f, new Callback() {
@@ -154,6 +171,7 @@ public class Rapier extends MeleeWeapon {
 				Dungeon.level.occupyCell(hero);
 				Dungeon.observe();
 
+				hero.belongings.abilityWeapon = wep; //set this early to we can check canAttack
 				if (enemy != null && hero.canAttack(enemy)) {
 					hero.sprite.attack(enemy.pos, new Callback() {
 						@Override
@@ -173,10 +191,16 @@ public class Rapier extends MeleeWeapon {
 						}
 					});
 				} else {
-					wep.beforeAbilityUsed(hero, null);
+					//spends charge but otherwise does not count as an ability use
+					Charger charger = Buff.affect(hero, Charger.class);
+					charger.partialCharge -= 1;
+					while (charger.partialCharge < 0 && charger.charges > 0) {
+						charger.charges--;
+						charger.partialCharge++;
+					}
+					updateQuickslot();
 					GLog.w(Messages.get(Rapier.class, "ability_no_target"));
-					hero.spendAndNext(hero.speed());
-					wep.afterAbilityUsed(hero);
+					hero.spendAndNext(1/hero.speed());
 				}
 			}
 		});

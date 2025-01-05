@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Journal;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.*;
+import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndImportSelectGame;
 import com.watabou.noosa.BitmapText;
@@ -45,7 +48,7 @@ import java.util.Comparator;
 
 public class StartScene extends PixelScene {
 	
-	private static final int SLOT_WIDTH = 120;
+	private static final int SLOT_WIDTH = 138;
 	private static final int SLOT_HEIGHT = 30;
 	
 	@Override
@@ -77,11 +80,11 @@ public class StartScene extends PixelScene {
 		};
 		importButton.setRect(0, 0, 20, 20);
 		add(importButton);
-		
-		RenderedTextBlock title = PixelScene.renderTextBlock( Messages.get(this, "title"), 9);
-		title.hardlight(Window.TITLE_COLOR);
+
+		IconTitle title = new IconTitle( Icons.ENTER.get(), Messages.get(this, "title"));
+		title.setSize(200, 0);
 		title.setPos(
-				(w - title.width()) / 2f,
+				(w - title.reqWidth()) / 2f,
 				(20 - title.height()) / 2f
 		);
 		align(title);
@@ -89,7 +92,7 @@ public class StartScene extends PixelScene {
 		
 		ArrayList<GamesInProgress.Info> games = GamesInProgress.checkAll();
 		games.sort(Comparator.comparingInt(i -> i.slot));
-		
+
 		int slotCount = Math.min(GamesInProgress.MAX_SLOTS, games.size()+1);
 		int slotGap = 10 - slotCount;
 		int slotsHeight = slotCount*SLOT_HEIGHT + (slotCount-1)* slotGap;
@@ -142,7 +145,9 @@ public class StartScene extends PixelScene {
 		protected BitmapText depth;
 		protected Image classIcon;
 		protected BitmapText level;
-		
+		protected Image cycleIcon;
+		protected BitmapText cycle;
+
 		protected int slot;
 		protected boolean newGame;
 
@@ -161,7 +166,7 @@ public class StartScene extends PixelScene {
 
 			return Chrome.Type.GEM;
 		}
-		
+
 		public void set( int slot ){
 			this.slot = slot;
 			GamesInProgress.Info info = GamesInProgress.check(slot);
@@ -197,7 +202,13 @@ public class StartScene extends PixelScene {
 					add(steps);
 					depth = new BitmapText(PixelScene.pixelFont);
 					add(depth);
-					
+					if (info.cycle != 0){
+						cycleIcon = new Image(new ItemSprite(ItemSpriteSheet.DARK_CHEST));
+						add(cycleIcon);
+						cycle = new BitmapText(PixelScene.pixelFont);
+						add(cycle);
+					}
+
 					classIcon = new Image(Icons.get(info.heroClass));
 					add(classIcon);
 					level = new BitmapText(PixelScene.pixelFont);
@@ -213,15 +224,26 @@ public class StartScene extends PixelScene {
 				
 				level.text(Integer.toString(info.level));
 				level.measure();
-				
+
+				if (info.cycle != 0){
+					cycle.text(Integer.toString(info.cycle));
+					cycle.measure();
+				}
+
 				if (info.challenges > 0){
 					name.hardlight(Window.TITLE_COLOR);
 					depth.hardlight(Window.TITLE_COLOR);
 					level.hardlight(Window.TITLE_COLOR);
+					if (info.cycle != 0){
+						cycle.hardlight(Window.TITLE_COLOR);
+					}
 				} else {
 					name.resetColor();
 					depth.resetColor();
 					level.resetColor();
+					if (info.cycle != 0){
+						cycle.resetColor();
+					}
 				}
 
 				if (info.daily){
@@ -273,7 +295,17 @@ public class StartScene extends PixelScene {
 				depth.x = steps.x + (steps.width() - depth.width()) / 2f;
 				depth.y = steps.y + (steps.height() - depth.height()) / 2f + 1;
 				align(depth);
-				
+
+				if (cycle != null){
+					cycleIcon.x = x + width - 56 + (16 - cycleIcon.width())/2f;
+					cycleIcon.y = y + (height - cycleIcon.height())/2f;
+					align(cycleIcon);
+
+					cycle.x = cycleIcon.x + (cycleIcon.width() - cycle.width()) / 2f;
+					cycle.y = cycleIcon.y + (cycleIcon.height() - cycle.height()) / 2f + 1;
+					align(cycle);
+				}
+
 			} else {
 				name.setPos(
 						x + (width - name.width())/2f,

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,8 @@ public class Vampirism extends TargetedSpell{
 
     {
         image = ItemSpriteSheet.VAMPIRISM;
+
+        talentChance = 1/(float) Recipe.OUT_QUANTITY;
     }
 
     @Override
@@ -55,7 +57,7 @@ public class Vampirism extends TargetedSpell{
 
         if (target != null && target != hero && !target.properties().contains(Char.Property.INORGANIC)){
             //33-66% of  health is transfered to user
-            int heal = Random.Int(target.HT / 3, target.HT * 2 / 3);
+            long heal = Random.Long(target.HT / 3, target.HT * 2 / 3);
             target.damage(heal, this);
             if (target.isAlive()){
                 target.sprite.emitter().burst(ShadowParticle.CURSE, 10);
@@ -67,21 +69,27 @@ public class Vampirism extends TargetedSpell{
     }
 
     @Override
-    public int value() {
-        //prices of ingredients, divided by output quantity
-        return Math.round(quantity * ((30 + 43.333333f+ 40) / 3f));
+    public long value() {
+        return (long)(60 * (quantity/(float) Recipe.OUT_QUANTITY));
+    }
+
+    @Override
+    public long energyVal() {
+        return (long)(12 * (quantity/(float) Recipe.OUT_QUANTITY));
     }
 
     public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
 
-        {
-            inputs =  new Class[]{PotionOfHealing.class, CurseInfusion.class, ArcaneCatalyst.class};
-            inQuantity = new int[]{1, 1, 1};
+        private static final int OUT_QUANTITY = 3;
 
-            cost = 8;
+        {
+            inputs =  new Class[]{PotionOfHealing.class, CurseInfusion.class};
+            inQuantity = new int[]{1, 1};
+
+            cost = 17;
 
             output = Vampirism.class;
-            outQuantity = 3;
+            outQuantity = OUT_QUANTITY;
         }
 
     }

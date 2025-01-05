@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 
@@ -44,23 +44,33 @@ public class Scimitar extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  5*(tier+1) +    //20 base, down from 24
-				lvl*(tier+1);   //+5
-	}
-
-	@Override
-	protected int baseChargeUse(Hero hero, Char target){
-		return 2;
+	public long max(long lvl) {
+		return  5L*(tier()+1) +    //20 base, down from 24
+				lvl*(tier()+1);   //+5
 	}
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
 		beforeAbilityUsed(hero, null);
-		Buff.prolong(hero, SwordDance.class, 4f); //4 turns as using the ability is instant
+		//1 turn less as using the ability is instant
+		Buff.prolong(hero, SwordDance.class, 3+buffedLvl()/250);
 		hero.sprite.operate(hero.pos);
 		hero.next();
 		afterAbilityUsed(hero);
+	}
+
+	@Override
+	public String abilityInfo() {
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", 4+buffedLvl()/250);
+		} else {
+			return Messages.get(this, "typical_ability_desc", 4);
+		}
+	}
+
+	@Override
+	public String upgradeAbilityStat(long level) {
+		return Long.toString(4+level);
 	}
 
 	public static class SwordDance extends FlavourBuff {
@@ -77,7 +87,7 @@ public class Scimitar extends MeleeWeapon {
 
 		@Override
 		public float iconFadePercent() {
-			return Math.max(0, (5 - visualcooldown()) / 5);
+			return Math.max(0, (4 - visualcooldown()) / 4);
 		}
 	}
 

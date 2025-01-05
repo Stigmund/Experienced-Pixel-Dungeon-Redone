@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,11 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlobImmunity;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Levitation;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.PiranhaSprite;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
@@ -68,7 +71,10 @@ public class Piranha extends Mob {
 	@Override
 	protected boolean act() {
 		
-		if (!Dungeon.level.water[pos]) {
+		if (!Dungeon.level.water[pos] || flying) {
+			if (sprite != null && buff(Levitation.class) != null){
+				sprite.emitter().burst(Speck.factory( Speck.JET ), 10);
+			}
 			dieOnLand();
 			return true;
 		} else {
@@ -77,8 +83,8 @@ public class Piranha extends Mob {
 	}
 	
 	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( Dungeon.escalatingDepth(), 4 + Dungeon.escalatingDepth() * 2 );
+	public long damageRoll() {
+		return Dungeon.NormalLongRange( Dungeon.escalatingDepth(), 4 + Dungeon.escalatingDepth() * 2 );
 	}
 	
 	@Override
@@ -87,8 +93,8 @@ public class Piranha extends Mob {
 	}
 	
 	@Override
-	public int drRoll() {
-		return super.drRoll() + Random.NormalIntRange(0, Dungeon.escalatingDepth());
+	public long drRoll() {
+		return super.drRoll() + Dungeon.NormalLongRange(0, Dungeon.escalatingDepth());
 	}
 
 	@Override
@@ -200,7 +206,8 @@ public class Piranha extends Mob {
 	}
 
 	public static Piranha random(){
-		if (Random.Int(50) == 0){
+		float altChance = 1/50f * RatSkull.exoticChanceMultiplier();
+		if (Random.Float() < altChance){
 			return new PhantomPiranha();
 		} else {
 			return new Piranha();

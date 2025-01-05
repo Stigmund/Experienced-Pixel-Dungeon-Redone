@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
@@ -65,31 +66,38 @@ public class GrimTrap extends Trap {
 				Char target = Actor.findChar(pos);
 
 				//find the closest char that can be aimed at
+				//can't target beyond view distance, with a min of 6 (torch range)
+				int range = Math.max(6, Dungeon.level.viewDistance);
 				if (target == null){
 					float closestDist = Float.MAX_VALUE;
 					for (Char ch : Actor.chars()){
 						if (!ch.isAlive()) continue;
 						float curDist = Dungeon.level.trueDistance(pos, ch.pos);
-						if (ch.invisible > 0) curDist += 1000;
+						//invis targets are considered to be at max range
+						if (ch.invisible > 0) curDist = Math.max(curDist, range);
 						Ballistica bolt = new Ballistica(pos, ch.pos, Ballistica.PROJECTILE);
-						if (bolt.collisionPos == ch.pos && curDist < closestDist){
+						if (bolt.collisionPos == ch.pos
+								&& ( curDist < closestDist || (curDist == closestDist && target instanceof Hero))){
 							target = ch;
 							closestDist = curDist;
 						}
+					}
+					if (closestDist > range){
+						target = null;
 					}
 				}
 
 				if (target != null) {
 					final Char finalTarget = target;
 					//instant kill, use a mix of current HP and max HP, just like psi blast (for resistances)
-					int damage = Math.round(finalTarget.HT/2f + finalTarget.HP/2f);
+					long damage = Math.round(finalTarget.HT/2f + finalTarget.HP/2f);
 
 					//can't do more than 90% HT for the hero specifically
 					if (finalTarget == Dungeon.hero){
 						damage = (int)Math.min(damage, finalTarget.HT*0.9f);
 					}
 
-					final int finalDmg = damage;
+					final long finalDmg = damage;
 					if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[target.pos]) {
 						((MagicMissile)finalTarget.sprite.parent.recycle(MagicMissile.class)).reset(
 								MagicMissile.SHADOW,
@@ -105,6 +113,7 @@ public class GrimTrap extends Trap {
 												Badges.validateDeathFromGrimOrDisintTrap();
 												Dungeon.fail( GrimTrap.this );
 												GLog.n( Messages.get(GrimTrap.class, "ondeath") );
+												if (reclaimed) Badges.validateDeathFromFriendlyMagic();
 											}
 										} else {
 											Sample.INSTANCE.play(Assets.Sounds.BURNING);

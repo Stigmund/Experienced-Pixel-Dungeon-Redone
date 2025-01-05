@@ -3,9 +3,18 @@ buildscript {
         maven { url 'https://jitpack.io'}
         google()
         mavenCentral()
+        /*maven {
+            url = uri("https://storage.googleapis.com/r8-releases/raw")
+        }*/
     }
     dependencies {
-        //FIXME the version of R8 coming with gradle plugin 4.0.0 causes serious problems
+        /*
+        //gradle version packaged with AGP 8.5 causes crashes on Android 4.4-
+        //this won't be needed once the bundled version is 8.7.2+
+        classpath 'com.android.tools:r8:8.7.4-dev'
+        classpath 'com.android.tools.build:gradle:8.5.1'
+        */
+
         //noinspection GradleDependency
 
         // Gradle Tools 7.1.3 is the only one I can get it to build with.
@@ -18,20 +27,22 @@ allprojects {
 
     ext {
         appName = "Stig's Pixel Dungeon"
-        appPackageName = 'com.trashboxbobylev.experiencedpixeldungeon.redone'
+        //appName = 'Experienced Pixel Dungeon'
+        // appPackageName = 'com.trashboxbobylev.experiencedpixeldungeon.redone
+        appPackageName = 'com.stigdevtest.stigspixeldungeon.redone'
 
-        appVersionCode = 482
-        appVersionName = 'ExpPD-2.16.2'
+        appVersionCode = 500
+        appVersionName = 'ExpPD-2.19.0'
 
         appJavaCompatibility = JavaVersion.VERSION_1_8
 
         appAndroidCompileSDK = 33
         appAndroidMinSDK = 29 // OnePlus ONEPLUS A5000 Android 10 "Q" arm64
-        appAndroidTargetSDK = 33
+        appAndroidTargetSDK = 34
 
-        gdxVersion = '1.11.0'
-        gdxControllersVersion = '2.2.3-SNAPSHOT'
-        robovmVersion = '2.3.16'
+        gdxVersion = '1.12.1'
+        gdxControllersVersion = '2.2.4-SNAPSHOT'
+        robovmVersion = '2.3.21'
     }
     version = appVersionName
 

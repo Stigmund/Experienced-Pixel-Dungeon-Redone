@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,7 +107,7 @@ public class StatusPane extends Component {
 		};
 		add(heroInfo);
 
-		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, lastTier );
+		avatar = HeroSprite.avatar( Dungeon.hero );
 		add( avatar );
 
 		talentBlink = 0;
@@ -234,17 +234,21 @@ public class StatusPane extends Component {
 	
 	private static final int[] warningColors = new int[]{0x660000, 0xCC0000, 0x660000};
 
+	private long oldHP = 0;
+	private long oldShield = 0;
+	private long oldMax = 0;
+
 	@Override
 	public void update() {
 		super.update();
 		
-		int health = Dungeon.hero.HP;
-		int shield = Dungeon.hero.shielding();
-		int max = Dungeon.hero.HT;
+		long health = Dungeon.hero.HP;
+		long shield = Dungeon.hero.shielding();
+		long max = Dungeon.hero.HT;
 
 		if (!Dungeon.hero.isAlive()) {
 			avatar.tint(0x000000, 0.5f);
-		} else if ((health/(float)max) < 0.3f) {
+		} else if ((health/(float)max) <= 0.3f) {
 			warning += Game.elapsed * 5f *(0.4f - (health/(float)max));
 			warning %= 1f;
 			avatar.tint(ColorMath.interpolate(warning, warningColors), 0.5f );
@@ -264,10 +268,15 @@ public class StatusPane extends Component {
 			rawShielding.scale.x = 0;
 		}
 
-		if (shield <= 0){
-			hpText.text(health + "/" + max);
-		} else {
-			hpText.text(health + "+" + shield +  "/" + max);
+		if (oldHP != health || oldShield != shield || oldMax != max){
+			if (shield <= 0) {
+				hpText.text(health + "/" + max);
+			} else {
+				hpText.text(health + "+" + shield + "/" + max);
+			}
+			oldHP = health;
+			oldShield = shield;
+			oldMax = max;
 		}
 
 		if (large) {
@@ -309,10 +318,14 @@ public class StatusPane extends Component {
 		int tier = Dungeon.hero.tier();
 		if (tier != lastTier) {
 			lastTier = tier;
-			avatar.copy( HeroSprite.avatar( Dungeon.hero.heroClass, tier ) );
+			avatar.copy( HeroSprite.avatar( Dungeon.hero ) );
 		}
 
 		counter.setSweep((1f - Actor.now()%1f)%1f);
+	}
+
+	public void updateAvatar(){
+		avatar.copy( HeroSprite.avatar( Dungeon.hero ) );
 	}
 
 	public void alpha( float value ){

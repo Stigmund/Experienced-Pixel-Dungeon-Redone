@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,9 +51,9 @@ public class Sword extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  6*(tier+1) +    //24
-				lvl*(tier+2);   //+5
+	public long max(long lvl) {
+		return  6L*(tier()+1) +    //24
+				lvl*(tier()+2);   //+5
 	}
 
 	@Override
@@ -72,10 +72,27 @@ public class Sword extends MeleeWeapon {
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
-		Sword.cleaveAbility(hero, target, 1.27f, this);
+		//+(5+lvl) damage, roughly +45% base dmg, +40% scaling
+		long dmgBoost = augment.damageFactor(5 + buffedLvl());
+		Sword.cleaveAbility(hero, target, 1, dmgBoost, this);
 	}
 
-	public static void cleaveAbility(Hero hero, Integer target, float dmgMulti, MeleeWeapon wep){
+	@Override
+	public String abilityInfo() {
+		long dmgBoost = levelKnown ? 5 + buffedLvl() : 5;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(min()+dmgBoost), augment.damageFactor(max()+dmgBoost));
+		} else {
+			return Messages.get(this, "typical_ability_desc", min(0)+dmgBoost, max(0)+dmgBoost);
+		}
+	}
+
+	public String upgradeAbilityStat(long level){
+		long dmgBoost = 5 + level;
+		return augment.damageFactor(min(level)+dmgBoost) + "-" + augment.damageFactor(max(level)+dmgBoost);
+	}
+
+	public static void cleaveAbility(Hero hero, Integer target, float dmgMulti, long dmgBoost, MeleeWeapon wep){
 		if (target == null) {
 			return;
 		}
@@ -88,7 +105,7 @@ public class Sword extends MeleeWeapon {
 
 		hero.belongings.abilityWeapon = wep;
 		if (!hero.canAttack(enemy)){
-			GLog.w(Messages.get(wep, "ability_bad_position"));
+			GLog.w(Messages.get(wep, "ability_target_range"));
 			hero.belongings.abilityWeapon = null;
 			return;
 		}
@@ -99,16 +116,22 @@ public class Sword extends MeleeWeapon {
 			public void call() {
 				wep.beforeAbilityUsed(hero, enemy);
 				AttackIndicator.target(enemy);
-				if (hero.attack(enemy, dmgMulti, 0, Char.INFINITE_ACCURACY)){
+				if (hero.attack(enemy, dmgMulti, dmgBoost, Char.INFINITE_ACCURACY)){
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 				}
 
 				Invisibility.dispel();
-				hero.spendAndNext(hero.attackDelay());
+
 				if (!enemy.isAlive()){
+					hero.next();
 					wep.onAbilityKill(hero, enemy);
-					Buff.prolong(hero, CleaveTracker.class, 5f);
+					if (hero.buff(CleaveTracker.class) != null) {
+						hero.buff(CleaveTracker.class).detach();
+					} else {
+						Buff.prolong(hero, CleaveTracker.class, 4f); //1 less as attack was instant
+					}
 				} else {
+					hero.spendAndNext(hero.attackDelay());
 					if (hero.buff(CleaveTracker.class) != null) {
 						hero.buff(CleaveTracker.class).detach();
 					}

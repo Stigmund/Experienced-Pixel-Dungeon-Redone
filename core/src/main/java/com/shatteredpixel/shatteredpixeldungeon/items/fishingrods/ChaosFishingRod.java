@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,11 +32,11 @@ public class ChaosFishingRod extends FishingRod{
         image = ItemSpriteSheet.CHAOS_HOOK;
         amplifier = 900;
         tier = 5;
-        fishingStr = 180;
+        baseFishingStr = 180;
     }
 
     @Override
-    public int value() {
+    public long value() {
         return 50 * Dungeon.escalatingDepth() / 8;
     }
 }

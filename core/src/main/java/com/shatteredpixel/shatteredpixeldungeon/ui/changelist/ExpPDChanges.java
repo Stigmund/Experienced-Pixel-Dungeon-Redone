@@ -6,7 +6,7 @@
  * Copyright (C) 2014-2019 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui.changelist;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.items.BlackPsycheChest;
 import com.shatteredpixel.shatteredpixeldungeon.items.ExpGenerator;
@@ -38,8 +39,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfMi
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfMastery;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfSirensSong;
+import com.shatteredpixel.shatteredpixeldungeon.items.spells.IdentificationBomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.Vampirism;
 import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.GambleBag;
+import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.IdealBag;
 import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.TenguTreasureBag;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfEarthblast;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
@@ -50,7 +53,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Whip;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.blacksmith.StarlightSmasher;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.ChangesScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.*;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.BlacksmithSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MimicSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.OofSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Image;
@@ -60,7 +68,351 @@ import java.util.ArrayList;
 public class ExpPDChanges {
 
 	public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
-            ChangeInfo changes = new ChangeInfo("ExpPD-2.16.2", true, "");
+
+            ChangeInfo changes = new ChangeInfo("ExpPD-2.19", true, "");
+            changes.hardlight(0xFF4242);
+            changeInfos.add(changes);
+            changes.addButton( new ChangeButton(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN.get(), "Developer Commentary",
+                    "_-_ Released September 29th, 2024\n" +
+                            "_-_ 47 days after Experienced Pixel Dungeon 2.18.2\n" +
+                            "_-_ 1518 days after Experienced Pixel Dungeon 2.0\n" +
+                            "_-_ 1840 days after Experienced Pixel Dungeon 1.0\n\n" +
+                    Messages.get(Dungeon.class, "last_words")));
+
+            changes.addButton( new ChangeButton(Icons.SHPX.get(), "ShPD content",
+                    "Implemented Shattered's 2.5.2, with following additions:\n\n" +
+                            "_-_ Upgrade application window has been overhauled to better show Experienced's scaling and support multi-upgrading and fishing rods.\n" +
+                            "_-_ The amount of items gathered from Rat King's bartering is now tracked in the journal.\n" +
+                            "_-_ Added all new items and monsters into journal, with tracking their usages.\n" +
+                            "_-_ Journal and upgrade info text supports 64-bit numbers."));
+
+            changes.addButton( new ChangeButton(new IdentificationBomb(),
+                    "Added a new \"bomb\", that explodes inside of hero's inventory to destroy all items, that are not identified."));
+
+            changes.addButton( new ChangeButton(Icons.BUFFS.get(), "Buffs and Nerfs",
+                    "_-_ Buffed Smoke Bomb:\n" +
+                            "   _-_ now has ninja log with max stats appear\n" +
+                            "_-_ Fishing rods can have their efficiency extend to 64-bit limit\n" +
+                            "_-_ Fishing rods are now 1 upgrade stronger\n" +
+                            "_-_ Nerfed amount of effective tiers the weapons and armor get in cycles"
+            ));
+
+            changes.addButton( new ChangeButton(Icons.get(Icons.PREFS), "Other Changes",
+                    "_-_ Changed deferred damage to properly support 64-bit numbers\n" +
+                            "_-_ Alchemist's Toolkit can only gain 2 billion charge at once"));
+
+            changes.addButton( new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "Bugfixes",
+                    "_-_ Fixed pickaxe being weaker than indended in later cycles\n" +
+                            "_-_ Fixed stalling when receiving overwhelming amount of energy for Alchemist's Toolkit and Ethereal Chains\n" +
+                            "_-_ Clayball should be now less prone to crashes\n" +
+                            "_-_ Further reduced Bbat's approaching speed from 100 to 25\n" +
+                            "_-_ Fixed crash with crystal guardian being invisible when damaged\n" +
+                            "_-_ Fixed crash with Rusty Shield somehow going for null with armor\n" +
+                            "_-_ Fixed certain artifacts being capped by their non-upgraded charge cap"));
+
+            changes = new ChangeInfo("ExpPD-2.18.2", true, "");
+            changes.hardlight(Window.TITLE_COLOR);
+            changeInfos.add(changes);
+            changes.addButton( new ChangeButton(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN.get(), "Developer Commentary",
+                    "_-_ Released August 12th, 2024\n" +
+                            "_-_ 71 days after Experienced Pixel Dungeon 2.18.1"));
+
+            changes.addButton( new ChangeButton(Icons.BUFFS.get(), "Buffs and Nerfs",
+                    "_-_ Changed Greatsword:\n" +
+                            "   _-_ decreased the chance to spawn stone knight from 100% to 50%\n" +
+                            "   _-_ increased the timespan of knights from 150 to 250 turns\n" +
+                            "   _-_ now can be used by ghost\n" +
+                            "_-_ Changed OOF Thieves:\n" +
+                            "   _-_ added cycle 5 stats\n" +
+                            "   _-_ now spawns 100x less frequently (and 25x less frequently), but gives a lot of level ups, the amount of which scales with cycling\n" +
+                            "   _-_ now drops ideal bags at 100% initial chance instead of big lucky bags at 50% initial chance\n" +
+                            "_-_ Mace's disintegration beam now scales with cycling\n" +
+                            "_-_ Capped Ethereal Chains' regeneration at 1 charge per turn\n" +
+                            "_-_ Changed equipment drops from fishing:\n" +
+                            "   _-_ changed the modifier from 12 to 6^(cycle+1)\n" +
+                            "   _-_ are no longer capped at 2 billion upgrades\n" +
+                            "_-_ Limited bonus fishing strength at 15000\n" +
+                            "_-_ Reduced Fate Lock's stat increase modifier from 1.12x to 1.045x and removed speed boost\n" +
+                            "_-_ Tweaked Throwing Mining Tool:\n" +
+                            "   _-_ travels slightly slower and costs 2 turns to throw instead of 1\n" +
+                            "   _-_ now only mines tiles visible in hero's FOV, otherwise shows the visual of hero throwing returning tool in direction of tile\n" +
+                            "   _-_ no longer stunlocks player if trying to hit coords outside the map\n" +
+                            "   _-_ now can trigger traps\n" +
+                            "_-_ Changed Elixir of Luck's droprate:\n" +
+                            "   _-_ increased \"chance\" from 1/150 to 1/135\n" +
+                            "   _-_ is no longer affected by luck"
+            ));
+
+            changes.addButton(new ChangeButton(new Image(new MimicSprite.Black()), "Darkened Mimic",
+                "_-_ Tweaked the cycle stat scaling from 12 to 7, but increased base stat modifier by 75%-125%\n" +
+                        "_-_ Now has 33% damage reduction with one pylon down and 67% damage reduction with two pylons down\n" +
+                        "_-_ Reduced supercharge warning time from 3 turns to 1\n" +
+                        "_-_ Ability cooldown decreases by 2 turns with each pylon down\n" +
+                        "_-_ Reduced max spare time on crushing rocks attack\n" +
+                        "_-_ Out-of-reach attack can be now either corrosive gas or monsters\n" +
+                        "_-_ With Badder Bosses challenge:\n" +
+                        "   _-_ increased summon amount from 1x to 1x-3x\n" +
+                        "   _-_ can use out-of-reach attack instantly\n" +
+                        "_-_ Music fades out to nothing after being defeated"
+            ));
+
+            changes.addButton( new ChangeButton(Icons.get(Icons.PREFS), "Other Changes",
+                "_-_ Changed refined lucky bag's chance from \"35%\" to 8.33%\n" +
+                        "_-_ Tweaked Soul Mark's healing to properly support 64-bit numbers\n" +
+                        "_-_ Tweaked Chalice of Blood's healing to properly support 64-bit numbers\n" +
+                        "_-_ Tweaked Retribution/Psionic Blast scrolls to properly support 64-bit numbers\n" +
+                        "_-_ OOF Thief now spawns 100x less frequently (and 25x less frequently), but gives a lot of level ups, the amount of which scales with cycling\n" +
+                        "_-_ Gauntlet's duelist ability now only plays animation once\n" +
+                        "_-_ Telekinetic Grab now stops at first item, that is impossible to pick up\n" +
+                        "_-_ Added Battlemage's description for unstable wand\n" +
+                        "_-_ Fishing rods now retract their hooks, if they disappear from inventory by any means\n" +
+                        "_-_ Added issue tracker button to feedback screen"));
+
+            changes.addButton( new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "Bugfixes",
+                "_-_ Fixed crash with fishing rod's hook having to disappear during descending\n" +
+                        "_-_ Fixed crash with Elixir of Luck being in trinket creation set\n" +
+                        "_-_ Fixed slime's equipment drops\n" +
+                        "_-_ Fixed crashes with Clay trying to damage NPCs or mobs that cannot be damaged or debuffed\n" +
+                        "_-_ Fixed missile weapons stacking even if their levels are different\n" +
+                        "_-_ Fixed dupe glitch with extracting X*Y upgrades out of Y +X missiles\n" +
+                        "_-_ Fixed Scroll of Midas being non-consumable\n" +
+                        "_-_ Fixed Potion of Overload and Scroll of Midas having no name or description\n" +
+                        "_-_ Fixed Blacksmith consuming double favor on reforging, than intended"));
+
+            changes = new ChangeInfo("ExpPD-2.18.1", true, "");
+            changes.hardlight(Window.TITLE_COLOR);
+            changeInfos.add(changes);
+            changes.addButton( new ChangeButton(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN.get(), "Developer Commentary",
+                    "_-_ Released June 02nd, 2024\n" +
+                            "_-_ 7 days after Experienced Pixel Dungeon 2.18"));
+
+            changes.addButton( new ChangeButton(Icons.get(Icons.PREFS), "Other Changes",
+                    "_-_ Increased refined lucky bag's chance from \"35%\" to \"60%\"\n" +
+                            "_-_ Increased Vampiric enchantment's healing by 4x and chance by 2x\n" +
+                            "_-_ Tweaked health bars to properly support 64-bit numbers\n" +
+                            "_-_ Significantly increased damage and protection stats of equipment in cycles, again\n" +
+                            "_-_ Added a new thing for Faith is my Armor"));
+
+            changes.addButton( new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "Bugfixes",
+                    "_-_ Fixed mob HP being capped at 32-bit limit\n" +
+                            "_-_ Fixed Ring of Tenacity being missing\n" +
+                            "_-_ Fixed incorrect item sprites from last update\n" +
+                            "_-_ Fixed crashes from Exotic Crystals trinket generating incorrect versions of scrolls\n" +
+                            "_-_ Fixed crash with Telekinetic Grab's lack of validity checks\n" +
+                            "_-_ Fixed Regrowth Slasher's ghosts being possible to cleanse\n" +
+                            "_-_ Fixed Experienced's spells not being possible to create\n" +
+                            "_-_ Fixed Cheese Chunk not being possible to create"));
+
+            changes = new ChangeInfo("ExpPD-2.18", true, "");
+            changes.hardlight(Window.TITLE_COLOR);
+            changeInfos.add(changes);
+            changes.addButton( new ChangeButton(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN.get(), "Developer Commentary",
+                    "_-_ Released May 26th, 2024\n" +
+                            "_-_ 45 days after Experienced Pixel Dungeon 2.17.2"));
+            changes.addButton( new ChangeButton(Icons.SHPX.get(), "ShPD content",
+                "Implemented Shattered's 2.4.1, with following additions:\n\n" +
+                        "_-_ Combat rolls use 64-bit numbers, both normal and inversed normal.\n" +
+                        "_-_ Changed Experienced's alchemy items to fit for alchemy overhaul.\n" +
+                        "_-_ Changed Experienced's new and changed weapons to fit for duelist overhaul.\n" +
+                        "_-_ Black Mimic and related content is now called Darkened Mimic to account for Shattered's addition of ebony mimics.\n" +
+                        "_-_ Experienced's Rat Skull is now called Remorphed Rat Skull to account for Shattered's addition of rat skull trinket."));
+            changes.addButton( new ChangeButton(Icons.BUFFS.get(), "Buffs and Nerfs",
+                    "_-_ Buffed war hammers:\n" +
+                            "   _-_ increased attack speed from 0.4 to 0.5\n" +
+                            "   _-_ changed pitch to have intended effect\n" +
+                            "   _-_ reduced attacker's max paralysis duration by 1 turn\n" +
+                            "_-_ Changed OOF Thieves:\n" +
+                            "   _-_ decreased stealing counter constant from 3 to 4 (should steal slower now)\n" +
+                            "   _-_ added a tip on how to recover stolen items\n" +
+                            "_-_ Reduced upgrade scaling on Sai and Scimitar duelist abilities by 99.6%\n" +
+                            "_-_ Reduced amount of weapon charges used by Blacksmith weapons from 3 to 2\n" +
+                            "_-_ Increased amount of gold given by Scroll of Midas by ~3x\n" +
+                            "_-_ Reduced Fate Lock's stat increase modifier from 1.16x to 1.12x\n" +
+                            "_-_ Decreased amount of rerolls on burning Lucky Bags from 3 to 2\n" +
+                            "_-_ Telekinetic Grab now grabs stuff in 3x3"
+            ));
+            changes.addButton( new ChangeButton(Icons.get(Icons.PREFS), "Other Changes",
+                    "_-_ Inter-level teleports are no longer allowed in Experienced's subworlds\n" +
+                            "_-_ Tweaked desktop inventory:\n" +
+                            "   _-_ gold and energy are now at the bottom to give them more space\n" +
+                            "   _-_ added button for Incredibly Cheesy Cheest\n" +
+                            "_-_ Tweaked score multipliers:\n" +
+                            "   _-_ increased max progression score from 250k to 600k\n" +
+                            "   _-_ treasure score is now divided by 1000, but increased max treasure score from 100k to 1000k\n" +
+                            "_-_ Cycles can now be seen on save loading screen\n" +
+                            "_-_ The \"city\" entrance in Darkened Mimic's arena now leads up as well"
+            ));
+            changes.addButton( new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "Bugfixes",
+                    "_-_ Fixed fishing hook going inside walls instead of ground\n" +
+                            "_-_ Fixed grandmaster gold collecting badge to be properly larger than preceding badges\n" +
+                            "_-_ Fixed Broken Enderium Blade and Energite Bottle costing nothing\n" +
+                            "_-_ Fixed Scroll of Midas affecting fishing hook\n" +
+                            "_-_ Fixed run statistics saving as 64-bit numbers, but loading as 32-bit numbers\n" +
+                            "_-_ Fixed treasure bags using as much turns as picking up all items in them individually\n" +
+                            "_-_ Fixed cycle's score multiplier not being loaded in rankings after the first time\n" +
+                            "_-_ Fixed fate lock taking more HP than asked by code and pseudo-killing player\n" +
+                            "_-_ Fixed war hammers stunning player for infinite amount of time\n" +
+                            "_-_ Fixed prices for all Blacksmith's rewards only scaling from amount of reforges"
+            ));
+
+
+            changes = new ChangeInfo("ExpPD-2.17.2", true, "");
+            changes.hardlight(Window.TITLE_COLOR);
+            changeInfos.add(changes);
+            changes.addButton( new ChangeButton(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN.get(), "Developer Commentary",
+                    "_-_ Released April 11th, 2024\n" +
+                            "_-_ 2 days after Experienced Pixel Dungeon 2.17.1"));
+            changes.addButton( new ChangeButton(Icons.BUFFS.get(), "Buffs and Nerfs",
+                    "_-_ Changed Ring of Elements:\n" +
+                            "   _-_ now appears 2x less frequently in Refined Lucky Bag\n" +
+                            "   _-_ increased elemental protection from 80% to 98%\n" +
+                            "_-_ Nerfed harden mechanic:\n" +
+                            "   _-_ now 10x less potent\n" +
+                            "_-_ Massively increased stat escalation of weapons from later cycles and added one for cycle 5\n" +
+                            "_-_ Buffed the probability of getting Refined Lucky Bag from \"20%\" to \"35%\""
+            ));
+            changes.addButton( new ChangeButton(Icons.get(Icons.PREFS), "Other Changes",
+                    "_-_ Changed Dwarf King:\n" +
+                            "   _-_ increased max HP by 3x\n" +
+                            "   _-_ no longer has second phase (screw Evan for making it so hard to maintain\n" +
+                            "_-_ Capped some of AoE traps to not last forever on later cycles\n" +
+                            "_-_ Massively increased virtual depth escalation with cycles to make debuffs and gases more potent\n" +
+                            "_-_ Capped Blazing enchantment's particle amount at 100"
+            ));
+            changes.addButton( new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "Bugfixes",
+                    "_-_ Fixed Dwarf King becoming unbeatable when affected by Fate Lock's stat boost\n" +
+                            "_-_ Fixed harden boost being applied to every weapon and armor regardless of them being hardened or not\n" +
+                            "_-_ Fixed hero's accuracy and evasion being decreased with luck\n" +
+                            "_-_ Fixed Scroll of Determination's text being not available"
+            ));
+
+            changes = new ChangeInfo("ExpPD-2.17.1", true, "");
+            changes.hardlight(Window.TITLE_COLOR);
+            changeInfos.add(changes);
+            changes.addButton( new ChangeButton(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN.get(), "Developer Commentary",
+                "_-_ Released April 9th, 2024\n" +
+                        "_-_ 2 days after Experienced Pixel Dungeon 2.17"));
+            changes.addButton( new ChangeButton(Icons.BUFFS.get(), "Buffs and Nerfs",
+                "_-_ Changed Ring of Haste:\n" +
+                        "   _-_ now 3x less likely to appear as other rings\n" +
+                        "   _-_ now slows you down\n" +
+                        "_-_ Glyph of Swiftness is now a curse and slows player down\n" +
+                        "_-_ Glyph of Flow is 5000x less potent; base speed boost reduced from _2x_ to _1.25x_\n" +
+                        "_-_ Buffed Ring of Elements:\n" +
+                        "   _-_ now reduces _80%_ of elemental damage instead of 50%\n" +
+                        "_-_ Buffed Warhammer and Starlight Smasher:\n" +
+                        "   _-_ increased attack delay from _3 turns_ to _2.5 turns_\n" +
+                        "   _-_ decreased attacker's stun by 1 turn and allowed it to be affected by furor\n" +
+                        "   _-_ decreased Starlight Smasher's special attack's delay from _5 turns_ to _3.5 turns_\n" +
+                        "   _-_ decreased Starlight Smasher's max damage from _10x_ of base to _8.5x_ of base\n" +
+                        "_-_ Reworked/nerfed Directive perk:\n" +
+                        "   _-_ now grants 1.5 turns of haste instead of 3 free steps"));
+            changes.addButton( new ChangeButton(new ItemSprite(new IdealBag()), "New Treasure Bags",
+                "_-_ Chance to get Refined Lucky Bag is _increased to 20%_, but the mechanic with worst rolls to get it works correctly now\n" +
+                        "_-_ _Refined Lucky Bag_ is now less likely to give unstackable items like equipment\n" +
+                        "_-_ _Refined Lucky Bag's_ chance to drop exclusive item is now affected by luck and increased from 4% to 4.5%"));
+            changes.addButton( new ChangeButton(new ItemSprite(ItemSpriteSheet.PSYCHE_CHEST), "Fate Lock",
+                "Changed Fate Lock's reset mechanic:\n\n" +
+                        "_-_ Now uses 45% of player's health, down from 50%\n" +
+                        "_-_ Enemies get _8%_ faster and _16%_ stronger with each reset\n" +
+                        "_-_ The only way to reduce this boost is to go to new cycle\n" +
+                        "_-_ Run's current duration also affects enemy stats"));
+            changes.addButton( new ChangeButton(Icons.get(Icons.PREFS), "Other Changes",
+                "_-_ Arena's guaranteed gold from each mob now directly goes into player's purse"
+            ));
+            changes.addButton( new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "Bugfixes",
+                "_-_ Fixed a crash caused by fishing attempts\n" +
+                        "_-_ Fixed Rat King not being rendered on ascension's surface scene"
+            ));
+            changes = new ChangeInfo("ExpPD-2.17.0", true, "");
+            changes.hardlight(Window.TITLE_COLOR);
+            changeInfos.add(changes);
+            changes.addButton( new ChangeButton(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN.get(), "Developer Commentary",
+                    "_-_ Released April 7th, 2024\n" +
+                            "_-_ 88 days after Experienced Pixel Dungeon 2.16.3\n" +
+                            "_-_ 142 days after Experienced Pixel Dungeon 2.16"));
+            changes.addButton( new ChangeButton(Icons.SHPX.get(), "ShPD content",
+                "Implemented Shattered's 2.3.2, with following additions:\n\n" +
+                        "_-_ Added new floating text icons for Experienced's permanent boosts.\n" +
+                        "_-_ Rat King drops cheese chunk as his remains item.\n" +
+                        "_-_ Gnoll quest enemies now have stats for dungeon cycles.\n" +
+                        "_-_ Upgraded Android Gradle Plugin from 3.6.4 to latest version (finally!)."));
+        changes.addButton( new ChangeButton(Icons.PLUS.get(), "Prolonging numbers",
+                "The most significant change in this update is tweaking certain numbers from _stored in 32-bit variables to 64-bit variables_, increasing their max value from ~2 billion to ~9 quintillion:\n" +
+                        "_-_ gold and alchemical energy\n" +
+                        "_-_ mob experience value\n" +
+                        "_-_ current and max health of living entities\n" +
+                        "_-_ dealt damage from most of sources\n" +
+                        "_-_ amount of stored and gained experience\n" +
+                        "_-_ upgrades and amount of items\n" +
+                        "_-_ wand and artifact charges\n" +
+                        "_-_ equipment stats like damage, blocking and other effects\n" +
+                        "_-_ limits on buffs like barksking and healing\n" +
+                        "_-_ statistics and ranking stats\n\n" +
+                        "This is still potentially unstable overhaul to the codebase."));
+        changes.addButton( new ChangeButton(new ItemSprite(new IdealBag()), "New Treasure Bags",
+                "Added two new treasure bags, which are obtained by burning lucky bags:\n\n" +
+                        "_-_ _Burnt Bag_ contains less items than normal bags, and they can contain burnt meat instead of loot.\n" +
+                        "_-_ _Refined Lucky Bag_ can appear instead of Burnt Bag with 10% chance (or is it?) and contains as many items as 10 Lucky Bags combined! " +
+                        "There are some new silly, yet useful loot that can drop from Refined Lucky Bag, including fabled elemental ring..."));
+        changes.addButton( new ChangeButton(new ItemSprite(new BlackPsycheChest()), "Cycling",
+                "_-_ Dart traps and necromancers now scale their damage with dungeon cycles\n" +
+                        "_-_ Implemented cycle 5, with new fishing rod and even more stat increases\n" +
+                        "_-_ Buffed Black Mimic's stats to exponentially scale with cycling"));
+        changes.addButton( new ChangeButton(Icons.BUFFS.get(), "Buffs and Nerfs",
+                "_-_ Buffed Bbat:\n" +
+                        "   _-_ now has extra range\n" +
+                        "   _-_ decreased cooldown to 700 turns\n" +
+                        "_-_ Tweaked Pickaxe:\n" +
+                        "   _-_ now gets tiers with cycles like any other weapon\n" +
+                        "   _-_ now has 50% more damage at base, but gets 50% less damage from upgrading\n" +
+                        "_-_ \"Nerfed\" Iron Will:\n" +
+                        "   _-_ no longer triggers from debuffs or hunger\n" +
+                        "   _-_ this thing was very annoying to some users, which is understandable\n" +
+                        "_-_ Buffed Blacksmith's harden favor from 0.15% boost per upgrade to 0.2% boost per upgrade\n" +
+                        "_-_ Weapons and armors in later cycles scale better both in base damage and scaling",
+
+                        "_-_ Changed Preparation:\n" +
+                        "   _-_ now detaches when Dirk/Fantasmal Stabber is unequipped\n" +
+                        "   _-_ slightly increased Dirk's max damage\n" +
+                        "   _-_ reduced damage of missile weapon by 35% when used with Preparation\n" +
+                        "_-_ Scroll of Determination is now consumed and identified correctly\n" +
+                        "_-_ \"Excalibur's swing\" ability can longer be used with no weapon energy\n" +
+                        "_-_ Ring effect levels are now capped at 200 billion\n" +
+                        "_-_ Significantly nerfed \"Scrolls of Upgrade from experience\" mechanic:\n" +
+                        "   _-_ changed experience requirements from 100/175/250/325/500/575 to 100/200/1250/11750/75000/500000\n" +
+                        "_-_ Ring of Elements can no longer be obtained by normal means and be upgraded, but increased its base power to 50% reduction from 20%"));
+
+            changes.addButton( new ChangeButton(Icons.PREFS.get(), "Unsorted and other changes",
+                            "_-_ Significantly reduced Crystal Spire's health on cycles to account for pickaxe's damage, but still encouraging to upgrade it\n" +
+                            "_-_ Skeletons deal 150% of their damage roll on exploding instead of static 6-12 damage\n" +
+                            "_-_ Upgrade amount text now auto-resizes for large upgrade values\n" +
+                            "_-_ Changed inventory UI to more comfortably fit all slots on landscape and desktop resolutions\n" +
+                            "_-_ Tremendously optimized Scroll of Upgrade's usage for large numbers\n" +
+                            "_-_ Projecting Runic Blade's projectile can pierce walls in same way as Projecting missile weapons do\n" +
+                            "_-_ Yog-Dzewa's lasers now kill most of the players in one hit with Badder Bosses challenge"
+            ));
+
+            changes.addButton( new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "Bugfixes",
+                    "_-_ Fixed fishing rod bobbers staying on the screen even after being used\n" +
+                            "_-_ Fixed OOF thief's desperation invulnerability not actually working\n" +
+                            "_-_ Fixed Longsword's Duelist ability being usable at no charges\n" +
+                            "_-_ Fixed cycle 4 DM-300 having too little health"
+            ));
+
+            changes = new ChangeInfo("ExpPD-2.16.3", true, "");
+            changes.hardlight(Window.TITLE_COLOR);
+            changeInfos.add(changes);
+            changes.addButton( new ChangeButton(Icons.get(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN), "Developer Commentary",
+                    "_-_ Released January 10th, 2024\n" +
+                            "_-_ 8 days after Experienced Pixel Dungeon 2.16.2"));
+            changes.addButton( new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "Bugfixes",
+                    "_-_ Fixed the crash with slimes by removing the luck part.\n" +
+                            "_-_ Fixed OOF thief issues with stealing only important items and nothing else.\n" +
+                            "_-_ Attempted to fix the statue attack animation crash."
+            ));
+
+            changes = new ChangeInfo("ExpPD-2.16.2", true, "");
             changes.hardlight(Window.TITLE_COLOR);
             changeInfos.add(changes);
             changes.addButton( new ChangeButton(Icons.get(Icons.BOBBY_IS_VERY_STRANGE_PERSON_BECAUSE_HE_TRIES_TO_REFERENCE_HIMSELF_IN_NEW_SHATTERED_CREDITS_SCREEN), "Developer Commentary",
@@ -444,7 +796,7 @@ public class ExpPDChanges {
                         "_-_ 3 days after Experienced Pixel Dungeon 2.11.1\n" +
                         "\n" +
                         "Dev commentary will be added here in the future."));
-        changes.addButton( new ChangeButton(Icons.get(Icons.CHALLENGE_ON), "Other Changes",
+        changes.addButton( new ChangeButton(Icons.get(Icons.CHALLENGE_COLOR), "Other Changes",
                 "Tweaked some challenges:" +
                         "_-_ Food is only 10% as effective instead of 33% (On Diet)\n" +
                         "_-_ Mobs do not sleep and will not fight for you (Swarm Intelligence)\n" +

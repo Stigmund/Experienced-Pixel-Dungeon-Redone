@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,18 +52,18 @@ public class Flail extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  Math.round(8*(tier+1)) +        //40 base, up from 30
-				lvl*Math.round(2f*(tier+1));  //+10 per level, up from +6
+	public long max(long lvl) {
+		return  Math.round(8d*(tier()+1)) +        //40 base, up from 30
+				lvl*Math.round(2d*(tier()+1));  //+10 per level, up from +6
 	}
 
-	private static float spinBonus = 1f;
+	private static long spinBoost = 0;
 
 	@Override
-	public int damageRoll(Char owner) {
-		int dmg = Math.round(super.damageRoll(owner) * spinBonus);
-		if (spinBonus > 1f) Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
-		spinBonus = 1f;
+	public long damageRoll(Char owner) {
+		long dmg = super.damageRoll(owner) + spinBoost;
+		if (spinBoost > 0) Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
+		spinBoost = 0;
 		return dmg;
 	}
 
@@ -84,10 +84,12 @@ public class Flail extends MeleeWeapon {
 			});
 			//we detach and calculate bonus here in case the attack misses (e.g. vs. monks)
 			spin.detach();
-			spinBonus = 1f + (spin.spins/3f);
+			//+(8+2*lvl) damage per spin, roughly +40% base damage, +45% scaling
+			// so +120% base dmg, +135% scaling at 3 spins
+			spinBoost = spin.spins * augment.damageFactor(8 + 2*buffedLvl());
 			return Float.POSITIVE_INFINITY;
 		} else {
-			spinBonus = 1f;
+			spinBoost = 0;
 			return super.accuracyFactor(owner, target);
 		}
 	}
@@ -97,7 +99,7 @@ public class Flail extends MeleeWeapon {
 		if (Dungeon.hero.buff(SpinAbilityTracker.class) != null){
 			return 0;
 		} else {
-			return 2;
+			return 1;
 		}
 	}
 
@@ -123,6 +125,20 @@ public class Flail extends MeleeWeapon {
 		BuffIndicator.refreshHero();
 
 		afterAbilityUsed(hero);
+	}
+
+	@Override
+	public String abilityInfo() {
+		long dmgBoost = levelKnown ? 8 + 2*buffedLvl() : 8;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(dmgBoost));
+		} else {
+			return Messages.get(this, "typical_ability_desc", augment.damageFactor(dmgBoost));
+		}
+	}
+
+	public String upgradeAbilityStat(long level){
+		return "+" + augment.damageFactor(8 + 2*level);
 	}
 
 	public static class SpinAbilityTracker extends FlavourBuff {
@@ -160,7 +176,7 @@ public class Flail extends MeleeWeapon {
 
 		@Override
 		public String desc() {
-			return Messages.get(this, "desc", (int)Math.round((spins/3f)*100f), dispTurns());
+			return Messages.get(this, "desc", Math.round((spins/3f)*100f), dispTurns());
 		}
 
 		public static String SPINS = "spins";

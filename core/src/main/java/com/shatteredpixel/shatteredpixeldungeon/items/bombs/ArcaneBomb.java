@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 
-public class ArcaneBomb extends Bomb.MagicalBomb {
+public class ArcaneBomb extends Bomb {
 	
 	{
 		image = ItemSpriteSheet.ARCANE_BOMB;
@@ -84,7 +84,7 @@ public class ArcaneBomb extends Bomb.MagicalBomb {
 		
 		for (Char ch : affected){
 			// 100%/83%/67% bomb damage based on distance, but pierces armor.
-			int damage = Math.round(Dungeon.NormalIntRange( Dungeon.scalingDepth()+5, 10 + Dungeon.scalingDepth() * 2 )*Dungeon.fireDamage);
+			long damage = Math.round(Dungeon.NormalLongRange( Dungeon.scalingDepth()+5, 10 + Dungeon.scalingDepth() * 2 ));
 			float multiplier = 1f - (.16667f*Dungeon.level.distance(cell, ch.pos));
 			if (Dungeon.hero.heroClass == HeroClass.ROGUE){
 				damage *= 2.5f;
@@ -98,7 +98,7 @@ public class ArcaneBomb extends Bomb.MagicalBomb {
 	}
 	
 	@Override
-	public int value() {
+	public long value() {
 		//prices of ingredients
 		return quantity * (20 + 30);
 	}

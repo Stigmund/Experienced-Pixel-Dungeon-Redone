@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Bestiary;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -69,6 +71,8 @@ public abstract class Plant implements Bundlable {
 
 		wither();
 		activate( ch );
+		Bestiary.setSeen(getClass());
+		Bestiary.countEncounter(getClass());
 	}
 	
 	public abstract void activate( Char ch );
@@ -116,7 +120,7 @@ public abstract class Plant implements Bundlable {
 
 	public String desc() {
 		String desc = Messages.get(this, "desc");
-		if (Dungeon.hero.isSubclass(HeroSubClass.WARDEN)){
+		if (Dungeon.hero != null && Dungeon.hero.isSubclass(HeroSubClass.WARDEN)){
 			desc += "\n\n" + Messages.get(this, "warden_desc");
 		}
 		return desc;
@@ -150,6 +154,7 @@ public abstract class Plant implements Bundlable {
 					|| Dungeon.isChallenged(Challenges.NO_HERBALISM)) {
 				super.onThrow( cell );
 			} else {
+				Catalog.countUse(getClass());
 				Dungeon.level.plant( this, cell );
 				if (Dungeon.hero.isSubclass(HeroSubClass.WARDEN)) {
 					for (int i : PathFinder.NEIGHBOURS8) {
@@ -201,19 +206,19 @@ public abstract class Plant implements Bundlable {
 		}
 		
 		@Override
-		public int value() {
+		public long value() {
 			return 10 * quantity;
 		}
 
 		@Override
-		public int energyVal() {
+		public long energyVal() {
 			return 2 * quantity;
 		}
 
 		@Override
 		public String desc() {
 			String desc = Messages.get(plantClass, "desc");
-			if (Dungeon.hero.isSubclass(HeroSubClass.WARDEN)){
+			if (Dungeon.hero != null && Dungeon.hero.isSubclass(HeroSubClass.WARDEN)){
 				desc += "\n\n" + Messages.get(plantClass, "warden_desc");
 			}
 			return desc;
@@ -221,7 +226,7 @@ public abstract class Plant implements Bundlable {
 
 		@Override
 		public String info() {
-			return Messages.get( Seed.class, "info", desc() );
+			return Messages.get( Seed.class, "info", super.info() );
 		}
 		
 		public static class PlaceHolder extends Seed {

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,20 +52,20 @@ public class Whip extends MeleeWeapon {
 	}
 
 	@Override
-	public int proc(Char attacker, Char defender, int damage) {
+	public long proc(Char attacker, Char defender, long damage) {
 		damage *= GameMath.gate(0.1f,1f - 0.1f*(Math.max(Dungeon.level.distance(attacker.pos, defender.pos), 0)), 1f);
 		return super.proc(attacker, defender, damage);
 	}
 
 	@Override
-	public int min(int lvl) {
-		return tier+lvl/2;
+	public long min(long lvl) {
+		return tier()+lvl/2;
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  3*(tier) +    //16 base, down from 24
-				lvl*(tier-1)/2;     //+4 per level, down from +5
+	public long max(long lvl) {
+		return  3L*(tier()) +    //16 base, down from 24
+				lvl*(tier()-1)/2;     //+4 per level, down from +5
 	}
 
 	public static class WhipReachBooster extends Buff {};
@@ -112,7 +112,8 @@ public class Whip extends MeleeWeapon {
 			public void call() {
 				beforeAbilityUsed(hero, finalClosest);
 				for (Char ch : targets) {
-					hero.attack(ch, 0.8f, 0, 1f);
+					//ability does no extra damage
+					hero.attack(ch, 1, 0, Char.INFINITE_ACCURACY);
 					if (!ch.isAlive()){
 						onAbilityKill(hero, ch);
 					}
@@ -125,4 +126,16 @@ public class Whip extends MeleeWeapon {
 		});
 	}
 
+	@Override
+	public String abilityInfo() {
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(min()), augment.damageFactor(max()));
+		} else {
+			return Messages.get(this, "typical_ability_desc", min(0), max(0));
+		}
+	}
+
+	public String upgradeAbilityStat(long level){
+		return augment.damageFactor(min(level)) + "-" + augment.damageFactor(max(level));
+	}
 }

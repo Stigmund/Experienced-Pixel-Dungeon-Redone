@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +28,9 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
-import com.shatteredpixel.shatteredpixeldungeon.items.journal.Guidebook;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 public class Snake extends Mob {
@@ -71,16 +68,22 @@ public class Snake extends Mob {
                 defenseSkill = 9000;
                 EXP = 30000;
                 break;
+            case 5:
+                HP = HT = 300000000;
+                defenseSkill = 56000;
+                EXP = 12500000;
+                break;
         }
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
             case 1: return Random.NormalIntRange(21, 36);
             case 2: return Random.NormalIntRange(120, 160);
             case 3: return Random.NormalIntRange(498, 621);
             case 4: return Random.NormalIntRange(3900, 5780);
+            case 5: return Random.NormalIntRange(370000, 525000);
         }
 		return Random.NormalIntRange( 1, 4 );
 	}
@@ -92,6 +95,7 @@ public class Snake extends Mob {
             case 2: return 180;
             case 3: return 540;
             case 4: return 1400;
+            case 5: return 21000;
         }
 	    return 10;
 	}
@@ -103,7 +107,6 @@ public class Snake extends Mob {
 		dodges++;
 		if ((dodges >= 2 && !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_SURPRISE_ATKS))
 				|| (dodges >= 4 && !Badges.isUnlocked(Badges.Badge.BOSS_SLAIN_1))){
-			GLog.p(Messages.get(Guidebook.class, "hint"));
 			GameScene.flashForDocument(Document.ADVENTURERS_GUIDE, Document.GUIDE_SURPRISE_ATKS);
 			dodges = 0;
 		}

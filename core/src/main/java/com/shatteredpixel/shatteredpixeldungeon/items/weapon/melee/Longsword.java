@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
@@ -61,13 +62,13 @@ public class Longsword extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  5*(tier+1) +    //25
-				lvl*(tier+1);   //+5
+	public long max(long lvl) {
+		return  5L*(tier()+1) +    //25
+				lvl*(tier()+1);   //+5
 	}
 
 	@Override
-	public int proc(Char attacker, Char defender, int damage) {
+	public long proc(Char attacker, Char defender, long damage) {
 		int[] targets = new int[2];
 		int direction = -1;
 		int direction1 = -1, direction2 = -1;
@@ -113,7 +114,7 @@ public class Longsword extends MeleeWeapon {
 				if (Actor.findChar(pos) != null){
 					Char ch = Actor.findChar(pos);
 					if (ch.alignment != attacker.alignment){
-						int dmg = Math.round(damage*0.6f);
+						long dmg = Math.round(damage*0.6f);
 						Sample.INSTANCE.play(Assets.Sounds.HIT_STAB, 1f, 0.75f);
 						if (enchantment != null && attacker.buff(MagicImmune.class) == null) {
 							dmg = enchantment.proc( this, attacker, defender, damage );
@@ -151,9 +152,7 @@ public class Longsword extends MeleeWeapon {
 
 	@Override
 	public float abilityChargeUse(Hero hero, Char target) {
-		return hero.belongings.secondWep() == this ?
-				Buff.affect(hero, Charger.class).secondCharges :
-				Buff.affect(hero, Charger.class).charges;
+		return Buff.affect(hero, Charger.class).charges;
 	}
 
 	@Override
@@ -179,8 +178,8 @@ public class Longsword extends MeleeWeapon {
 		@Override
 		public String desc() {
 			return Messages.get(this, "desc",
-					Math.round((Math.pow(1.08, stacks) - 1f)*100),
-					Math.round((Math.pow(1.15, stacks) - 1f)*100));
+					Math.round((Math.pow(1.14, stacks) - 1f)*100),
+					Math.round((Math.pow(1.25, stacks) - 1f)*100));
 		}
 
 		public static String STACKS = "stacks";
@@ -208,6 +207,12 @@ public class Longsword extends MeleeWeapon {
 		Char enemy = Actor.findChar(target);
 
 		float chargeUse = abilityChargeUse(hero, enemy);
+
+		if (chargeUse <= 0) {
+			GLog.w(Messages.get(this, "ability_no_charge"));
+			return;
+		}
+
 		int maxDist = 2 + Math.round(chargeUse);
 		int dist = Math.min(aim.dist, maxDist);
 
@@ -253,4 +258,8 @@ public class Longsword extends MeleeWeapon {
 
 	}
 
+	public String upgradeAbilityStat(long level){
+		long dmgBoost = 6 + level;
+		return augment.damageFactor(min(level)+dmgBoost) + "-" + augment.damageFactor(max(level)+dmgBoost);
+	}
 }

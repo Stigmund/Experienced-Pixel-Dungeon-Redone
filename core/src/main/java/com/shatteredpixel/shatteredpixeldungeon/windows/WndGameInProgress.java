@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ public class WndGameInProgress extends Window {
 					Game.scene().add( new WndChallenges( _info.challenges, false ) );
 				}
 			};
-			btnChallenges.icon(Icons.get(Icons.CHALLENGE_ON));
+			btnChallenges.icon(Icons.get(Icons.CHALLENGE_COLOR));
 			float btnW = btnChallenges.reqWidth() + 2;
 			btnChallenges.setRect( (WIDTH - btnW)/2, pos, btnW , 18 );
 			_window.add( btnChallenges );
@@ -121,6 +121,12 @@ public class WndGameInProgress extends Window {
 		pos += GAP;
 		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "gold"), _info.goldCollected );
 		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), _info.maxDepth );
+
+		if (_info.cycle != 0){
+			pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), (_info.maxDepth) + " " + Messages.get(this, "cycle", info.cycle) );
+		} else {
+			pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), _info.maxDepth );
+		}
 		if (_info.daily) {
 			if (_info.dailyReplay) {
 				pos = statSlot(_window, pos,Messages.get(WndGameInProgress.class, "replay_for"), "_" + _info.customSeed + "_");
@@ -137,9 +143,9 @@ public class WndGameInProgress extends Window {
 
 		return pos;
 	}
-	
+
 	public WndGameInProgress(final int slot){
-		
+
 		final GamesInProgress.Info info = GamesInProgress.check(slot);
 		float pos = WndGameInProgress.setContent(this, 0, info);
 
@@ -247,7 +253,7 @@ public class WndGameInProgress extends Window {
 		return pos;
 	}
 	
-	private static float statSlot( Window _window, float inPos, String label, int value ) {
-		return statSlot( _window, inPos, label, Integer.toString( value ) );
+	private static float statSlot( Window _window, float inPos, String label, long value ) {
+		return statSlot( _window, inPos, label, Long.toString( value ) );
 	}
 }

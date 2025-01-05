@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,18 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -41,7 +47,11 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CrystalSpireSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.*;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.GameMath;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
@@ -49,20 +59,23 @@ public class CrystalSpire extends Mob {
 
 	{
 		//this translates to roughly 33/27/23/20/18/16 pickaxe hits at +0/1/2/3/4/5
-		HP = HT = 300;
+		HP = HT = 500;
 		spriteClass = CrystalSpireSprite.class;
 		switch (Dungeon.cycle){
 			case 1:
-				HP = HT = 1600;
+				HP = HT = 1650;
 				break;
 			case 2:
-				HP = HT = 19564;
+				HP = HT = 3400;
 				break;
 			case 3:
-				HP = HT = 900000;
+				HP = HT = 6600;
 				break;
 			case 4:
-				HP = HT = 12000000;
+				HP = HT = 11625;
+				break;
+			case 5:
+				HP = HT = 46725;
 				break;
 		}
 
@@ -76,8 +89,9 @@ public class CrystalSpire extends Mob {
 		alignment = Alignment.NEUTRAL;
 
 		properties.add(Property.IMMOVABLE);
-		properties.add(Property.MINIBOSS);
+		properties.add(Property.BOSS);
 		properties.add(Property.INORGANIC);
+		properties.add(Property.STATIC);
 	}
 
 	private float abilityCooldown;
@@ -126,12 +140,13 @@ public class CrystalSpire extends Mob {
 				Char ch = Actor.findChar(i);
 
 				if (ch != null && !(ch instanceof CrystalWisp || ch instanceof CrystalSpire)){
-					int dmg = Random.NormalIntRange(12, 30);
+					long dmg = Dungeon.NormalLongRange(12, 30);
 					switch (Dungeon.cycle) {
-						case 1: dmg = Random.NormalIntRange(96, 124); break;
-						case 2: dmg = Random.NormalIntRange(500, 648); break;
-						case 3: dmg = Random.NormalIntRange(1790, 2400); break;
-						case 4: dmg = Random.NormalIntRange(34000, 52000); break;
+						case 1: dmg = Dungeon.NormalLongRange(96, 124); break;
+						case 2: dmg = Dungeon.NormalLongRange(500, 648); break;
+						case 3: dmg = Dungeon.NormalLongRange(1790, 2400); break;
+						case 4: dmg = Dungeon.NormalLongRange(34000, 52000); break;
+						case 5: dmg = Dungeon.NormalLongRange(4000000, 4900000); break;
 					}
 
 					//guardians are hit harder by the attack
@@ -139,7 +154,7 @@ public class CrystalSpire extends Mob {
 						dmg *= 1.5f; //18-27 damage
 						Buff.prolong(ch, Cripple.class, 30f);
 					}
-					ch.damage(dmg, CrystalSpire.this);
+					ch.damage(dmg, new SpireSpike());
 
 					int movePos = i;
 					//crystal guardians get knocked away from the hero, others get knocked away from the spire
@@ -213,6 +228,8 @@ public class CrystalSpire extends Mob {
 
 		return true;
 	}
+
+	public static class SpireSpike{}
 
 	private void diamondAOEAttack(){
 		targetedCells.clear();
@@ -293,7 +310,7 @@ public class CrystalSpire extends Mob {
 	}
 
 	@Override
-	public void damage(int dmg, Object src) {
+	public void damage(long dmg, Object src) {
 		if (!(src instanceof Pickaxe) ){
 			dmg = 0;
 		}
@@ -302,7 +319,7 @@ public class CrystalSpire extends Mob {
 
 	@Override
 	public boolean isInvulnerable(Class effect) {
-		return effect != Pickaxe.class;
+		return super.isInvulnerable(effect) || effect != Pickaxe.class;
 	}
 
 	@Override
@@ -318,7 +335,6 @@ public class CrystalSpire extends Mob {
 			final Pickaxe p = Dungeon.hero.belongings.getItem(Pickaxe.class);
 
 			if (p == null){
-				//maybe a game log entry here?
 				return true;
 			}
 
@@ -327,7 +343,7 @@ public class CrystalSpire extends Mob {
 				public void call() {
 					//does its own special damage calculation that's only influenced by pickaxe level and augment
 					//we pretend the spire is the owner here so that properties like hero str or or other equipment do not factor in
-					int dmg = p.damageRoll(CrystalSpire.this);
+					long dmg = p.damageRoll(CrystalSpire.this);
 
 					dmg = Math.min(dmg, HT / 10);
 
@@ -335,6 +351,8 @@ public class CrystalSpire extends Mob {
 					abilityCooldown -= dmg/10f;
 					sprite.bloodBurstA(Dungeon.hero.sprite.center(), dmg);
 					sprite.flash();
+
+					BossHealthBar.bleed(HP <= HT/3);
 
 					if (isAlive()) {
 						Sample.INSTANCE.play(Assets.Sounds.SHATTER, 1f, Random.Float(1.15f, 1.25f));
@@ -344,6 +362,9 @@ public class CrystalSpire extends Mob {
 						Sample.INSTANCE.playDelayed(Assets.Sounds.ROCKS, 0.1f);
 						PixelScene.shake( 3, 0.7f );
 						Blacksmith.Quest.beatBoss();
+
+						Bestiary.setSeen(CrystalSpire.class);
+						Bestiary.countEncounter(CrystalSpire.class);
 
 						if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()){
 							fieldOfView = new boolean[Dungeon.level.length()];
@@ -358,16 +379,18 @@ public class CrystalSpire extends Mob {
 							}
 						}
 
+						Bestiary.skipCountingEncounters = true;
 						for (Char ch : Actor.chars()){
 							if (fieldOfView[ch.pos]) {
 								if (ch instanceof CrystalGuardian) {
-									ch.damage(ch.HT, this);
+									ch.damage(ch.HT, new SpireSpike());
 								}
 								if (ch instanceof CrystalWisp) {
 									Buff.affect(ch, Blindness.class, 5f);
 								}
 							}
 						}
+						Bestiary.skipCountingEncounters = false;
 
 					}
 
@@ -518,13 +541,6 @@ public class CrystalSpire extends Mob {
 
 	{
 		immunities.add( Blindness.class );
-
-		immunities.add( Paralysis.class );
-		immunities.add( Amok.class );
-		immunities.add( Sleep.class );
-		immunities.add( Terror.class );
-		immunities.add( Dread.class );
-		immunities.add( Vertigo.class );
 	}
 
 }

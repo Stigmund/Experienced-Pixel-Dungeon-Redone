@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,19 +30,18 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.*;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public abstract class ExoticScroll extends Scroll {
 	
 	
-	public static final HashMap<Class<?extends Scroll>, Class<?extends ExoticScroll>> regToExo = new HashMap<>();
-	public static final HashMap<Class<?extends ExoticScroll>, Class<?extends Scroll>> exoToReg = new HashMap<>();
+	public static final LinkedHashMap<Class<?extends Scroll>, Class<?extends ExoticScroll>> regToExo = new LinkedHashMap<>();
+	public static final LinkedHashMap<Class<?extends ExoticScroll>, Class<?extends Scroll>> exoToReg = new LinkedHashMap<>();
 	static{
-		regToExo.put(ScrollOfIdentify.class, ScrollOfDivination.class);
-		exoToReg.put(ScrollOfDivination.class, ScrollOfIdentify.class);
-		
 		regToExo.put(ScrollOfUpgrade.class, ScrollOfEnchantment.class);
 		exoToReg.put(ScrollOfEnchantment.class, ScrollOfUpgrade.class);
+regToExo.put(ScrollOfIdentify.class, ScrollOfDivination.class);
+		exoToReg.put(ScrollOfDivination.class, ScrollOfIdentify.class);
 
 		regToExo.put(ScrollOfRemoveCurse.class, ScrollOfAntiMagic.class);
 		exoToReg.put(ScrollOfAntiMagic.class, ScrollOfRemoveCurse.class);
@@ -50,29 +49,39 @@ public abstract class ExoticScroll extends Scroll {
 		regToExo.put(ScrollOfLullaby.class, ScrollOfSirensSong.class);
 		exoToReg.put(ScrollOfSirensSong.class, ScrollOfLullaby.class);
 		
-		regToExo.put(ScrollOfRage.class, ScrollOfConfusion.class);
-		exoToReg.put(ScrollOfConfusion.class, ScrollOfRage.class);
+		regToExo.put(ScrollOfRage.class, ScrollOfDetermination.class);
+		exoToReg.put(ScrollOfDetermination.class, ScrollOfRage.class);
 		
 		regToExo.put(ScrollOfTerror.class, ScrollOfDread.class);
 		exoToReg.put(ScrollOfDread.class, ScrollOfTerror.class);
 		
+
+		regToExo.put(ScrollOfMirrorImage.class, ScrollOfPrismaticImage.class);
+		exoToReg.put(ScrollOfPrismaticImage.class, ScrollOfMirrorImage.class);
+
 		regToExo.put(ScrollOfRecharging.class, ScrollOfMysticalEnergy.class);
 		exoToReg.put(ScrollOfMysticalEnergy.class, ScrollOfRecharging.class);
-		
-		regToExo.put(ScrollOfMagicMapping.class, ScrollOfForesight.class);
-		exoToReg.put(ScrollOfForesight.class, ScrollOfMagicMapping.class);
-		
+
 		regToExo.put(ScrollOfTeleportation.class, ScrollOfPassage.class);
 		exoToReg.put(ScrollOfPassage.class, ScrollOfTeleportation.class);
-		
+
+		regToExo.put(ScrollOfLullaby.class, ScrollOfSirensSong.class);
+		exoToReg.put(ScrollOfSirensSong.class, ScrollOfLullaby.class);
+
+		regToExo.put(ScrollOfMagicMapping.class, ScrollOfForesight.class);
+		exoToReg.put(ScrollOfForesight.class, ScrollOfMagicMapping.class);
+
+		regToExo.put(ScrollOfRage.class, ScrollOfChallenge.class);
+		exoToReg.put(ScrollOfChallenge.class, ScrollOfRage.class);
+
 		regToExo.put(ScrollOfRetribution.class, ScrollOfPsionicBlast.class);
 		exoToReg.put(ScrollOfPsionicBlast.class, ScrollOfRetribution.class);
 		
-		regToExo.put(ScrollOfMirrorImage.class, ScrollOfPrismaticImage.class);
-		exoToReg.put(ScrollOfPrismaticImage.class, ScrollOfMirrorImage.class);
+		regToExo.put(ScrollOfTerror.class, ScrollOfDread.class);
+		exoToReg.put(ScrollOfDread.class, ScrollOfTerror.class);
 		
-		regToExo.put(ScrollOfTransmutation.class, ScrollOfPolymorph.class);
-		exoToReg.put(ScrollOfPolymorph.class, ScrollOfTransmutation.class);
+		regToExo.put(ScrollOfTransmutation.class, ScrollOfMidas.class);
+		exoToReg.put(ScrollOfMidas.class, ScrollOfTransmutation.class);
 	}
 	
 	@Override
@@ -99,13 +108,13 @@ public abstract class ExoticScroll extends Scroll {
 
 	@Override
 	//20 gold more than its none-exotic equivalent
-	public int value() {
+	public long value() {
 		return (Reflection.newInstance(exoToReg.get(getClass())).value() + 30) * quantity;
 	}
 
 	@Override
 	//6 more energy than its none-exotic equivalent
-	public int energyVal() {
+	public long energyVal() {
 		return (Reflection.newInstance(exoToReg.get(getClass())).energyVal() + 6) * quantity;
 	}
 	
@@ -121,7 +130,7 @@ public abstract class ExoticScroll extends Scroll {
 		}
 		
 		@Override
-		public int cost(ArrayList<Item> ingredients) {
+		public long cost(ArrayList<Item> ingredients) {
 			return 6;
 		}
 		

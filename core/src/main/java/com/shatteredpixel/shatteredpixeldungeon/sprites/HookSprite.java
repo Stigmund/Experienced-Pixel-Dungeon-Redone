@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2020 Evan Debenham
+ * Copyright (C) 2019-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ import com.watabou.noosa.tweeners.AlphaTweener;
 
 public class HookSprite extends CharSprite{
 
-    private Animation[] tierIdles = new Animation[6];
+    private Animation[] tierIdles = new Animation[7];
 
     public HookSprite() {
         super();
@@ -42,16 +42,10 @@ public class HookSprite extends CharSprite{
 
         TextureFilm frames = new TextureFilm(texture, 7, 15);
 
-        tierIdles[1] = new Animation( 1, true );
-        tierIdles[1].frames(frames, 0);
-        tierIdles[2] = new Animation( 1, true );
-        tierIdles[2].frames(frames, 1);
-        tierIdles[3] = new Animation( 1, true );
-        tierIdles[3].frames(frames, 2);
-        tierIdles[4] = new Animation( 1, true );
-        tierIdles[4].frames(frames, 3);
-        tierIdles[5] = new Animation( 1, true );
-        tierIdles[5].frames(frames, 4);
+        for (int i = 1; i <= 6; i++){
+            tierIdles[i] = new Animation( 1, true );
+            tierIdles[i].frames(frames, i - 1);
+        }
     }
 
     @Override
@@ -64,7 +58,7 @@ public class HookSprite extends CharSprite{
         super.die();
         //cancels die animation and fades out immediately
         play(idle, true);
-        parent.add( new AlphaTweener( this, 0, 2f ) {
+        parent.add( new AlphaTweener( this, 0, 1.25f ) {
             @Override
             protected void onComplete() {
                 HookSprite.this.killAndErase();

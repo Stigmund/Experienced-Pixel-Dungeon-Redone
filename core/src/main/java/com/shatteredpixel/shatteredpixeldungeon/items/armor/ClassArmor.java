@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -138,10 +139,16 @@ abstract public class ClassArmor extends Armor {
 		if (armor.seal != null) {
 			classArmor.seal = armor.seal;
 		}
+		classArmor.glyphHardened = armor.glyphHardened;
 		classArmor.cursed = armor.cursed;
 		classArmor.curseInfusionBonus = armor.curseInfusionBonus;
 		classArmor.masteryPotionBonus = armor.masteryPotionBonus;
-		classArmor.identify();
+		if (armor.levelKnown && armor.cursedKnown) {
+			classArmor.identify();
+		} else {
+			classArmor.levelKnown = armor.levelKnown;
+			classArmor.cursedKnown = true;
+		}
 
 		classArmor.charge = 50;
 		
@@ -247,6 +254,9 @@ abstract public class ClassArmor extends Armor {
 								armor.detach(hero.belongings.backpack);
 								if (hero.belongings.armor == armor){
 									hero.belongings.armor = null;
+									if (hero.sprite instanceof HeroSprite) {
+										((HeroSprite) hero.sprite).updateArmor();
+									}
 								}
 								level(armor.trueLevel());
 								tier = armor.tier;
@@ -257,16 +267,11 @@ abstract public class ClassArmor extends Armor {
 								if (armor.checkSeal() != null) {
 									inscribe(armor.glyph);
 									seal = armor.checkSeal();
-									if (seal.level() > 0) {
-										int newLevel = trueLevel() + 1;
-										level(newLevel);
-										Badges.validateItemLevelAquired(ClassArmor.this);
-									}
 								} else if (checkSeal() != null){
-									//automates the process of detaching the glyph manually
+									//automates the process of detaching the seal manually
 									// and re-affixing it to the new armor
-									if (seal.level() > 0 && trueLevel() <= armor.trueLevel()){
-										int newLevel = trueLevel() + 1;
+									if (seal.level() > 0){
+										long newLevel = trueLevel() + 1;
 										level(newLevel);
 										Badges.validateItemLevelAquired(ClassArmor.this);
 									}
@@ -285,7 +290,12 @@ abstract public class ClassArmor extends Armor {
 									inscribe(armor.glyph);
 								}
 
-								identify();
+								if (armor.levelKnown && armor.cursedKnown) {
+									identify();
+								} else {
+									levelKnown = armor.levelKnown;
+									cursedKnown = true;
+								}
 
 								GLog.p( Messages.get(ClassArmor.class, "transfer_complete") );
 								hero.sprite.operate(hero.pos);
@@ -307,7 +317,7 @@ abstract public class ClassArmor extends Armor {
 	public String desc() {
 		String desc = super.desc();
 
-		if (Dungeon.hero.belongings.contains(this)) {
+		if (Dungeon.hero != null && Dungeon.hero.belongings.contains(this)) {
 			ArmorAbility ability = Dungeon.hero.armorAbility;
 			if (ability != null) {
 				desc += "\n\n" + ability.shortDesc();
@@ -320,14 +330,9 @@ abstract public class ClassArmor extends Armor {
 
 		return desc;
 	}
-	
+
 	@Override
-	public boolean isIdentified() {
-		return true;
-	}
-	
-	@Override
-	public int value() {
+	public long value() {
 		return 0;
 	}
 

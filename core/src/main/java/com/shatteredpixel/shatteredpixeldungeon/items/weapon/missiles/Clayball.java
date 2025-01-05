@@ -6,7 +6,7 @@
  * Copyright (C) 2014-2019 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DemonSpawner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Slime;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -61,7 +64,7 @@ public class Clayball extends MissileWeapon {
 	}
 
 	@Override
-	public int value() {
+	public long value() {
 		return 826 * quantity;
 	}
 
@@ -79,7 +82,7 @@ public class Clayball extends MissileWeapon {
 
 		boolean[] FOV = new boolean[Dungeon.level.length()];
 		Point c = Dungeon.level.cellToPoint(cell);
-		ShadowCaster.castShadow(c.x, c.y, FOV, Dungeon.level.losBlocking, 8);
+		ShadowCaster.castShadow(c.x, c.y, Dungeon.level.width(), FOV, Dungeon.level.losBlocking, 8);
 
 		for (int i = 0; i < FOV.length; i++) {
 			if (FOV[i]) {
@@ -95,7 +98,14 @@ public class Clayball extends MissileWeapon {
 		}
 
 		for (Char target : targets){
-			if (target != Dungeon.hero) Buff.affect(target, Viscosity.DeferedDamage.class).prolong(target.HT*10);
+			if (target != Dungeon.hero) {
+				Viscosity.DeferedDamage dmg = Buff.affect(target, Viscosity.DeferedDamage.class);
+				if (dmg != null) {
+					dmg.prolong(target.HT * 10);
+					if (target instanceof Slime || target instanceof DemonSpawner || target instanceof YogFist.RustedFist || target instanceof YogFist.RottingFist)
+						dmg.prolong(target.HT * 100);
+				}
+			}
 			if (target == Dungeon.hero && !target.isAlive()){
 				Dungeon.fail(getClass());
 				GLog.n(Messages.get(this, "ondeath"));

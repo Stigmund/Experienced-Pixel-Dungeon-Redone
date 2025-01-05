@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,10 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RipperSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.*;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.GameMath;
+import com.watabou.utils.PathFinder;
 
 public class RipperDemon extends Mob {
 
@@ -80,6 +83,11 @@ public class RipperDemon extends Mob {
                 defenseSkill = 8700;
                 EXP = 1000000;
                 break;
+			case 5:
+				HP = HT = 4000000000L;
+				defenseSkill = 125500;
+				EXP = 165000000;
+				break;
         }
 	}
 
@@ -89,14 +97,15 @@ public class RipperDemon extends Mob {
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(79, 91);
-            case 2: return Random.NormalIntRange(270, 440);
-            case 3: return Random.NormalIntRange(2100, 2800);
-            case 4: return Random.NormalIntRange(65000, 180000);
+            case 1: return Dungeon.NormalLongRange(79, 91);
+            case 2: return Dungeon.NormalLongRange(270, 440);
+            case 3: return Dungeon.NormalLongRange(2100, 2800);
+            case 4: return Dungeon.NormalLongRange(65000, 180000);
+			case 5: return Dungeon.NormalLongRange(3400000, 8000000);
         }
-		return Random.NormalIntRange( 15, 25 );
+		return Dungeon.NormalLongRange( 15, 25 );
 	}
 
 	@Override
@@ -106,6 +115,7 @@ public class RipperDemon extends Mob {
             case 2: return 430;
             case 3: return 1175;
             case 4: return 11000;
+			case 5: return 142750;
         }
 		return 30;
 	}
@@ -116,14 +126,15 @@ public class RipperDemon extends Mob {
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(34, 64);
-            case 2: return Random.NormalIntRange(100, 217);
-            case 3: return Random.NormalIntRange(1200, 2100);
-            case 4: return Random.NormalIntRange(90000, 140000);
+            case 1: return Dungeon.NormalLongRange(34, 64);
+            case 2: return Dungeon.NormalLongRange(100, 217);
+            case 3: return Dungeon.NormalLongRange(1200, 2100);
+            case 4: return Dungeon.NormalLongRange(90000, 140000);
+			case 5: return Dungeon.NormalLongRange(4500000, 8000000);
         }
-		return Random.NormalIntRange(0, 4);
+		return Dungeon.NormalLongRange(0, 4);
 	}
 
 	private static final String LAST_ENEMY_POS = "last_enemy_pos";
@@ -150,6 +161,10 @@ public class RipperDemon extends Mob {
 
 	@Override
 	protected boolean act() {
+		if (state == WANDERING){
+			leapPos = -1;
+		}
+
 		AiState lastState = state;
 		boolean result = super.act();
 		if (paralysed <= 0) leapCooldown --;
@@ -176,7 +191,7 @@ public class RipperDemon extends Mob {
 
 			if (leapPos != -1){
 
-				leapCooldown = Random.NormalIntRange(2, 4);
+				leapCooldown = Dungeon.NormalLongRange(2, 4);
 
 				if (rooted){
 					leapPos = -1;
@@ -192,12 +207,23 @@ public class RipperDemon extends Mob {
 				//ensure there is somewhere to land after leaping
 				if (leapVictim != null){
 					int bouncepos = -1;
+					//attempt to bounce in free passable space
 					for (int i : PathFinder.NEIGHBOURS8){
 						if ((bouncepos == -1 || Dungeon.level.trueDistance(pos, leapPos+i) < Dungeon.level.trueDistance(pos, bouncepos))
 								&& Actor.findChar(leapPos+i) == null && Dungeon.level.passable[leapPos+i]){
 							bouncepos = leapPos+i;
 						}
 					}
+					//try again, allowing a bounce into any non-solid terrain
+					if (bouncepos == -1){
+						for (int i : PathFinder.NEIGHBOURS8){
+							if ((bouncepos == -1 || Dungeon.level.trueDistance(pos, leapPos+i) < Dungeon.level.trueDistance(pos, bouncepos))
+									&& Actor.findChar(leapPos+i) == null && !Dungeon.level.solid[leapPos+i]){
+								bouncepos = leapPos+i;
+							}
+						}
+					}
+					//if no valid position, cancel the leap
 					if (bouncepos == -1) {
 						leapPos = -1;
 						return true;
@@ -220,7 +246,7 @@ public class RipperDemon extends Mob {
 								leapVictim.sprite.flash();
 								Sample.INSTANCE.play(Assets.Sounds.HIT);
 							} else {
-								enemy.sprite.showStatus( CharSprite.NEUTRAL, enemy.defenseVerb() );
+								leapVictim.sprite.showStatus( CharSprite.NEUTRAL, leapVictim.defenseVerb() );
 								Sample.INSTANCE.play(Assets.Sounds.MISS);
 							}
 						}
@@ -279,7 +305,7 @@ public class RipperDemon extends Mob {
 						//get ready to leap
 						leapPos = targetPos;
 						//don't want to overly punish players with slow move or attack speed
-						spend(GameMath.gate(TICK, enemy.cooldown(), 3*TICK));
+						spend(GameMath.gate(attackDelay(), (int)Math.ceil(enemy.cooldown()), 3*attackDelay()));
 						if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[leapPos]){
 							GLog.w(Messages.get(RipperDemon.this, "leap"));
 							sprite.parent.addToBack(new TargetedCell(leapPos, 0xFF0000));

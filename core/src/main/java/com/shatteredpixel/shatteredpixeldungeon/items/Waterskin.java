@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -91,7 +92,7 @@ public class Waterskin extends Item {
 				
 				float missingHealthPercent = 1f - (hero.HP / (float)hero.HT);
 
-				int curShield = 0;
+				long curShield = 0;
 				if (hero.buff(Barrier.class) != null) curShield = hero.buff(Barrier.class).shielding();
 				int maxShield = Math.round(hero.HT);
 				if (hero.subClass == HeroSubClass.WARDEN){
@@ -108,6 +109,7 @@ public class Waterskin extends Item {
 
 				if (Dewdrop.consumeDew(dropsNeeded, hero, true)){
 					volume -= dropsNeeded;
+					Catalog.countUses(Dewdrop.class, dropsNeeded);
 
 					hero.spend(TIME_TO_DRINK);
 					hero.busy();
@@ -128,7 +130,7 @@ public class Waterskin extends Item {
 
 	@Override
 	public String info() {
-		String info = desc();
+		String info = super.info();
 
 		if (volume == 0){
 			info += "\n\n" + Messages.get(this, "desc_water");

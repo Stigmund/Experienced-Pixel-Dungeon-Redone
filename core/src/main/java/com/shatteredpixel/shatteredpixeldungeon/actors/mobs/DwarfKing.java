@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,18 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 
-import com.shatteredpixel.shatteredpixeldungeon.*;
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Doom;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LifeLink;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
@@ -45,6 +53,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportat
 import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.DKTreasureBag;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -72,7 +81,7 @@ public class DwarfKing extends Mob {
 	{
 		spriteClass = KingSprite.class;
 
-		HP = HT = 25 * theSubjectConstant();
+		HP = HT = 75 * theSubjectConstant();
 		EXP = 40;
 		defenseSkill = 22;
 
@@ -80,25 +89,30 @@ public class DwarfKing extends Mob {
 		properties.add(Property.UNDEAD);
         switch (Dungeon.cycle){
             case 1:
-                HP = HT = 323 * theSubjectConstant();
+                HP = HT = 969 * theSubjectConstant();
                 defenseSkill = 89;
                 EXP = 725;
                 break;
             case 2:
-                HP = HT = 5025 * theSubjectConstant();
+                HP = HT = 15075 * theSubjectConstant();
                 defenseSkill = 324;
                 EXP = 25000;
                 break;
             case 3:
-                HP = HT = 125000 * theSubjectConstant();
+                HP = HT = 475000 * theSubjectConstant();
                 defenseSkill = 780;
                 EXP = 400000;
                 break;
             case 4:
-                HP = HT = 15000000 * theSubjectConstant();
+                HP = HT = 45000000 * theSubjectConstant();
                 defenseSkill = 7000;
                 EXP = 99999999;
                 break;
+			case 5:
+				HP = HT = 525000000 * theSubjectConstant();
+				defenseSkill = 134000;
+				EXP = 999999999L;
+				break;
         }
 	}
 
@@ -107,14 +121,15 @@ public class DwarfKing extends Mob {
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(71, 83);
-            case 2: return Random.NormalIntRange(297, 455);
-            case 3: return Random.NormalIntRange(2000, 2800);
-            case 4: return Random.NormalIntRange(90000, 250000);
+            case 1: return Dungeon.NormalLongRange(71, 83);
+            case 2: return Dungeon.NormalLongRange(297, 455);
+            case 3: return Dungeon.NormalLongRange(2000, 2800);
+            case 4: return Dungeon.NormalLongRange(90000, 250000);
+			case 5: return Dungeon.NormalLongRange(2600000, 8000000);
         }
-		return Random.NormalIntRange( 15, 25 );
+		return Dungeon.NormalLongRange( 15, 25 );
 	}
 
 	@Override
@@ -124,19 +139,21 @@ public class DwarfKing extends Mob {
             case 2: return 387;
             case 3: return 1100;
             case 4: return 10000;
+			case 5: return 145750;
         }
 		return 26;
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(38, 65);
-            case 2: return Random.NormalIntRange(140, 295);
-            case 3: return Random.NormalIntRange(1100, 1980);
-            case 4: return Random.NormalIntRange(90000, 170000);
+            case 1: return Dungeon.NormalLongRange(38, 65);
+            case 2: return Dungeon.NormalLongRange(140, 295);
+            case 3: return Dungeon.NormalLongRange(1100, 1980);
+            case 4: return Dungeon.NormalLongRange(90000, 170000);
+			case 5: return Dungeon.NormalLongRange(3200000, 6500000);
         }
-		return Random.NormalIntRange(0, 10);
+		return Dungeon.NormalLongRange(0, 10);
 	}
 
 	private int phase = 1;
@@ -486,9 +503,9 @@ public class DwarfKing extends Mob {
 	}
 
 	@Override
-	public void damage(int dmg, Object src) {
-		//hero only counts as unarmed if they have no weapon and aren't benefiting from force
-		if (src == Dungeon.hero && (Dungeon.hero.belongings.weapon() != null || Dungeon.hero.buff(RingOfForce.Force.class) != null)){
+	public void damage(long dmg, Object src) {
+		//hero counts as unarmed if they aren't attacking with a weapon and aren't benefiting from force
+		if (src == Dungeon.hero && (!RingOfForce.fightingUnarmed(Dungeon.hero) || Dungeon.hero.buff(RingOfForce.Force.class) != null)){
 			Statistics.qualifiedForBossChallengeBadge = false;
 		//Corrosion, corruption, and regrowth do no direct damage and so have their own custom logic
 		//Transfusion damages DK and so doesn't need custom logic
@@ -509,17 +526,17 @@ public class DwarfKing extends Mob {
 			}
 			return;
 		}
-		int preHP = HP;
+		long preHP = HP;
 		super.damage(dmg, src);
 
 		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (lock != null && !isImmune(src.getClass())){
+		if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
 			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmg/5f);
 			else                                                    lock.addTime(dmg/3f);
 		}
 
 		if (phase == 1) {
-			int dmgTaken = preHP - HP;
+			long dmgTaken = preHP - HP;
 			if (Dungeon.cycle == 0) {
 				abilityCooldown -= dmgTaken / 8f;
 				summonCooldown -= dmgTaken / 8f;
@@ -529,18 +546,18 @@ public class DwarfKing extends Mob {
 				sprite.showStatus(CharSprite.POSITIVE, Messages.get(this, "invulnerable"));
 				ScrollOfTeleportation.appear(this, CityBossLevel.throne);
 				properties.add(Property.IMMOVABLE);
-				phase = 2;
+				phase = 3;
 				summonsMade = 0;
 				sprite.idle();
-				Buff.affect(this, DKBarrior.class).setShield(HT);
-				for (Summoning s : buffs(Summoning.class)) {
-					s.detach();
-				}
-				for (Mob m : Dungeon.level.mobs.toArray(new Mob[0])) {
-					if (m instanceof Ghoul || m instanceof Monk || m instanceof Warlock || m instanceof Golem) {
-						m.die(null);
-					}
-				}
+//				Buff.affect(this, DKBarrior.class).setShield(HT);
+//				for (Summoning s : buffs(Summoning.class)) {
+//					s.detach();
+//				}
+//				for (Mob m : Dungeon.level.mobs.toArray(new Mob[0])) {
+//					if (m instanceof Ghoul || m instanceof Monk || m instanceof Warlock || m instanceof Golem) {
+//						m.die(null);
+//					}
+//				}
 			}
 		} else if (phase == 2 && shielding() == 0) {
 			properties.remove(Property.IMMOVABLE);
@@ -614,9 +631,11 @@ public class DwarfKing extends Mob {
 
 		Dungeon.level.unseal();
 
+		Bestiary.skipCountingEncounters = true;
 		for (Mob m : getSubjects()){
 			m.die(null);
 		}
+		Bestiary.skipCountingEncounters = false;
 
 		LloydsBeacon beacon = Dungeon.hero.belongings.getItem(LloydsBeacon.class);
 		if (beacon != null) {
@@ -739,7 +758,7 @@ public class DwarfKing extends Mob {
 					}
 				} else {
 					Char ch = Actor.findChar(pos);
-					ch.damage(Random.NormalIntRange(20, 40) + Dungeon.escalatingDepth(), target);
+					ch.damage(Dungeon.NormalLongRange(20, 40) + Dungeon.escalatingDepth(), this);
 					if (((DwarfKing)target).phase == 2){
 						if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)){
 							target.damage(target.HT/18, new KingDamager());
@@ -817,7 +836,7 @@ public class DwarfKing extends Mob {
 			super.detach();
 			for (Mob m : Dungeon.level.mobs){
 				if (m instanceof DwarfKing){
-					int damage = m.HT / (Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 18 : 12);
+					long damage = m.HT / (Dungeon.isChallenged(Challenges.STRONGER_BOSSES) ? 18 : 12);
 					m.damage(damage, this);
 				}
 			}

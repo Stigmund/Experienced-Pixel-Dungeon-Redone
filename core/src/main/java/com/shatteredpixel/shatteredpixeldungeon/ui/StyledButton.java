@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,9 +148,14 @@ public class StyledButton extends Button {
 	}
 
 	public void alpha(float value){
-		if (icon != null) icon.alpha(value);
-		if (bg != null)   bg.alpha(value);
-		if (text != null) text.alpha(value);
+		if (icon != null)   icon.alpha(value);
+		if (bg != null)     bg.alpha(value);
+		if (text != null)   text.alpha(value);
+	}
+
+	public float alpha(){
+		if (icon != null)   return icon.alpha();
+		else                return bg.alpha();
 	}
 	
 	public float reqWidth() {

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,11 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
@@ -75,6 +79,11 @@ public class Swarm extends Mob {
                 defenseSkill = 1680;
                 EXP = 36000;
                 break;
+			case 5:
+				HP = HT = 2000000000;
+				defenseSkill = 36000;
+				EXP = 17000000;
+				break;
         }
 	}
 	
@@ -96,20 +105,27 @@ public class Swarm extends Mob {
 		generation = bundle.getInt( GENERATION );
 		if (generation > 0) EXP = 0;
 	}
-	
+
 	@Override
-	public int damageRoll() {
+	public void die(Object cause) {
+		flying = false;
+		super.die(cause);
+	}
+
+	@Override
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(25, 31);
-            case 2: return Random.NormalIntRange(129, 176);
-            case 3: return Random.NormalIntRange(525, 667);
-            case 4: return Random.NormalIntRange(5000, 9000);
+            case 1: return Dungeon.NormalLongRange(25, 31);
+            case 2: return Dungeon.NormalLongRange(129, 176);
+            case 3: return Dungeon.NormalLongRange(525, 667);
+            case 4: return Dungeon.NormalLongRange(5000, 9000);
+			case 5: return Dungeon.NormalLongRange(475000, 975000);
         }
-		return Random.NormalIntRange( 1, 4 );
+		return Dungeon.NormalLongRange( 1, 4 );
 	}
 	
 	@Override
-	public int defenseProc( Char enemy, int damage ) {
+	public long defenseProc( Char enemy, long damage ) {
 
 		if (HP >= damage + 2) {
 			ArrayList<Integer> candidates = new ArrayList<>();
@@ -150,6 +166,7 @@ public class Swarm extends Mob {
             case 2: return 180;
             case 3: return 560;
             case 4: return 1800;
+			case 5: return 29000;
         }
 		return 10;
 	}

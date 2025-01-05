@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.AlchemyScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -95,7 +96,7 @@ public class AlchemistsToolkit extends Artifact {
 			else if (Dungeon.energy < 6)        GLog.w( Messages.get(this, "need_energy") );
 			else {
 
-				final int maxLevels = Math.min(levelCap - level(), Dungeon.energy/6);
+				final int maxLevels = (int) Math.min(levelCap - level(), Dungeon.energy/6);
 
 				String[] options;
 				if (maxLevels > 1){
@@ -118,12 +119,14 @@ public class AlchemistsToolkit extends Artifact {
 							Sample.INSTANCE.playDelayed(Assets.Sounds.PUFF, 0.5f);
 							Dungeon.hero.sprite.operate(Dungeon.hero.pos);
 							upgrade();
+							Catalog.countUse(AlchemistsToolkit.class);
 						} else if (index == 1){
 							Dungeon.energy -= 6*maxLevels;
 							Sample.INSTANCE.play(Assets.Sounds.DRINK);
 							Sample.INSTANCE.playDelayed(Assets.Sounds.PUFF, 0.5f);
 							Dungeon.hero.sprite.operate(Dungeon.hero.pos);
-							upgrade(maxLevels);
+							upgrade((int) maxLevels);
+							Catalog.countUses(AlchemistsToolkit.class, maxLevels);
 						}
 
 					}
@@ -163,21 +166,22 @@ public class AlchemistsToolkit extends Artifact {
 		if (target.buff(MagicImmune.class) != null) return;
 		partialCharge += 0.25f*amount;
 		if (partialCharge >= 1){
-			partialCharge--;
-			charge++;
+			long charge = (long)partialCharge;
+			partialCharge -= charge;
+			this.charge += charge;
 			updateQuickslot();
 		}
 	}
 
-	public int availableEnergy(){
+	public long availableEnergy(){
 		return charge;
 	}
 
-	public int consumeEnergy(int amount){
-		int result = amount - charge;
-		charge = Math.max(0, charge - amount);
+	public int consumeEnergy(long amount){
+		long result = amount - charge;
+		charge = (int) Math.max(0, charge - amount);
 		Talent.onArtifactUsed(Dungeon.hero);
-		return Math.max(0, result);
+		return (int) Math.max(0, result);
 	}
 
 	@Override
@@ -246,6 +250,7 @@ public class AlchemistsToolkit extends Artifact {
 			//This means that energy absorbed into the kit is recovered in 5 hero levels
 			float chargeGain = (2 + level()) * levelPortion;
 			chargeGain *= RingOfEnergy.artifactChargeMultiplier(target);
+			chargeGain = Math.min(2000000000, chargeGain);
 				partialCharge += chargeGain;
 
 			//charge is in increments of 1 energy.

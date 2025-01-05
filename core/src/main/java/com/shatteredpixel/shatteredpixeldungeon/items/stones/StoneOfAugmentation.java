@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -64,7 +65,7 @@ public class StoneOfAugmentation extends InventoryStone {
 		useAnimation();
 		ScrollOfUpgrade.upgrade(curUser);
 		curItem.detach( curUser.belongings.backpack );
-		
+		Catalog.countUse(getClass());
 	}
 	
 	public void apply( Armor armor, Armor.Augment augment ) {
@@ -73,16 +74,17 @@ public class StoneOfAugmentation extends InventoryStone {
 		useAnimation();
 		ScrollOfUpgrade.upgrade(curUser);
 		curItem.detach( curUser.belongings.backpack );
+		Catalog.countUse(getClass());
 	}
 	
 	@Override
-	public int value() {
+	public long value() {
 		return 30 * quantity;
 	}
 
 	@Override
-	public int energyVal() {
-		return 4 * quantity;
+	public long energyVal() {
+		return 5 * quantity;
 	}
 	
 	public class WndAugment extends Window {

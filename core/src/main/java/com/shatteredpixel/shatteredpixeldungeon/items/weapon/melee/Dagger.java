@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,12 +36,12 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
-import com.watabou.utils.Random;
 
 public class Dagger extends MeleeWeapon {
 	
@@ -56,25 +56,25 @@ public class Dagger extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  4*(tier+1) +    //8 base, down from 10
-				lvl*(tier+1);   //scaling unchanged
+	public long max(long lvl) {
+		return  4L*(tier()+1) +    //8 base, down from 10
+				lvl*(tier()+1);   //scaling unchanged
 	}
 	
 	@Override
-	public int damageRoll(Char owner) {
+	public long damageRoll(Char owner) {
 		if (owner instanceof Hero) {
 			Hero hero = (Hero)owner;
 			Char enemy = hero.enemy();
 			if (enemy instanceof Mob && ((Mob) enemy).surprisedBy(hero)) {
 				//deals 75% toward max to max on surprise, instead of min to max.
-				int diff = max() - min();
-				int damage = augment.damageFactor(Random.NormalIntRange(
+				long diff = max() - min();
+				long damage = augment.damageFactor(Hero.heroDamageIntRange(
 						min() + Math.round(diff*0.75f),
 						max()));
 				int exStr = hero.STR() - STRReq();
 				if (exStr > 0) {
-					damage += Dungeon.IntRange(0, exStr);
+					damage += Hero.heroDamageIntRange(0, exStr);
 				}
 				return damage;
 			}
@@ -92,34 +92,43 @@ public class Dagger extends MeleeWeapon {
 	}
 
 	@Override
-	protected int baseChargeUse(Hero hero, Char target){
-		return 2;
+	protected void duelistAbility(Hero hero, Integer target) {
+		sneakAbility(hero, target, 5, 2+buffedLvl()/150, this);
 	}
 
 	@Override
-	protected void duelistAbility(Hero hero, Integer target) {
-		sneakAbility(hero, target, 6, this);
+	public String abilityInfo() {
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", 2+buffedLvl()/150);
+		} else {
+			return Messages.get(this, "typical_ability_desc", 2);
+		}
 	}
 
-	public static void sneakAbility(Hero hero, Integer target, int maxDist, MeleeWeapon wep){
+	@Override
+	public String upgradeAbilityStat(long level) {
+		return Long.toString(2+level/150);
+	}
+
+	public static void sneakAbility(Hero hero, Integer target, int maxDist, long invisTurns, MeleeWeapon wep){
 		if (target == null) {
 			return;
 		}
 
-		if (Actor.findChar(target) != null || !Dungeon.level.heroFOV[target]) {
-			GLog.w(Messages.get(wep, "ability_bad_position"));
+		PathFinder.buildDistanceMap(Dungeon.hero.pos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null), maxDist);
+		if (PathFinder.distance[target] == Integer.MAX_VALUE || !Dungeon.level.heroFOV[target] || hero.rooted) {
+			GLog.w(Messages.get(wep, "ability_target_range"));
+			if (Dungeon.hero.rooted) PixelScene.shake( 1, 1f );
 			return;
 		}
 
-		PathFinder.buildDistanceMap(Dungeon.hero.pos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null), maxDist);
-		if (PathFinder.distance[target] == Integer.MAX_VALUE) {
-			GLog.w(Messages.get(wep, "ability_bad_position"));
+		if (Actor.findChar(target) != null) {
+			GLog.w(Messages.get(wep, "ability_occupied"));
 			return;
 		}
 
 		wep.beforeAbilityUsed(hero, null);
-		Buff.affect(hero, Invisibility.class, Actor.TICK);
-		hero.next();
+		Buff.affect(hero, Invisibility.class, invisTurns-1); //1 fewer turns as ability is instant
 
 		Dungeon.hero.sprite.turnTo( Dungeon.hero.pos, target);
 		Dungeon.hero.pos = target;
@@ -132,6 +141,7 @@ public class Dagger extends MeleeWeapon {
 		CellEmitter.get( Dungeon.hero.pos ).burst( Speck.factory( Speck.WOOL ), 6 );
 		Sample.INSTANCE.play( Assets.Sounds.PUFF );
 
+		hero.next();
 		wep.afterAbilityUsed(hero);
 	}
 }

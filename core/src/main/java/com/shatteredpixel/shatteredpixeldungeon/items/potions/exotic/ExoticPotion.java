@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.*;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class ExoticPotion extends Potion {
 	
@@ -38,38 +38,38 @@ public class ExoticPotion extends Potion {
 		//sprite = equivalent potion sprite but one row down
 	}
 	
-	public static final HashMap<Class<?extends Potion>, Class<?extends ExoticPotion>> regToExo = new HashMap<>();
-	public static final HashMap<Class<?extends ExoticPotion>, Class<?extends Potion>> exoToReg = new HashMap<>();
+	public static final LinkedHashMap<Class<?extends Potion>, Class<?extends ExoticPotion>> regToExo = new LinkedHashMap<>();
+	public static final LinkedHashMap<Class<?extends ExoticPotion>, Class<?extends Potion>> exoToReg = new LinkedHashMap<>();
 	static{
-		regToExo.put(PotionOfHealing.class, PotionOfShielding.class);
-		exoToReg.put(PotionOfShielding.class, PotionOfHealing.class);
-		
-		regToExo.put(PotionOfToxicGas.class, PotionOfCorrosiveGas.class);
-		exoToReg.put(PotionOfCorrosiveGas.class, PotionOfToxicGas.class);
-		
 		regToExo.put(PotionOfStrength.class, PotionOfMastery.class);
 		exoToReg.put(PotionOfMastery.class, PotionOfStrength.class);
-		
-		regToExo.put(PotionOfFrost.class, PotionOfSnapFreeze.class);
-		exoToReg.put(PotionOfSnapFreeze.class, PotionOfFrost.class);
-		
-		regToExo.put(PotionOfHaste.class, PotionOfStamina.class);
-		exoToReg.put(PotionOfStamina.class, PotionOfHaste.class);
-		
-		regToExo.put(PotionOfLiquidFlame.class, PotionOfDragonsBreath.class);
-		exoToReg.put(PotionOfDragonsBreath.class, PotionOfLiquidFlame.class);
-		
-		regToExo.put(PotionOfInvisibility.class, PotionOfShroudingFog.class);
-		exoToReg.put(PotionOfShroudingFog.class, PotionOfInvisibility.class);
-		
+
+		regToExo.put(PotionOfHealing.class, PotionOfShielding.class);
+		exoToReg.put(PotionOfShielding.class, PotionOfHealing.class);
+
 		regToExo.put(PotionOfMindVision.class, PotionOfMagicalSight.class);
 		exoToReg.put(PotionOfMagicalSight.class, PotionOfMindVision.class);
-		
+
+		regToExo.put(PotionOfFrost.class, PotionOfSnapFreeze.class);
+		exoToReg.put(PotionOfSnapFreeze.class, PotionOfFrost.class);
+
+		regToExo.put(PotionOfLiquidFlame.class, PotionOfDragonsBreath.class);
+		exoToReg.put(PotionOfDragonsBreath.class, PotionOfLiquidFlame.class);
+
+		regToExo.put(PotionOfToxicGas.class, PotionOfCorrosiveGas.class);
+		exoToReg.put(PotionOfCorrosiveGas.class, PotionOfToxicGas.class);
+
+		regToExo.put(PotionOfHaste.class, PotionOfStamina.class);
+		exoToReg.put(PotionOfStamina.class, PotionOfHaste.class);
+
+		regToExo.put(PotionOfInvisibility.class, PotionOfShroudingFog.class);
+		exoToReg.put(PotionOfShroudingFog.class, PotionOfInvisibility.class);
+
 		regToExo.put(PotionOfLevitation.class, PotionOfStormClouds.class);
 		exoToReg.put(PotionOfStormClouds.class, PotionOfLevitation.class);
 		
-		regToExo.put(PotionOfExperience.class, PotionOfHolyFuror.class);
-		exoToReg.put(PotionOfHolyFuror.class, PotionOfExperience.class);
+		regToExo.put(PotionOfExperience.class, PotionOfOverload.class);
+		exoToReg.put(PotionOfOverload.class, PotionOfExperience.class);
 		
 		regToExo.put(PotionOfPurity.class, PotionOfCleansing.class);
 		exoToReg.put(PotionOfCleansing.class, PotionOfPurity.class);
@@ -102,13 +102,13 @@ public class ExoticPotion extends Potion {
 	
 	@Override
 	//20 gold more than its none-exotic equivalent
-	public int value() {
+	public long value() {
 		return (Reflection.newInstance(exoToReg.get(getClass())).value() + 20) * quantity;
 	}
 
 	@Override
 	//4 more energy than its none-exotic equivalent
-	public int energyVal() {
+	public long energyVal() {
 		return (Reflection.newInstance(exoToReg.get(getClass())).energyVal() + 4) * quantity;
 	}
 
@@ -124,7 +124,7 @@ public class ExoticPotion extends Potion {
 		}
 		
 		@Override
-		public int cost(ArrayList<Item> ingredients) {
+		public long cost(ArrayList<Item> ingredients) {
 			return 4;
 		}
 

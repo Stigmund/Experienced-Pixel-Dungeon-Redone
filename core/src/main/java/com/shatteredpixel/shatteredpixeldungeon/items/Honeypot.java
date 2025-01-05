@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bee;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.noosa.audio.Sample;
@@ -72,6 +73,7 @@ public class Honeypot extends Item {
 			hero.sprite.zap( hero.pos );
 			
 			detach( hero.belongings.backpack );
+			Catalog.countUse(getClass());
 
 			Item item = shatter( hero, hero.pos );
 			if (!item.collect()){
@@ -91,6 +93,7 @@ public class Honeypot extends Item {
 		if (Dungeon.level.pit[cell]) {
 			super.onThrow( cell );
 		} else {
+			Catalog.countUse(getClass());
 			Dungeon.level.drop(shatter( null, cell ), cell);
 		}
 	}
@@ -151,7 +154,7 @@ public class Honeypot extends Item {
 	}
 	
 	@Override
-	public int value() {
+	public long value() {
 		return 30 * quantity;
 	}
 
@@ -255,7 +258,7 @@ public class Honeypot extends Item {
 		}
 		
 		@Override
-		public int value() {
+		public long value() {
 			return 5 * quantity;
 		}
 	}

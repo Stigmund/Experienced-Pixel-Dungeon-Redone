@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -67,15 +68,19 @@ public class Mimic extends Mob {
 	}
 	
 	public ArrayList<Item> items;
-	
+
+	private boolean stealthy = false;
+
 	private static final String LEVEL	= "level";
 	private static final String ITEMS	= "items";
-	
+	private static final String STEALTHY= "stealthy";
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		if (items != null) bundle.put( ITEMS, items );
 		bundle.put( LEVEL, level );
+		bundle.put( STEALTHY, stealthy );
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -86,6 +91,7 @@ public class Mimic extends Mob {
 		}
 		level = bundle.getInt( LEVEL );
 		adjustStats(level);
+		stealthy = bundle.getBoolean(STEALTHY);
 		super.restoreFromBundle(bundle);
 		if (state != PASSIVE && alignment == Alignment.NEUTRAL){
 			alignment = Alignment.ENEMY;
@@ -117,7 +123,11 @@ public class Mimic extends Mob {
 	@Override
 	public String description() {
 		if (alignment == Alignment.NEUTRAL){
-			return Messages.get(Heap.class, "chest_desc") + "\n\n" + Messages.get(this, "hidden_hint");
+			if (MimicTooth.stealthyMimics()){
+				return Messages.get(Heap.class, "chest_desc");
+			} else {
+				return Messages.get(Heap.class, "chest_desc") + "\n\n" + Messages.get(this, "hidden_hint");
+			}
 		} else {
 			return super.description();
 		}
@@ -140,7 +150,7 @@ public class Mimic extends Mob {
 	@Override
 	public CharSprite sprite() {
 		MimicSprite sprite = (MimicSprite) super.sprite();
-		if (alignment == Alignment.NEUTRAL) sprite.hideMimic();
+		if (alignment == Alignment.NEUTRAL) sprite.hideMimic(this);
 		return sprite;
 	}
 
@@ -175,7 +185,7 @@ public class Mimic extends Mob {
 	}
 
 	@Override
-	public int defenseProc(Char enemy, int damage) {
+	public long defenseProc(Char enemy, long damage) {
 		if (state == PASSIVE){
 			alignment = Alignment.ENEMY;
 			stopHiding();
@@ -184,7 +194,7 @@ public class Mimic extends Mob {
 	}
 
 	@Override
-	public void damage(int dmg, Object src) {
+	public void damage(long dmg, Object src) {
 		if (state == PASSIVE){
 			alignment = Alignment.ENEMY;
 			stopHiding();
@@ -213,18 +223,23 @@ public class Mimic extends Mob {
 		}
 	}
 
+	//stealthy mimics have changes to visual behaviour that make them much harder to detect
+	public boolean stealthy(){
+		return stealthy;
+	}
+
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
 		if (alignment == Alignment.NEUTRAL){
-			return Random.NormalIntRange( 2 + 2*level, 2 + 2*level);
+			return Dungeon.NormalLongRange( 2 + 2*level, 2 + 2*level);
 		} else {
-			return Random.NormalIntRange( 1 + level, 2 + 2*level);
+			return Dungeon.NormalLongRange( 1 + level, 2 + 2*level);
 		}
 	}
 
 	@Override
-	public int drRoll() {
-		return super.drRoll() + Random.NormalIntRange(0, 1 + level/2);
+	public long drRoll() {
+		return super.drRoll() + Dungeon.NormalLongRange(0, 1 + level/2);
 	}
 
 	@Override
@@ -294,6 +309,8 @@ public class Mimic extends Mob {
 			m = new GoldenMimic();
 		} else if (mimicType == CrystalMimic.class) {
 			m = new CrystalMimic();
+		} else if (mimicType == EbonyMimic.class) {
+			m = new EbonyMimic();
 		} else {
 			m = new Mimic();
 		}
@@ -304,6 +321,10 @@ public class Mimic extends Mob {
 
 		//generate an extra reward for killing the mimic
 		m.generatePrize(useDecks);
+
+		if (MimicTooth.stealthyMimics()){
+			m.stealthy = true;
+		}
 
 		return m;
 	}
@@ -330,6 +351,11 @@ public class Mimic extends Mob {
 			}
 		} while (reward == null || Challenges.isItemBlocked(reward));
 		items.add(reward);
+
+		if (MimicTooth.stealthyMimics()){
+			//add an extra random item if player has a mimic tooth
+			items.add(Generator.randomUsingDefaults());
+		}
 	}
 
 }

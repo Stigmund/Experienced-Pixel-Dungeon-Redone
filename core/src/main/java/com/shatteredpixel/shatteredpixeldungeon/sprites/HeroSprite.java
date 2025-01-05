@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HeroDisguise;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -64,6 +65,11 @@ public class HeroSprite extends CharSprite {
 			idle();
 		else
 			die();
+	}
+
+	public void disguise(HeroClass cls){
+		texture( cls.spritesheet() );
+		updateArmor();
 	}
 	
 	public void updateArmor() {
@@ -126,6 +132,7 @@ public class HeroSprite extends CharSprite {
 	public void jump( int from, int to, float height, float duration,  Callback callback ) {
 		super.jump( from, to, height, duration, callback );
 		play( fly );
+		Camera.main.panFollow(this, 20f);
 	}
 
 	public synchronized void read() {
@@ -164,6 +171,14 @@ public class HeroSprite extends CharSprite {
 
 	public void hit( float speed ) {
 		attack.delay = 1f / speed / HIT_FRAMERATE;
+	}
+
+	public static Image avatar( Hero hero ){
+		if (hero.buff(HeroDisguise.class) != null){
+			return avatar(hero.buff(HeroDisguise.class).getDisguise(), hero.tier());
+		} else {
+			return avatar(hero.heroClass, hero.tier());
+		}
 	}
 	
 //	public static TextureFilm tiers() {

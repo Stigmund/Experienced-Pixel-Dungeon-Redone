@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,20 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.StormCloud;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
@@ -87,6 +99,11 @@ public abstract class YogFist extends Mob {
                 defenseSkill = 16500;
                 EXP = 9000000;
                 break;
+			case 5:
+				HP = HT = 30000000000L;
+				defenseSkill = 0;
+				EXP = 9000000000L;
+				break;
         }
 	}
 
@@ -156,15 +173,25 @@ public abstract class YogFist extends Mob {
 	}
 
 	@Override
-	public void damage(int dmg, Object src) {
-		int preHP = HP;
+	public void damage(long dmg, Object src) {
+		long preHP = HP;
 		super.damage(dmg, src);
-		int dmgTaken = preHP - HP;
+		long dmgTaken = preHP - HP;
 
 		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
-		if (dmgTaken > 0 && lock != null){
+		if (dmgTaken > 0 && lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
 			if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES))   lock.addTime(dmgTaken/4f);
 			else                                                    lock.addTime(dmgTaken/2f);
+		}
+	}
+
+	@Override
+	public void die(Object cause) {
+		super.die(cause);
+		for ( Char c : Actor.chars() ){
+			if (c instanceof YogDzewa){
+				((YogDzewa) c).processFistDeath();
+			}
 		}
 	}
 
@@ -182,30 +209,33 @@ public abstract class YogFist extends Mob {
             case 2: return 525;
             case 3: return 1300;
             case 4: return 20000;
+			case 5: return 275000;
         }
 		return 36;
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(86, 121);
-            case 2: return Random.NormalIntRange(375, 580);
-            case 3: return Random.NormalIntRange(2800, 4500);
-            case 4: return Random.NormalIntRange(350000, 460000);
+            case 1: return Dungeon.NormalLongRange(86, 121);
+            case 2: return Dungeon.NormalLongRange(375, 580);
+            case 3: return Dungeon.NormalLongRange(2800, 4500);
+            case 4: return Dungeon.NormalLongRange(350000, 460000);
+			case 5: return Dungeon.NormalLongRange(6000000, 12500000);
         }
-		return Random.NormalIntRange( 18, 36 );
+		return Dungeon.NormalLongRange( 18, 36 );
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(50, 89);
-            case 2: return Random.NormalIntRange(250, 430);
-            case 3: return Random.NormalIntRange(1750, 3200);
-            case 4: return Random.NormalIntRange(370000, 480000);
+            case 1: return Dungeon.NormalLongRange(50, 89);
+            case 2: return Dungeon.NormalLongRange(250, 430);
+            case 3: return Dungeon.NormalLongRange(1750, 3200);
+            case 4: return Dungeon.NormalLongRange(370000, 480000);
+			case 5: return Dungeon.NormalLongRange(8000000, 16500000);
         }
-		return Random.NormalIntRange(0, 15);
+		return Dungeon.NormalLongRange(0, 15);
 	}
 
 	{
@@ -341,7 +371,7 @@ public abstract class YogFist extends Mob {
 		}
 
 		@Override
-		public void damage(int dmg, Object src) {
+		public void damage(long dmg, Object src) {
 			int grassCells = 0;
 			for (int i : PathFinder.NEIGHBOURS9) {
 				if (Dungeon.level.map[pos+i] == Terrain.FURROWED_GRASS
@@ -413,15 +443,15 @@ public abstract class YogFist extends Mob {
 			GameScene.add(Blob.seed(pos, 0, ToxicGas.class));
 
 			if (Dungeon.level.water[pos] && HP < HT) {
-				sprite.emitter().burst( Speck.factory(Speck.HEALING), 3 );
-				HP += HT/50;
+				sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(HT/50), FloatingText.HEALING);
+				HP = Math.min(HT, HP + HT/50);
 			}
 
 			return super.act();
 		}
 
 		@Override
-		public void damage(int dmg, Object src) {
+		public void damage(long dmg, Object src) {
 			if (!isInvulnerable(src.getClass())
 					&& !(src instanceof Bleeding)
 					&& buff(Sickle.HarvestBleedTracker.class) == null){
@@ -449,7 +479,7 @@ public abstract class YogFist extends Mob {
 		}
 
 		@Override
-		public int attackProc( Char enemy, int damage ) {
+		public long attackProc( Char enemy, long damage ) {
 			damage = super.attackProc( enemy, damage );
 
 			if (Random.Int( 2 ) == 0) {
@@ -476,18 +506,19 @@ public abstract class YogFist extends Mob {
 		}
 
 		@Override
-		public int damageRoll() {
+		public long damageRoll() {
             switch (Dungeon.cycle) {
-                case 1: return Random.NormalIntRange(121, 145);
-                case 2: return Random.NormalIntRange(489, 675);
-                case 3: return Random.NormalIntRange(3100, 5412);
-                case 4: return Random.NormalIntRange(435000, 540000);
+                case 1: return Dungeon.NormalLongRange(121, 145);
+                case 2: return Dungeon.NormalLongRange(489, 675);
+                case 3: return Dungeon.NormalLongRange(3100, 5412);
+                case 4: return Dungeon.NormalLongRange(435000, 540000);
+				case 5: return Dungeon.NormalLongRange(8500000, 17500000);
             }
-			return Random.NormalIntRange( 22, 44 );
+			return Dungeon.NormalLongRange( 22, 44 );
 		}
 
 		@Override
-		public void damage(int dmg, Object src) {
+		public void damage(long dmg, Object src) {
 			if (!isInvulnerable(src.getClass()) && !(src instanceof Viscosity.DeferedDamage)){
 				dmg = Math.round( dmg * resist( src.getClass() ));
 				if (dmg >= 0) {
@@ -533,12 +564,13 @@ public abstract class YogFist extends Mob {
 			Char enemy = this.enemy;
 			if (hit( this, enemy, true )) {
 
-                int dmg = Random.NormalIntRange(10, 20);
+                long dmg = Dungeon.NormalLongRange(10, 20);
                 switch (Dungeon.cycle){
-                    case 1: dmg = Random.NormalIntRange(90, 131); break;
-                    case 2: dmg = Random.NormalIntRange(200, 389); break;
-                    case 3: dmg = Random.NormalIntRange(2300, 3000); break;
-                    case 4: dmg = Random.NormalIntRange(170000, 250000); break;
+                    case 1: dmg = Dungeon.NormalLongRange(90, 131); break;
+                    case 2: dmg = Dungeon.NormalLongRange(200, 389); break;
+                    case 3: dmg = Dungeon.NormalLongRange(2300, 3000); break;
+                    case 4: dmg = Dungeon.NormalLongRange(170000, 250000); break;
+					case 5: dmg = Dungeon.NormalLongRange(3250000, 7200000); break;
                 }
                 enemy.damage(dmg, new LightBeam() );
 				Buff.prolong( enemy, Blindness.class, Blindness.DURATION/2f );
@@ -557,8 +589,8 @@ public abstract class YogFist extends Mob {
 		}
 
 		@Override
-		public void damage(int dmg, Object src) {
-			int beforeHP = HP;
+		public void damage(long dmg, Object src) {
+			long beforeHP = HP;
 			super.damage(dmg, src);
 			if (isAlive() && beforeHP > HT/2 && HP < HT/2){
 				HP = HT/2;
@@ -606,12 +638,13 @@ public abstract class YogFist extends Mob {
 			Char enemy = this.enemy;
 			if (hit( this, enemy, true )) {
 
-                int dmg = Random.NormalIntRange(10, 20);
+                long dmg = Dungeon.NormalLongRange(10, 20);
                 switch (Dungeon.cycle){
-                    case 1: dmg = Random.NormalIntRange(90, 131); break;
-                    case 2: dmg = Random.NormalIntRange(200, 389); break;
-                    case 3: dmg = Random.NormalIntRange(2300, 3000); break;
-                    case 4: dmg = Random.NormalIntRange(175000, 250000); break;
+                    case 1: dmg = Dungeon.NormalLongRange(90, 131); break;
+                    case 2: dmg = Dungeon.NormalLongRange(200, 389); break;
+                    case 3: dmg = Dungeon.NormalLongRange(2300, 3000); break;
+                    case 4: dmg = Dungeon.NormalLongRange(175000, 250000); break;
+					case 5: dmg = Dungeon.NormalLongRange(3250000, 7200000); break;
                 }
                 enemy.damage(dmg, new DarkBolt() );
 
@@ -634,8 +667,8 @@ public abstract class YogFist extends Mob {
 		}
 
 		@Override
-		public void damage(int dmg, Object src) {
-			int beforeHP = HP;
+		public void damage(long dmg, Object src) {
+			long beforeHP = HP;
 			super.damage(dmg, src);
 			if (isAlive() && beforeHP > HT/2 && HP < HT/2){
 				HP = HT/2;

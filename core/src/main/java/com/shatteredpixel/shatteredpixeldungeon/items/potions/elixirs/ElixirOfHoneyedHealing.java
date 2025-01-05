@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,9 +54,9 @@ public class ElixirOfHoneyedHealing extends Elixir {
 	
 	@Override
 	public void shatter(int cell) {
+		splash( cell );
 		if (Dungeon.level.heroFOV[cell]) {
 			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-			splash( cell );
 		}
 		
 		Char ch = Actor.findChar(cell);
@@ -69,13 +69,7 @@ public class ElixirOfHoneyedHealing extends Elixir {
 			}
 		}
 	}
-	
-	@Override
-	public int value() {
-		//prices of ingredients
-		return quantity * (30 + 5);
-	}
-	
+
 	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
 		
 		{

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,32 +27,32 @@ package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WandEmpower;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.Random;
 
 //for wands that directly damage a target
-//wands with AOE effects count here (e.g. fireblast), but wands with indrect damage do not (e.g. venom, transfusion)
+//wands with AOE or circumstantial direct damage count here (e.g. fireblast, transfusion), but wands with indirect damage do not (e.g. corrosion)
 public abstract class DamageWand extends Wand{
 
-	public int min(){
-		return (int) (min(buffedLvl())*(1+ Dungeon.hero.lvl/150f));
+	public long min(){
+		return Math.round(min(buffedLvl())*(1+ Dungeon.hero.lvl/150d));
 	}
 
-	public abstract int min(int lvl);
+	public abstract long min(long lvl);
 
-	public int max(){
-		return (int) (max(buffedLvl())*(1+ Dungeon.hero.lvl/150f));
+	public long max(){
+		return Math.round(max(buffedLvl())*(1+ Dungeon.hero.lvl/150d));
 	}
 
-	public abstract int max(int lvl);
+	public abstract long max(long lvl);
 
-	public int damageRoll(){
+	public long damageRoll(){
 		return damageRoll(buffedLvl());
 	}
 
-	public int damageRoll(int lvl){
-		int dmg = Random.NormalIntRange(min(lvl), max(lvl));
+	public long damageRoll(long lvl){
+		long dmg = Hero.heroDamageIntRange(min(lvl), max(lvl));
 		WandEmpower emp = Dungeon.hero.buff(WandEmpower.class);
 		if (emp != null){
 			dmg += emp.dmgBoost;
@@ -71,5 +71,10 @@ public abstract class DamageWand extends Wand{
 			return Messages.get(this, "stats_desc", min(), max()) + "\n\n" + Messages.get(Wand.class, "charges", curCharges, maxCharges);
 		else
 			return Messages.get(this, "stats_desc", min(0), max(0));
+	}
+
+	@Override
+	public String upgradeStat1(long level) {
+		return min(level) + "-" + max(level);
 	}
 }

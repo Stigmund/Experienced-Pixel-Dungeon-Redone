@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,6 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.PrismaticSprite;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
-import com.watabou.utils.Random;
 
 public class PrismaticImage extends NPC {
 	
@@ -146,7 +145,7 @@ public class PrismaticImage extends NPC {
 		deathTimer = bundle.getInt( TIMER );
 	}
 	
-	public void duplicate( Hero hero, int HP ) {
+	public void duplicate( Hero hero, long HP ) {
 		this.hero = hero;
 		heroID = this.hero.id();
 		this.HP = HP;
@@ -154,11 +153,11 @@ public class PrismaticImage extends NPC {
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
 		if (hero != null) {
-			return Dungeon.NormalIntRange( 2 + hero.lvl/4, 4 + hero.lvl/2 );
+			return Dungeon.NormalLongRange( 2 + hero.lvl/4, 4 + hero.lvl/2 );
 		} else {
-			return Random.NormalIntRange( 2, 4 );
+			return Dungeon.NormalLongRange( 2, 4 );
 		}
 	}
 	
@@ -190,8 +189,8 @@ public class PrismaticImage extends NPC {
 	}
 	
 	@Override
-	public int drRoll() {
-		int dr = super.drRoll();
+	public long drRoll() {
+		long dr = super.drRoll();
 		if (hero != null){
 			return dr + hero.drRoll();
 		} else {
@@ -200,7 +199,7 @@ public class PrismaticImage extends NPC {
 	}
 	
 	@Override
-	public int defenseProc(Char enemy, int damage) {
+	public long defenseProc(Char enemy, long damage) {
 		if (hero != null && hero.belongings.armor() != null){
 			damage = hero.belongings.armor().proc( enemy, this, damage );
 		}
@@ -208,12 +207,13 @@ public class PrismaticImage extends NPC {
 	}
 	
 	@Override
-	public void damage(int dmg, Object src) {
+	public void damage(long dmg, Object src) {
 		
 		//TODO improve this when I have proper damage source logic
 		if (hero != null && hero.belongings.armor() != null && hero.belongings.armor().hasGlyph(AntiMagic.class, this)
 				&& AntiMagic.RESISTS.contains(src.getClass())){
 			dmg -= AntiMagic.drRoll(hero, hero.belongings.armor().buffedLvl());
+			dmg = Math.max(dmg, 0);
 		}
 		
 		super.damage(dmg, src);
@@ -228,7 +228,7 @@ public class PrismaticImage extends NPC {
 	}
 	
 	@Override
-	public int attackProc( Char enemy, int damage ) {
+	public long attackProc( Char enemy, long damage ) {
 		
 		if (enemy instanceof Mob) {
 			((Mob)enemy).aggro( this );
@@ -244,6 +244,8 @@ public class PrismaticImage extends NPC {
 		hero = (Hero)Actor.findById(heroID);
 		if (hero != null) {
 			armTier = hero.tier();
+		} else {
+			armTier = 1;
 		}
 		((PrismaticSprite)s).updateArmor( armTier );
 		return s;

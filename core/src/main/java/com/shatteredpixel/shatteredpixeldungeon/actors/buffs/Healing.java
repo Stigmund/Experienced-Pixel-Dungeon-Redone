@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.VialOfBlood;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -33,10 +35,12 @@ import com.watabou.utils.GameMath;
 
 public class Healing extends Buff {
 
-	private int healingLeft;
+	private long healingLeft;
 	
 	private float percentHealPerTick;
-	private int flatHealPerTick;
+	private long flatHealPerTick;
+
+	private boolean healingLimited = false;
 	
 	{
 		//unlike other buffs, this one acts after the hero and takes priority against other effects
@@ -56,10 +60,14 @@ public class Healing extends Buff {
 				((Hero) target).resting = false;
 			}
 		}
-		
+
+		target.sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(healingThisTick()), FloatingText.HEALING);
 		healingLeft -= healingThisTick();
 		
 		if (healingLeft <= 0){
+			if (target instanceof Hero) {
+				((Hero) target).resting = false;
+			}
 			detach();
 		}
 		
@@ -68,20 +76,31 @@ public class Healing extends Buff {
 		return true;
 	}
 	
-	private int healingThisTick(){
-		return (int)GameMath.gate(1,
-				Math.round(healingLeft * percentHealPerTick) + flatHealPerTick,
+	private long healingThisTick(){
+		long heal = (long)GameMath.gate(1d,
+				Math.round(healingLeft * percentHealPerTick * 1d) + flatHealPerTick,
 				healingLeft);
+		if (healingLimited && heal > VialOfBlood.maxHealPerTurn()){
+			heal = VialOfBlood.maxHealPerTurn();
+		}
+		return heal;
 	}
 
-	public void setHeal(int amount, float percentPerTick, int flatPerTick){
+	public void setHeal(long amount, float percentPerTick, long flatPerTick){
 		//multiple sources of healing do not overlap, but do combine the best of their properties
 		healingLeft = Math.max(healingLeft, amount);
 		percentHealPerTick = Math.max(percentHealPerTick, percentPerTick);
 		flatHealPerTick = Math.max(flatHealPerTick, flatPerTick);
 	}
-	
-	public void increaseHeal( int amount ){
+
+	public void applyVialEffect(){
+		healingLimited = VialOfBlood.delayBurstHealing();
+		if (healingLimited){
+			healingLeft = Math.round(healingLeft*VialOfBlood.totalHealMultiplier());
+		}
+	}
+
+	public void increaseHeal( long amount ){
 		healingLeft += amount;
 	}
 	
@@ -94,21 +113,25 @@ public class Healing extends Buff {
 	private static final String LEFT = "left";
 	private static final String PERCENT = "percent";
 	private static final String FLAT = "flat";
-	
+
+	private static final String HEALING_LIMITED = "healing_limited";
+
 	@Override
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
 		bundle.put(LEFT, healingLeft);
 		bundle.put(PERCENT, percentHealPerTick);
 		bundle.put(FLAT, flatHealPerTick);
+		bundle.put(HEALING_LIMITED, healingLimited);
 	}
 	
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
-		healingLeft = bundle.getInt(LEFT);
+		healingLeft = bundle.getLong(LEFT);
 		percentHealPerTick = bundle.getFloat(PERCENT);
-		flatHealPerTick = bundle.getInt(FLAT);
+		flatHealPerTick = bundle.getLong(FLAT);
+		healingLimited = bundle.getBoolean(HEALING_LIMITED);
 	}
 	
 	@Override
@@ -118,7 +141,7 @@ public class Healing extends Buff {
 
 	@Override
 	public String iconTextDisplay() {
-		return Integer.toString(healingLeft);
+		return Long.toString(healingLeft);
 	}
 	
 	@Override

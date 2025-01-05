@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.watabou.noosa.Image;
+import com.watabou.utils.Bundle;
 
 public class RoundShield extends MeleeWeapon {
 
@@ -45,32 +47,55 @@ public class RoundShield extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  Math.round(3.5f*(tier+1)) +     //14 base, down from 24
-				lvl*(tier);                   //+3 per level, down from +5
+	public long max(long lvl) {
+		return  Math.round(3.5d*(tier()+1)) +     //14 base, down from 24
+				lvl*(tier());                   //+3 per level, down from +5
 	}
 
 	@Override
-	public int defenseFactor( Char owner ) {
-		return (tier+1)+(tier-1)*buffedLvl();
+	public long defenseFactor( Char owner ) {
+		return DRMax();
+	}
+
+	public long DRMax(){
+		return DRMax(buffedLvl());
+	}
+
+	//4 extra defence, plus 1 per level
+	public long DRMax(long lvl){
+		return (tier()+1)+(tier()-1)*lvl;
 	}
 	
 	public String statsInfo(){
 		if (isIdentified()){
-			return Messages.get(this, "stats_desc", (tier+1)+(tier-1)*buffedLvl());
+			return Messages.get(this, "stats_desc", (tier()+1)+(tier()-1)*buffedLvl());
 		} else {
-			return Messages.get(this, "typical_stats_desc", (tier+1));
+			return Messages.get(this, "typical_stats_desc", (tier()+1));
 		}
 	}
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
-		RoundShield.guardAbility(hero, 8, this);
+		RoundShield.guardAbility(hero, 5+buffedLvl()/200, this);
 	}
 
-	public static void guardAbility(Hero hero, int duration, MeleeWeapon wep){
+	@Override
+	public String abilityInfo() {
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", 5+buffedLvl()/200);
+		} else {
+			return Messages.get(this, "typical_ability_desc", 5);
+		}
+	}
+
+	@Override
+	public String upgradeAbilityStat(long level) {
+		return Long.toString(5 + level);
+	}
+
+	public static void guardAbility(Hero hero, long duration, MeleeWeapon wep){
 		wep.beforeAbilityUsed(hero, null);
-		Buff.prolong(hero, GuardTracker.class, duration);
+		Buff.prolong(hero, GuardTracker.class, duration).hasBlocked = false;
 		hero.sprite.operate(hero.pos);
 		hero.spendAndNext(Actor.TICK);
 		wep.afterAbilityUsed(hero);
@@ -83,14 +108,39 @@ public class RoundShield extends MeleeWeapon {
 			type = buffType.POSITIVE;
 		}
 
+		public boolean hasBlocked = false;
+
 		@Override
 		public int icon() {
 			return BuffIndicator.DUEL_GUARD;
 		}
 
 		@Override
+		public void tintIcon(Image icon) {
+			if (hasBlocked){
+				icon.tint(0x651f66, 0.5f);
+			} else {
+				icon.resetColor();
+			}
+		}
+
+		@Override
 		public float iconFadePercent() {
-			return Math.max(0, (7 - visualcooldown()) / 7);
+			return Math.max(0, (5 - visualcooldown()) / 5);
+		}
+
+		private static final String BLOCKED = "blocked";
+
+		@Override
+		public void storeInBundle(Bundle bundle) {
+			super.storeInBundle(bundle);
+			hasBlocked = bundle.getBoolean(BLOCKED);
+		}
+
+		@Override
+		public void restoreFromBundle(Bundle bundle) {
+			super.restoreFromBundle(bundle);
+			bundle.put(BLOCKED, hasBlocked);
 		}
 	}
 }

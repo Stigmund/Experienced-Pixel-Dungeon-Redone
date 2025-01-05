@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.GuardSprite;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
-import com.watabou.utils.Random;
 
 public class Guard extends Mob {
 
@@ -84,18 +83,24 @@ public class Guard extends Mob {
                 defenseSkill = 2400;
                 EXP = 57500;
                 break;
+			case 5:
+				HP = HT = 1600000000;
+				defenseSkill = 48500;
+				EXP = 30000000;
+				break;
         }
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(40, 57);
-            case 2: return Random.NormalIntRange(200, 278);
-            case 3: return Random.NormalIntRange(725, 987);
-            case 4: return Random.NormalIntRange(11000, 18000);
+            case 1: return Dungeon.NormalLongRange(40, 57);
+            case 2: return Dungeon.NormalLongRange(200, 278);
+            case 3: return Dungeon.NormalLongRange(725, 987);
+            case 4: return Dungeon.NormalLongRange(11000, 18000);
+			case 5: return Dungeon.NormalLongRange(700000, 1600000);
         }
-		return Random.NormalIntRange(4, 12);
+		return Dungeon.NormalLongRange(4, 12);
 	}
 
 	private boolean chain(int target){
@@ -168,26 +173,28 @@ public class Guard extends Mob {
             case 2: return 245;
             case 3: return 640;
             case 4: return 2800;
+			case 5: return 40500;
         }
 		return 12;
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(15, 30);
-            case 2: return Random.NormalIntRange(120, 198);
-            case 3: return Random.NormalIntRange(500, 780);
-            case 4: return Random.NormalIntRange(9000, 13000);
+            case 1: return Dungeon.NormalLongRange(15, 30);
+            case 2: return Dungeon.NormalLongRange(120, 198);
+            case 3: return Dungeon.NormalLongRange(500, 780);
+            case 4: return Dungeon.NormalLongRange(9000, 13000);
+			case 5: return Dungeon.NormalLongRange(450000, 925000);
         }
-		return Random.NormalIntRange(0, 7);
+		return Dungeon.NormalLongRange(0, 7);
 	}
 
 	@Override
 	public float lootChance() {
-		//each drop makes future drops 1/2 as likely
-		// so loot chance looks like: 1/5, 1/10, 1/20, 1/40, etc.
-		return super.lootChance() * (float)Math.pow(1/2f, Dungeon.LimitedDrops.GUARD_ARM.count);
+		//each drop makes future drops 1/3 as likely
+		// so loot chance looks like: 1/5, 1/15, 1/45, 1/135, etc.
+		return super.lootChance() * (float)Math.pow(1/3f, Dungeon.LimitedDrops.GUARD_ARM.count);
 	}
 
 	@Override

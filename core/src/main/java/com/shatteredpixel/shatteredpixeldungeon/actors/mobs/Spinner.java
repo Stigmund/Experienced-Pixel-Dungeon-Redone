@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,11 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Web;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -74,18 +78,24 @@ public class Spinner extends Mob {
                 defenseSkill = 3900;
                 EXP = 135000;
                 break;
+			case 5:
+				HP = HT = 1875000000;
+				defenseSkill = 65500;
+				EXP = 40000000;
+				break;
         }
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(58, 73);
-            case 2: return Random.NormalIntRange(260, 371);
-            case 3: return Random.NormalIntRange(1200, 1468);
-            case 4: return Random.NormalIntRange(18000, 50000);
+            case 1: return Dungeon.NormalLongRange(58, 73);
+            case 2: return Dungeon.NormalLongRange(260, 371);
+            case 3: return Dungeon.NormalLongRange(1200, 1468);
+            case 4: return Dungeon.NormalLongRange(18000, 50000);
+			case 5: return Dungeon.NormalLongRange(2000000, 4200000);
         }
-		return Random.NormalIntRange(10, 20);
+		return Dungeon.NormalLongRange(10, 20);
 	}
 
 	@Override
@@ -95,19 +105,21 @@ public class Spinner extends Mob {
             case 2: return 321;
             case 3: return 760;
             case 4: return 4200;
+			case 5: return 62750;
         }
 		return 22;
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(20, 39);
-            case 2: return Random.NormalIntRange(80, 219);
-            case 3: return Random.NormalIntRange(480, 840);
-            case 4: return Random.NormalIntRange(13000, 30000);
+            case 1: return Dungeon.NormalLongRange(20, 39);
+            case 2: return Dungeon.NormalLongRange(80, 219);
+            case 3: return Dungeon.NormalLongRange(480, 840);
+            case 4: return Dungeon.NormalLongRange(13000, 30000);
+			case 5: return Dungeon.NormalLongRange(1220000, 2000000);
         }
-		return Random.NormalIntRange(0, 6);
+		return Dungeon.NormalLongRange(0, 6);
 	}
 
 	private int webCoolDown = 0;
@@ -156,10 +168,10 @@ public class Spinner extends Mob {
 	}
 
 	@Override
-	public int attackProc(Char enemy, int damage) {
+	public long attackProc(Char enemy, long damage) {
 		damage = super.attackProc( enemy, damage );
 		if (Random.Int(2) == 0) {
-			int duration = Random.IntRange(7, 8);
+			long duration = Random.IntRange(7, 8);
 			//we only use half the ascension modifier here as total poison dmg doesn't scale linearly
 			duration = Math.round(duration * (AscensionChallenge.statModifier(this)/2f + 0.5f));
 			Buff.affect(enemy, Poison.class).set(duration);
@@ -230,9 +242,9 @@ public class Spinner extends Mob {
 			int leftPos = enemy.pos + PathFinder.CIRCLE8[left(i)];
 			int rightPos = enemy.pos + PathFinder.CIRCLE8[right(i)];
 			
-			if (Dungeon.level.passable[leftPos]) GameScene.add(Blob.seed(leftPos, 20, Web.class));
-			if (Dungeon.level.passable[webPos])  GameScene.add(Blob.seed(webPos, 20, Web.class));
-			if (Dungeon.level.passable[rightPos])GameScene.add(Blob.seed(rightPos, 20, Web.class));
+			if (Dungeon.level.passable[leftPos]) applyWebToCell(leftPos);
+			if (Dungeon.level.passable[webPos])  applyWebToCell(webPos);
+			if (Dungeon.level.passable[rightPos])applyWebToCell(rightPos);
 			
 			webCoolDown = 10;
 
@@ -241,6 +253,10 @@ public class Spinner extends Mob {
 			}
 		}
 		next();
+	}
+
+	protected void applyWebToCell(int cell){
+		GameScene.add(Blob.seed(cell, 20, Web.class));
 	}
 	
 	private int left(int direction){

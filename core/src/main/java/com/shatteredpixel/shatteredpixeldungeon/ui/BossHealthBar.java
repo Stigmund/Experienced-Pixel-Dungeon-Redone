@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -168,13 +168,13 @@ public class BossHealthBar extends Component {
 				}
 			} else {
 
-				int health = boss.HP;
-				int shield = boss.shielding();
-				int max = boss.HT;
+				long health = boss.HP;
+				long shield = boss.shielding();
+				long max = boss.HT;
 
-				hp.scale.x = Math.max( 0, (health-shield)/(float)max);
-				shieldedHP.scale.x = health/(float)max;
-				rawShielding.scale.x = shield/(float)max;
+				hp.scale.x = (float) Math.max( 0, (health-shield)/(double)max);
+				shieldedHP.scale.x = (float) (health/(double)max);
+				rawShielding.scale.x = (float) (shield/(double)max);
 
 				if (bleeding != blood.on){
 					if (bleeding)   skull.tint( 0xcc0000, 0.6f );
@@ -222,7 +222,7 @@ public class BossHealthBar extends Component {
 	}
 
 	public static boolean isBleeding(){
-		return bleeding;
+		return isAssigned() && bleeding;
 	}
 
 }

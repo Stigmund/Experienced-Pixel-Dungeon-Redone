@@ -42,6 +42,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -61,7 +64,7 @@ import java.util.function.Supplier;
 public class WndBlacksmith extends Window {
 
 	private static final int WIDTH_P = 120;
-	private static final int WIDTH_L = 160;
+	private static final int WIDTH_L = 180;
 
 	private static final int GAP  = 2;
 
@@ -130,6 +133,10 @@ public class WndBlacksmith extends Window {
 							purchase(getCostGen());
 							Blacksmith.Quest.pickaxe = null;
 							WndBlacksmith.this.hide();
+
+							if (!Blacksmith.Quest.rewardsAvailable()){
+								Notes.remove( Notes.Landmark.TROLL );
+							}
 						}
 					}
 				});
@@ -140,7 +147,7 @@ public class WndBlacksmith extends Window {
 
 		BlacksmithButton reforge = new BlacksmithButton(
 				(btn) -> Messages.get(this, "reforge", btn.getCostGen(), btn.getCostUnit()),
-				() -> (int) (200 * Math.pow(1.5, Blacksmith.Quest.reforges))) {
+				() -> (int) (100 * Math.pow(1.5, Blacksmith.Quest.reforges))) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndReforge(troll, WndBlacksmith.this, getCostGen()));
@@ -148,10 +155,9 @@ public class WndBlacksmith extends Window {
 		};
 		buttons.add(reforge);
 
-		int hardenCost = (int) (500 * Math.pow(1.5, Blacksmith.Quest.hardens));
 		BlacksmithButton harden = new BlacksmithButton(
 				(btn) -> Messages.get(this, "harden", btn.getCostGen(), btn.getCostUnit()),
-				() -> (int) (500 * Math.pow(1.5, Blacksmith.Quest.hardens))) {
+				() -> (int) (400 * Math.pow(1.5, Blacksmith.Quest.hardens))) {
 			@Override
 			protected void onClick() {
 				GameScene.selectItem(new HardenSelector(getCostGen()));
@@ -161,7 +167,7 @@ public class WndBlacksmith extends Window {
 
 		BlacksmithButton upgrade = new BlacksmithButton(
 				(btn) -> Messages.get(this, "upgrade", btn.getCostGen(), btn.getCostUnit()),
-				() -> (int) (500 * Math.pow(1.5, Blacksmith.Quest.upgrades))) {
+				() -> (int) (400 * Math.pow(1.5, Blacksmith.Quest.upgrades))) {
 			@Override
 			protected void onClick() {
 				GameScene.selectItem(new UpgradeSelector(getCostGen()));
@@ -234,7 +240,6 @@ public class WndBlacksmith extends Window {
 		for (BlacksmithButton b : buttons){
 			b.leftJustify = true;
 			b.multiline = true;
-			b.updateText();
 			b.setSize(width, b.reqHeight());
 			b.setRect(0, pos, width, b.reqHeight());
 			b.enable(b.active); //so that it's visually reflected
@@ -414,7 +419,7 @@ public class WndBlacksmith extends Window {
 						first = first.split(1);
 					}
 
-					int level = first.trueLevel();
+					long level = first.trueLevel();
 					first.level(level+second.trueLevel()+1); //prevents on-upgrade effects like enchant/glyph removal
 					if (first instanceof MissileWeapon && !Dungeon.hero.belongings.contains(first)) {
 						if (!first.collect()){
@@ -424,8 +429,13 @@ public class WndBlacksmith extends Window {
 					Badges.validateItemLevelAquired( first );
 					Item.updateQuickslot();
 
+					// [CHANGED] static cost 2500
 					purchase(cost);
 					Blacksmith.Quest.reforges++;
+
+					if (!Blacksmith.Quest.rewardsAvailable()){
+						Notes.remove( Notes.Landmark.TROLL );
+					}
 
 					hide();
 					if (wndParent != null){
@@ -455,7 +465,7 @@ public class WndBlacksmith extends Window {
 
 			@Override
 			public boolean itemSelectable(Item item) {
-				return item.isIdentified() && item.isUpgradable();
+				return item.isIdentified() && !item.cursed && item.isUpgradable();
 			}
 
 			@Override
@@ -504,7 +514,7 @@ public class WndBlacksmith extends Window {
 		@Override
 		public boolean itemSelectable(Item item) {
 			return item.isUpgradable()
-					&& item.isIdentified()
+					&& item.isIdentified() && !item.cursed
 					&& ((item instanceof MeleeWeapon && !((Weapon) item).enchantHardened)
 					|| (item instanceof Armor && !((Armor) item).glyphHardened));
 		}
@@ -525,6 +535,10 @@ public class WndBlacksmith extends Window {
 
 				Sample.INSTANCE.play(Assets.Sounds.EVOKE);
 				Item.evoke( Dungeon.hero );
+
+				if (!Blacksmith.Quest.rewardsAvailable()){
+					Notes.remove( Notes.Landmark.TROLL );
+				}
 			}
 		}
 	}
@@ -552,6 +566,7 @@ public class WndBlacksmith extends Window {
 		public boolean itemSelectable(Item item) {
 			return item.isUpgradable()
 					&& item.isIdentified()
+					&& !item.cursed
 					&& item.level() > 0;
 		}
 
@@ -562,7 +577,7 @@ public class WndBlacksmith extends Window {
 				Blacksmith.Quest.upgrades++;
 
 				ScrollOfUpgrade upgrades = new ScrollOfUpgrade();
-				int trueLevel = item.trueLevel();
+				long trueLevel = item.trueLevel();
 				upgrades.quantity(trueLevel);
 				if (!upgrades.doPickUp(Dungeon.hero, Dungeon.hero.pos, 0f)) {
 					Dungeon.level.drop(upgrades, Dungeon.hero.pos).sprite.drop();
@@ -576,6 +591,12 @@ public class WndBlacksmith extends Window {
 				Sample.INSTANCE.play(Assets.Sounds.EVOKE);
 				Item.evoke( Dungeon.hero );
 				Dungeon.hero.sprite.showStatus(CharSprite.POSITIVE, "+" + trueLevel);
+
+				if (!Blacksmith.Quest.rewardsAvailable()){
+					Notes.remove( Notes.Landmark.TROLL );
+				}
+
+				Catalog.countUse(item.getClass());
 			}
 		}
 	}
@@ -702,6 +723,12 @@ public class WndBlacksmith extends Window {
 									purchase(WndSmith.cost);
 									Blacksmith.Quest.smiths++;
 
+									if (item instanceof Weapon && Blacksmith.Quest.smithEnchant != null){
+										((Weapon) item).enchant(Blacksmith.Quest.smithEnchant);
+									} else if (item instanceof Armor && Blacksmith.Quest.smithGlyph != null){
+										((Armor) item).inscribe(Blacksmith.Quest.smithGlyph);
+									}
+
 									item.identify(false);
 									Sample.INSTANCE.play(Assets.Sounds.EVOKE);
 									Item.evoke( Dungeon.hero );
@@ -713,6 +740,10 @@ public class WndBlacksmith extends Window {
 									}
 
 									Blacksmith.Quest.smithRewards = null;
+
+									if (!Blacksmith.Quest.rewardsAvailable()){
+										Notes.remove( Notes.Landmark.TROLL );
+									}
 
 									RewardWindow.this.hide();
 									WndSmith.this.hide();

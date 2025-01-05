@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,11 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
@@ -43,6 +47,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlam
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Embers;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.CursedWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -54,7 +59,11 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.*;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.GameMath;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
@@ -89,23 +98,29 @@ public abstract class Elemental extends Mob {
                 defenseSkill = 5600;
                 EXP = 500000;
                 break;
+			case 5:
+				HP = HT = 2400000000L;
+				defenseSkill = 86500;
+				EXP = 110000000;
+				break;
         }
 	}
 
 	protected boolean summonedALly;
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
 		if (!summonedALly) {
 			switch (Dungeon.cycle) {
-				case 1: return Random.NormalIntRange(64, 83);
-				case 2: return Random.NormalIntRange(291, 434);
-				case 3: return Random.NormalIntRange(1650, 2100);
-				case 4: return Random.NormalIntRange(30000, 85000);
+				case 1: return Dungeon.NormalLongRange(64, 83);
+				case 2: return Dungeon.NormalLongRange(291, 434);
+				case 3: return Dungeon.NormalLongRange(1650, 2100);
+				case 4: return Dungeon.NormalLongRange(30000, 85000);
+				case 5: return Dungeon.NormalLongRange(3000000, 7000000);
 			}
-			return Random.NormalIntRange( 16, 26 );
+			return Dungeon.NormalLongRange( 16, 26 );
 		} else {
 			int regionScale = Math.max(2, (1 + Dungeon.scalingDepth()/5));
-			return Random.NormalIntRange(6*regionScale, 15 + 10*regionScale);
+			return Dungeon.NormalLongRange(6*regionScale, 15 + 10*regionScale);
 		}
 	}
 	
@@ -117,6 +132,7 @@ public abstract class Elemental extends Mob {
 				case 2: return 355;
 				case 3: return 930;
 				case 4: return 6000;
+				case 5: return 100000;
 			}
 			return 25;
 		} else {
@@ -134,14 +150,15 @@ public abstract class Elemental extends Mob {
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(24, 50);
-            case 2: return Random.NormalIntRange(121, 243);
-            case 3: return Random.NormalIntRange(700, 1321);
-            case 4: return Random.NormalIntRange(22000, 64000);
+            case 1: return Dungeon.NormalLongRange(24, 50);
+            case 2: return Dungeon.NormalLongRange(121, 243);
+            case 3: return Dungeon.NormalLongRange(700, 1321);
+            case 4: return Dungeon.NormalLongRange(22000, 64000);
+			case 5: return Dungeon.NormalLongRange(2200000, 4250000);
         }
-		return Random.NormalIntRange(0, 5);
+		return Dungeon.NormalLongRange(0, 5);
 	}
 	
 	protected int rangedCooldown = Random.NormalIntRange( 3, 5 );
@@ -154,7 +171,13 @@ public abstract class Elemental extends Mob {
 		
 		return super.act();
 	}
-	
+
+	@Override
+	public void die(Object cause) {
+		flying = false;
+		super.die(cause);
+	}
+
 	@Override
 	protected boolean canAttack( Char enemy ) {
 		if (super.canAttack(enemy)){
@@ -185,7 +208,7 @@ public abstract class Elemental extends Mob {
 	}
 	
 	@Override
-	public int attackProc( Char enemy, int damage ) {
+	public long attackProc( Char enemy, long damage ) {
 		damage = super.attackProc( enemy, damage );
 		meleeProc( enemy, damage );
 		
@@ -216,14 +239,14 @@ public abstract class Elemental extends Mob {
 	@Override
 	public boolean add( Buff buff ) {
 		if (harmfulBuffs.contains( buff.getClass() )) {
-			damage( Random.NormalIntRange( HT/2, HT * 3/5 ), buff );
+			damage( Dungeon.NormalLongRange( HT/2, HT * 3/5 ), buff );
 			return false;
 		} else {
 			return super.add( buff );
 		}
 	}
 	
-	protected abstract void meleeProc( Char enemy, int damage );
+	protected abstract void meleeProc( Char enemy, long damage );
 	protected abstract void rangedProc( Char enemy );
 	
 	protected ArrayList<Class<? extends Buff>> harmfulBuffs = new ArrayList<>();
@@ -265,12 +288,12 @@ public abstract class Elemental extends Mob {
 		}
 
         @Override
-        public int damageRoll() {
+        public long damageRoll() {
             return Math.round(super.damageRoll()*Dungeon.fireDamage);
         }
 
         @Override
-		protected void meleeProc( Char enemy, int damage ) {
+		protected void meleeProc( Char enemy, long damage ) {
 			if (Random.Int( 2 ) == 0 && !Dungeon.level.water[enemy.pos]) {
 				Buff.affect( enemy, Burning.class ).reignite( enemy );
 				if (enemy.sprite.visible) Splash.at( enemy.sprite.center(), sprite.blood(), 5);
@@ -302,7 +325,10 @@ public abstract class Elemental extends Mob {
 
 		@Override
 		protected boolean act() {
-			if (targetingPos != -1){
+			//fire a charged attack instead of any other action, as long as it is possible to do so
+			if (targetingPos != -1 && state == HUNTING){
+				//account for bolt hitting walls, in case position suddenly changed
+				targetingPos = new Ballistica( pos, targetingPos, Ballistica.STOP_SOLID | Ballistica.STOP_TARGET ).collisionPos;
 				if (sprite != null && (sprite.visible || Dungeon.level.heroFOV[targetingPos])) {
 					sprite.zap( targetingPos );
 					return false;
@@ -311,6 +337,11 @@ public abstract class Elemental extends Mob {
 					return true;
 				}
 			} else {
+
+				if (state != HUNTING){
+					targetingPos = -1;
+				}
+
 				return super.act();
 			}
 		}
@@ -351,7 +382,7 @@ public abstract class Elemental extends Mob {
 					}
 
 					GLog.n(Messages.get(this, "charging"));
-					spend(GameMath.gate(TICK, (int)Math.ceil(Dungeon.hero.cooldown()), 3*TICK));
+					spend(GameMath.gate(attackDelay(), (int)Math.ceil(Dungeon.hero.cooldown()), 3*attackDelay()));
 					Dungeon.hero.interrupt();
 					return true;
 				} else {
@@ -361,8 +392,15 @@ public abstract class Elemental extends Mob {
 
 
 			} else {
-				rangedCooldown = 1;
-				return super.doAttack(enemy);
+
+				if (sprite != null && (sprite.visible || Dungeon.level.heroFOV[targetingPos])) {
+					sprite.zap( targetingPos );
+					return false;
+				} else {
+					zap();
+					return true;
+				}
+
 			}
 		}
 
@@ -405,16 +443,16 @@ public abstract class Elemental extends Mob {
 		}
 
 		@Override
-		public int damageRoll() {
+		public long damageRoll() {
 			if (!summonedALly) {
-				return Random.NormalIntRange(10, 12);
+				return Dungeon.NormalLongRange(10, 12);
 			} else {
 				return super.damageRoll();
 			}
 		}
 
 		@Override
-		protected void meleeProc(Char enemy, int damage) {
+		protected void meleeProc(Char enemy, long damage) {
 			//no fiery on-hit unless it is an ally summon
 			if (summonedALly) {
 				super.meleeProc(enemy, damage);
@@ -501,7 +539,7 @@ public abstract class Elemental extends Mob {
 		}
 		
 		@Override
-		protected void meleeProc( Char enemy, int damage ) {
+		protected void meleeProc( Char enemy, long damage ) {
 			if (Random.Int( 3 ) == 0 || Dungeon.level.water[enemy.pos]) {
 				Freezing.freeze( enemy.pos );
 				if (enemy.sprite.visible) Splash.at( enemy.sprite.center(), sprite.blood(), 5);
@@ -527,7 +565,7 @@ public abstract class Elemental extends Mob {
 		}
 		
 		@Override
-		protected void meleeProc( Char enemy, int damage ) {
+		protected void meleeProc( Char enemy, long damage ) {
 			ArrayList<Char> affected = new ArrayList<>();
 			ArrayList<Lightning.Arc> arcs = new ArrayList<>();
 			Shocking.arc( this, enemy, 2, affected, arcs );
@@ -537,7 +575,7 @@ public abstract class Elemental extends Mob {
 			}
 			
 			for (Char ch : affected) {
-				ch.damage( Math.round( damage * 0.4f ), Shocking.class );
+				ch.damage( Math.round( damage * 0.4f ), new Shocking() );
 				if (ch == Dungeon.hero && !ch.isAlive()){
 					Dungeon.fail(this);
 					GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", name())) );
@@ -574,18 +612,45 @@ public abstract class Elemental extends Mob {
 		}
 		
 		@Override
-		protected void meleeProc( Char enemy, int damage ) {
-			CursedWand.cursedEffect(null, this, enemy);
+		protected void meleeProc( Char enemy, long damage ) {
+			Ballistica aim = new Ballistica(pos, enemy.pos, Ballistica.STOP_TARGET);
+			//TODO shortcutting the fx seems fine for now but may cause problems with new cursed effects
+			//of course, not shortcutting it means actor ordering issues =S
+			CursedWand.randomValidEffect(null, this, aim, false).effect(null, this, aim, false);
 		}
-		
+
+		@Override
+		protected void zap() {
+			spend( 1f );
+
+			Invisibility.dispel(this);
+			Char enemy = this.enemy;
+			//skips accuracy check, always hits
+			rangedProc( enemy );
+
+			rangedCooldown = Random.NormalIntRange( 3, 5 );
+		}
+
+		@Override
+		public void onZapComplete() {
+			zap();
+			//next(); triggers after wand effect
+		}
+
 		@Override
 		protected void rangedProc( Char enemy ) {
-			CursedWand.cursedEffect(null, this, enemy);
+			CursedWand.cursedZap(null, this, new Ballistica(pos, enemy.pos, Ballistica.STOP_TARGET), new Callback() {
+				@Override
+				public void call() {
+					next();
+				}
+			});
 		}
 	}
 	
 	public static Class<? extends Elemental> random(){
-		if (Random.Int( 10 ) == 0){
+		float altChance = 1/50f * RatSkull.exoticChanceMultiplier();
+		if (Random.Float() < altChance){
 			return ChaosElemental.class;
 		}
 		

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,14 +53,18 @@ public class Greataxe extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  7*(tier+4) +    //63 base, up from 36
-				lvl*(tier+2);   //+7
+	public long max(long lvl) {
+		return  7*(tier()+4) +    //63 base, up from 36
+				lvl*(tier()+2);   //+7
 	}
 
 	@Override
-	public int STRReq(int lvl) {
-		return STRReq(tier+1, lvl); //20 base strength req, up from 18
+	public int STRReq(long lvl) {
+		int req = STRReq(tier+1, lvl); //20 base strength req, up from 18
+		if (masteryPotionBonus){
+			req -= 2;
+		}
+		return req;
 	}
 
     @Override
@@ -110,7 +114,7 @@ public class Greataxe extends MeleeWeapon {
 
 		hero.belongings.abilityWeapon = this;
 		if (!hero.canAttack(enemy)){
-			GLog.w(Messages.get(this, "ability_bad_position"));
+			GLog.w(Messages.get(this, "ability_target_range"));
 			hero.belongings.abilityWeapon = null;
 			return;
 		}
@@ -121,16 +125,38 @@ public class Greataxe extends MeleeWeapon {
 			public void call() {
 				beforeAbilityUsed(hero, enemy);
 				AttackIndicator.target(enemy);
-				if (hero.attack(enemy, 1.50f, 0, Char.INFINITE_ACCURACY)){
+
+				//+(15+(2*lvl)) damage, roughly +60% base damage, +55% scaling
+				long dmgBoost = augment.damageFactor(15 + 2*buffedLvl());
+
+				if (hero.attack(enemy, 1, dmgBoost, Char.INFINITE_ACCURACY)){
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
-					if (!enemy.isAlive()){
-						onAbilityKill(hero, enemy);
-					}
 				}
+
 				Invisibility.dispel();
-				hero.spendAndNext(hero.attackDelay());
+				if (!enemy.isAlive()){
+					hero.next();
+					onAbilityKill(hero, enemy);
+				} else {
+					hero.spendAndNext(hero.attackDelay());
+				}
 				afterAbilityUsed(hero);
 			}
 		});
+	}
+
+	@Override
+	public String abilityInfo() {
+		long dmgBoost = levelKnown ? 15 + 2*buffedLvl() : 15;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(min()+dmgBoost), augment.damageFactor(max()+dmgBoost));
+		} else {
+			return Messages.get(this, "typical_ability_desc", min(0)+dmgBoost, max(0)+dmgBoost);
+		}
+	}
+
+	public String upgradeAbilityStat(long level){
+		long dmgBoost = 15 + 2*level;
+		return augment.damageFactor(min(level)+dmgBoost) + "-" + augment.damageFactor(max(level)+dmgBoost);
 	}
 }

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,9 +42,9 @@ public class Glaive extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  Math.round(9f*(tier+1)) +    //54 base, up from 36
-				lvl*Math.round(2f*(tier+1)); //+12 per level, up from +7
+	public long max(long lvl) {
+		return  Math.round(9d*(tier()+1)) +    //54 base, up from 36
+				lvl*Math.round(2d*(tier()+1)); //+12 per level, up from +7
 	}
 
 	@Override
@@ -54,7 +54,24 @@ public class Glaive extends MeleeWeapon {
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
-		Spear.spikeAbility(hero, target, 1.30f, this);
+		//+(12+2.5*lvl) damage, roughly +55% base damage, +55% scaling
+		long dmgBoost = augment.damageFactor(12 + Math.round(2.5f*buffedLvl()));
+		Spear.spikeAbility(hero, target, 1, dmgBoost, this);
+	}
+
+	public String upgradeAbilityStat(long level){
+		int dmgBoost = 12 + Math.round(2.5f*level);
+		return augment.damageFactor(min(level)+dmgBoost) + "-" + augment.damageFactor(max(level)+dmgBoost);
+	}
+
+	@Override
+	public String abilityInfo() {
+		long dmgBoost = levelKnown ? 12 + Math.round(2.5f*buffedLvl()) : 12;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(min()+dmgBoost), augment.damageFactor(max()+dmgBoost));
+		} else {
+			return Messages.get(this, "typical_ability_desc", min(0)+dmgBoost, max(0)+dmgBoost);
+		}
 	}
 
 }

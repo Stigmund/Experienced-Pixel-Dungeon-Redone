@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,16 +80,22 @@ public class DM100 extends Mob implements Callback {
                 defenseSkill = 2560;
                 EXP = 62000;
                 break;
+			case 5:
+				HP = HT = 850000000;
+				defenseSkill = 36000;
+				EXP = 26000000;
+				break;
         }
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(31, 45);
-            case 2: return Random.NormalIntRange(160, 205);
-            case 3: return Random.NormalIntRange(725, 1000);
-            case 4: return Random.NormalIntRange(10000, 16800);
+            case 1: return Dungeon.NormalLongRange(31, 45);
+            case 2: return Dungeon.NormalLongRange(160, 205);
+            case 3: return Dungeon.NormalLongRange(725, 1000);
+            case 4: return Dungeon.NormalLongRange(10000, 16800);
+			case 5: return Dungeon.NormalLongRange(665000, 1450000);
         }
 		return Random.NormalIntRange( 2, 8 );
 	}
@@ -101,19 +107,21 @@ public class DM100 extends Mob implements Callback {
             case 2: return 240;
             case 3: return 660;
             case 4: return 2900;
+			case 5: return 47500;
         }
 		return 11;
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(8, 24);
-            case 2: return Random.NormalIntRange(60, 160);
-            case 3: return Random.NormalIntRange(370, 660);
-            case 4: return Random.NormalIntRange(6000, 11000);
+            case 1: return Dungeon.NormalLongRange(8, 24);
+            case 2: return Dungeon.NormalLongRange(60, 160);
+            case 3: return Dungeon.NormalLongRange(370, 660);
+            case 4: return Dungeon.NormalLongRange(6000, 11000);
+			case 5: return Dungeon.NormalLongRange(120000, 800000);
         }
-		return Random.NormalIntRange(0, 4);
+		return Dungeon.NormalLongRange(0, 4);
 	}
 
 	@Override
@@ -139,13 +147,14 @@ public class DM100 extends Mob implements Callback {
 
 			Invisibility.dispel(this);
 			if (hit( this, enemy, true )) {
-				int dmg = Random.NormalIntRange(3, 10);
+				long dmg = Random.NormalIntRange(3, 10);
 				dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
                 switch (Dungeon.cycle){
-                    case 1: dmg = Random.NormalIntRange(32, 48); break;
-                    case 2: dmg = Random.NormalIntRange(190, 248); break;
-                    case 3: dmg =  Random.NormalIntRange(600, 850); break;
-                    case 4: dmg =  Random.NormalIntRange(9000, 15000); break;
+                    case 1: dmg = Dungeon.NormalLongRange(32, 48); break;
+                    case 2: dmg = Dungeon.NormalLongRange(190, 248); break;
+                    case 3: dmg =  Dungeon.NormalLongRange(600, 850); break;
+                    case 4: dmg =  Dungeon.NormalLongRange(9000, 15000); break;
+					case 5: dmg =  Dungeon.NormalLongRange(110000, 750000); break;
                 }
 				enemy.damage( dmg, new LightningBolt() );
 

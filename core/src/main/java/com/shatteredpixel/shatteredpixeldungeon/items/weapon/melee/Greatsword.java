@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -59,9 +60,9 @@ public class Greatsword extends MeleeWeapon {
 	}
 
     @Override
-    public int max(int lvl) {
-        return  6*(tier+1) +    //36
-                lvl*(tier+2);   //+7
+    public long max(long lvl) {
+        return  6L*(tier()+1) +    //36
+                lvl*(tier()+2);   //+7
     }
 
     @Override
@@ -136,27 +137,38 @@ public class Greatsword extends MeleeWeapon {
 	}
 
     @Override
-    public int proc(Char attacker, Char defender, int damage) {
-        for (int i : PathFinder.NEIGHBOURS9){
+    public String abilityInfo() {
+        if (levelKnown){
+            return Messages.get(this, "ability_desc", augment.damageFactor(Math.round(min()*0.5d)), augment.damageFactor(Math.round(max()*0.5d)));
+        } else {
+            return Messages.get(this, "typical_ability_desc", augment.damageFactor(Math.round(min(0)*0.5d)), augment.damageFactor(Math.round(max(0)*0.5d)));
+        }
+    }
 
-            if (!Dungeon.level.solid[attacker.pos + i]
-                    && !Dungeon.level.pit[attacker.pos + i]
-                    && Actor.findChar(attacker.pos + i) == null
-                    && attacker == Dungeon.hero) {
+    @Override
+    public long proc(Char attacker, Char defender, long damage) {
+        if (Random.Float() >= 0.5f) {
+            for (int i : PathFinder.NEIGHBOURS9) {
 
-                GuardianKnight guardianKnight = new GuardianKnight();
-                Greatsword copy = new Greatsword();
-                copy.level(level());
-                copy.enchant(enchantment);
-                copy.augment = augment;
-                guardianKnight.weapon = copy;
-                guardianKnight.pos = attacker.pos + i;
-                guardianKnight.aggro(defender);
-                GameScene.add(guardianKnight);
-                Dungeon.level.occupyCell(guardianKnight);
+                if (!Dungeon.level.solid[attacker.pos + i]
+                        && !Dungeon.level.pit[attacker.pos + i]
+                        && Actor.findChar(attacker.pos + i) == null
+                        && (attacker == Dungeon.hero || attacker instanceof DriedRose.GhostHero)) {
 
-                CellEmitter.get(guardianKnight.pos).burst(Speck.factory(Speck.EVOKE), 4);
-                break;
+                    GuardianKnight guardianKnight = new GuardianKnight();
+                    Greatsword copy = new Greatsword();
+                    copy.level(level());
+                    copy.enchant(enchantment);
+                    copy.augment = augment;
+                    guardianKnight.weapon = copy;
+                    guardianKnight.pos = attacker.pos + i;
+                    guardianKnight.aggro(defender);
+                    GameScene.add(guardianKnight);
+                    Dungeon.level.occupyCell(guardianKnight);
+
+                    CellEmitter.get(guardianKnight.pos).burst(Speck.factory(Speck.EVOKE), 4);
+                    break;
+                }
             }
         }
         return super.proc(attacker, defender, damage);
@@ -179,7 +191,7 @@ public class Greatsword extends MeleeWeapon {
 
         public static class TickDebuff extends Buff {
 
-            private float partialHP = 0;
+            private double partialHP = 0;
 
             private final String PART_HP = "partialHP";
 
@@ -193,18 +205,18 @@ public class Greatsword extends MeleeWeapon {
             public void restoreFromBundle(Bundle bundle) {
                 super.restoreFromBundle(bundle);
                 if (bundle.contains(PART_HP))
-                    partialHP = bundle.getFloat(PART_HP);
+                    partialHP = bundle.getDouble(PART_HP);
             }
 
             @Override
             public boolean act() {
                 if (target.isAlive()) {
-                    float regen = 1f / (target.HT / 150f);
+                    float regen = 1f / (target.HT / 250f);
                     if (target.HP > 0) {
                         partialHP += regen;
                         if (partialHP >= 1){
-                            target.damage((int)partialHP, new Doom());
-                            partialHP -= (int)partialHP;
+                            target.damage((long) partialHP, new Doom());
+                            partialHP -= (long)partialHP;
                         }
                     }
                     spend( TICK );
@@ -222,8 +234,8 @@ public class Greatsword extends MeleeWeapon {
         }
 
         @Override
-        public int drRoll() {
-            return Random.Int(Dungeon.escalatingDepth(), Dungeon.escalatingDepth());
+        public long drRoll() {
+            return Dungeon.escalatingDepth();
         }
     }
 

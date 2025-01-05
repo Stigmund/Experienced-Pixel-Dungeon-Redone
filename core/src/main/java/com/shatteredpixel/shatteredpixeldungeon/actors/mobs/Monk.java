@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,18 +74,24 @@ public class Monk extends Mob {
                 defenseSkill = 6400;
                 EXP = 800000;
                 break;
+			case 5:
+				HP = HT = 3900000000L;
+				defenseSkill = 100500;
+				EXP = 145000000;
+				break;
         }
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(62, 78);
-            case 2: return Random.NormalIntRange(270, 400);
-            case 3: return Random.NormalIntRange(1700, 2240);
-            case 4: return Random.NormalIntRange(40000, 100000);
+            case 1: return Dungeon.NormalLongRange(62, 78);
+            case 2: return Dungeon.NormalLongRange(270, 400);
+            case 3: return Dungeon.NormalLongRange(1700, 2240);
+            case 4: return Dungeon.NormalLongRange(40000, 100000);
+			case 5: return Dungeon.NormalLongRange(3100000, 7750000);
         }
-		return Random.NormalIntRange( 12, 25 );
+		return Dungeon.NormalLongRange( 12, 25 );
 	}
 	
 	@Override
@@ -95,6 +101,7 @@ public class Monk extends Mob {
             case 2: return 440;
             case 3: return 1000;
             case 4: return 7000;
+			case 5: return 102500;
         }
 		return 30;
 	}
@@ -105,14 +112,15 @@ public class Monk extends Mob {
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(20, 30);
-            case 2: return Random.NormalIntRange(60, 193);
-            case 3: return Random.NormalIntRange(700, 1000);
-            case 4: return Random.NormalIntRange(26000, 73000);
+            case 1: return Dungeon.NormalLongRange(20, 30);
+            case 2: return Dungeon.NormalLongRange(60, 193);
+            case 3: return Dungeon.NormalLongRange(700, 1000);
+            case 4: return Dungeon.NormalLongRange(26000, 73000);
+			case 5: return Dungeon.NormalLongRange(2700000, 5150000);
         }
-		return Random.NormalIntRange(0, 2);
+		return Dungeon.NormalLongRange(0, 2);
 	}
 	
 	@Override

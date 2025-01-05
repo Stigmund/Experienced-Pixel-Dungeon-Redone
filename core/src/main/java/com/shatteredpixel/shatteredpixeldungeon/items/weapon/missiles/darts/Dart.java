@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,31 +79,45 @@ public class Dart extends MissileWeapon {
 	}
 	
 	@Override
-	public int min(int lvl) {
+	public long min(long lvl) {
 		if (bow != null){
-			return  (tier+3) +                    //4 base
-					bow.buffedLvl() + lvl; //+1 per level or bow level
+			if (!(this instanceof TippedDart) && Dungeon.hero.buff(Crossbow.ChargedShot.class) != null){
+				//ability increases base dmg by 37.5%, scaling by 50%
+				return  7 +                     //7 base
+						2*bow.buffedLvl() + lvl;//+2 per bow level, +1 per level
+			} else {
+				return  (tier()+3) +                     //4 base
+						bow.buffedLvl() + lvl;  //+1 per level or bow level
+			}
 		} else {
-			return  tier +     //1 base, down from 2
-					lvl*tier;    //scaling unchanged
+			return  tier() +     //1 base, down from 2
+					lvl*tier();    //scaling unchanged
 		}
 	}
 
 	@Override
-	public int max(int lvl) {
+	public long max(long lvl) {
 		if (bow != null){
-			return  4*(tier+3) +                       //12 base
-                    (tier+2)*bow.buffedLvl() + (tier+1)*lvl; //+3 per bow level, +2 per level (default scaling +2)
+			if (!(this instanceof TippedDart) && Dungeon.hero.buff(Crossbow.ChargedShot.class) != null){
+				//ability increases base dmg by 37.5%, scaling by 50%
+				return  15 +                       //15 base
+						4*bow.buffedLvl() + 2*lvl; //+4 per bow level, +2 per level
+			} else {
+				return  4L*(tier()+3) +                       //12 base
+                    (tier()+2)*bow.buffedLvl() + (tier()+1)*lvl; //+3 per bow level, +2 per level
+			}
 		} else {
-			return  tier*2 +     //2 base, down from 5
-					2*lvl*tier;  //scaling unchanged
+			return  tier()*2L +     //2 base, down from 5
+					2*lvl*tier();  //scaling unchanged
 		}
 	}
 	
-	private static Crossbow bow;
+	protected static Crossbow bow;
 	
 	private void updateCrossbow(){
-		if (Dungeon.hero.belongings.weapon() instanceof Crossbow){
+		if (Dungeon.hero == null) {
+			bow = null;
+		} else if (Dungeon.hero.belongings.weapon() instanceof Crossbow){
 			bow = (Crossbow) Dungeon.hero.belongings.weapon();
 		} else if (Dungeon.hero.belongings.secondWep() instanceof Crossbow) {
 			//player can instant swap anyway, so this is just QoL
@@ -138,14 +152,12 @@ public class Dart extends MissileWeapon {
 	}
 
 	@Override
-	public int proc(Char attacker, Char defender, int damage) {
-		if (bow != null
-				//only apply enchant effects to enemies when processing charged shot
-				&& (!processingChargedShot || attacker.alignment != defender.alignment)){
+	public long proc(Char attacker, Char defender, long damage) {
+		if (bow != null && !processingChargedShot){
 			damage = bow.proc(attacker, defender, damage);
 		}
 
-		int dmg = super.proc(attacker, defender, damage);
+		long dmg = super.proc(attacker, defender, damage);
 		if (!processingChargedShot) {
 			processChargedShot(defender, damage);
 		}
@@ -168,11 +180,11 @@ public class Dart extends MissileWeapon {
 
 	protected boolean processingChargedShot = false;
 	private int chargedShotPos;
-	protected void processChargedShot( Char target, int dmg ){
+	protected void processChargedShot( Char target, long dmg ){
 		//don't update xbow here, as dart may be the active weapon atm
 		processingChargedShot = true;
 		if (chargedShotPos != -1 && bow != null && Dungeon.hero.buff(Crossbow.ChargedShot.class) != null) {
-			PathFinder.buildDistanceMap(chargedShotPos, Dungeon.level.passable, 2);
+			PathFinder.buildDistanceMap(chargedShotPos, Dungeon.level.passable, 3);
 			//necessary to clone as some on-hit effects use Pathfinder
 			int[] distance = PathFinder.distance.clone();
 			for (Char ch : Actor.chars()){
@@ -220,7 +232,7 @@ public class Dart extends MissileWeapon {
 
 		updateCrossbow();
 		if (bow != null && !bow.isIdentified()){
-			int level = bow.level();
+			long level = bow.level();
 			//temporarily sets the level of the bow to 0 for IDing purposes
 			bow.level(0);
 			String info = super.info();
@@ -237,7 +249,7 @@ public class Dart extends MissileWeapon {
 	}
 	
 	@Override
-	public int value() {
+	public long value() {
 		return super.value()/2; //half normal value
 	}
 	
@@ -263,8 +275,8 @@ public class Dart extends MissileWeapon {
 			
 			if (item == null) return;
 			
-			final int maxToTip = Math.min(curItem.quantity(), item.quantity()*2);
-			final int maxSeedsToUse = (maxToTip+1)/2;
+			final long maxToTip = Math.min(curItem.quantity(), item.quantity()*2);
+			final long maxSeedsToUse = (maxToTip+1)/2;
 			
 			final int singleSeedDarts;
 			

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,13 +30,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.plants.Earthroot;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SkeletonSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
-import com.watabou.utils.Random;
 
 public class Skeleton extends Mob {
 	
@@ -76,18 +77,24 @@ public class Skeleton extends Mob {
                 defenseSkill = 2100;
                 EXP = 51000;
                 break;
+			case 5:
+				HP = HT = 1000000000;
+				defenseSkill = 40000;
+				EXP = 22500000;
+				break;
         }
 	}
 	
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(34, 50);
-            case 2: return Random.NormalIntRange(180, 231);
-            case 3: return Random.NormalIntRange(600, 850);
-            case 4: return Random.NormalIntRange(8000, 14000);
+            case 1: return Dungeon.NormalLongRange(34, 50);
+            case 2: return Dungeon.NormalLongRange(180, 231);
+            case 3: return Dungeon.NormalLongRange(600, 850);
+            case 4: return Dungeon.NormalLongRange(8000, 14000);
+			case 5: return Dungeon.NormalLongRange(525000, 1100000);
         }
-		return Random.NormalIntRange( 2, 10 );
+		return Dungeon.NormalLongRange( 2, 10 );
 	}
 	
 	@Override
@@ -101,8 +108,27 @@ public class Skeleton extends Mob {
 		for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
 			Char ch = findChar( pos + PathFinder.NEIGHBOURS8[i] );
 			if (ch != null && ch.isAlive()) {
-				int damage = Math.round(Random.NormalIntRange(6, 12));
+				long damage = Math.round(damageRoll()*1.5d);
 				damage = Math.round( damage * AscensionChallenge.statModifier(this));
+
+				//all sources of DR are 2x effective vs. bone explosion
+				//this does not consume extra uses of rock armor and earthroot armor
+
+				WandOfLivingEarth.RockArmor rockArmor = ch.buff(WandOfLivingEarth.RockArmor.class);
+				if (rockArmor != null) {
+					long preDmg = damage;
+					damage = rockArmor.absorb(damage);
+					damage *= Math.round(damage/(float)preDmg); //apply the % reduction twice
+				}
+
+				Earthroot.Armor armor = ch.buff( Earthroot.Armor.class );
+				if (damage > 0 && armor != null) {
+					long preDmg = damage;
+					damage = armor.absorb( damage );
+					damage -= (preDmg - damage); //apply the flat reduction twice
+				}
+
+				//apply DR twice (with 2 rolls for more consistency)
 				damage = Math.max( 0,  damage - (ch.drRoll() + ch.drRoll()) );
 				ch.damage( damage, this );
 				if (ch == Dungeon.hero && !ch.isAlive()) {
@@ -123,9 +149,9 @@ public class Skeleton extends Mob {
 
 	@Override
 	public float lootChance() {
-		//each drop makes future drops 1/2 as likely
-		// so loot chance looks like: 1/6, 1/12, 1/24, 1/48, etc.
-		return super.lootChance() * (float)Math.pow(1/2f, Dungeon.LimitedDrops.SKELE_WEP.count);
+		//each drop makes future drops 1/3 as likely
+		// so loot chance looks like: 1/6, 1/18, 1/54, 1/162, etc.
+		return super.lootChance() * (float)Math.pow(1/3f, Dungeon.LimitedDrops.SKELE_WEP.count);
 	}
 
 	@Override
@@ -141,19 +167,21 @@ public class Skeleton extends Mob {
             case 2: return 224;
             case 3: return 600;
             case 4: return 2500;
+			case 5: return 36000;
         }
 		return 12;
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(10, 24);
-            case 2: return Random.NormalIntRange(95, 170);
-            case 3: return Random.NormalIntRange(360, 625);
-            case 4: return Random.NormalIntRange(5000, 10000);
+            case 1: return Dungeon.NormalLongRange(10, 24);
+            case 2: return Dungeon.NormalLongRange(95, 170);
+            case 3: return Dungeon.NormalLongRange(360, 625);
+            case 4: return Dungeon.NormalLongRange(5000, 10000);
+			case 5: return Dungeon.NormalLongRange(55000, 700000);
         }
-		return Random.NormalIntRange(0, 5);
+		return Dungeon.NormalLongRange(0, 5);
 	}
 
 }

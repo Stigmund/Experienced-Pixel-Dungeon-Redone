@@ -6,7 +6,7 @@
  * Copyright (C) 2014-2019 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,25 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.CorrosiveGas;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Slow;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -57,7 +70,13 @@ import com.watabou.noosa.Camera;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.*;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Point;
+import com.watabou.utils.Random;
+import com.watabou.utils.Rect;
+import com.watabou.utils.RectF;
 
 import java.util.ArrayList;
 
@@ -69,9 +88,11 @@ public class BlackMimic extends Mob {
 		//TODO improved sprite
 		spriteClass = MimicSprite.Black.class;
 
-		HP = HT = 900 + Dungeon.hero.lvl*15;
+		int powerLevel = Dungeon.hero != null ? Dungeon.hero.lvl : 0;
+
+		HP = HT = 900 + Math.round(powerLevel*32*Math.pow(7, Dungeon.cycle));
 		EXP = 2000;
-		defenseSkill = 20 + Dungeon.hero.lvl / 2;
+		defenseSkill = 20 + powerLevel / 3 * 2;
 
 		properties.add(Property.BOSS);
 		properties.add(Property.INORGANIC);
@@ -91,22 +112,29 @@ public class BlackMimic extends Mob {
             case 4:
                 EXP = 2100000000;
                 break;
+			case 5:
+				EXP = 45000000000L;
+				break;
         }
 	}
 
 	@Override
-	public int damageRoll() {
-		return Random.NormalIntRange( Dungeon.hero.HT / 4, Dungeon.hero.HT / 3 );
+	public long damageRoll() {
+		return Random.NormalLongRange(
+				Math.round(Dungeon.hero.lvl*4*Math.pow(7, Dungeon.cycle)),
+				Math.round(Dungeon.hero.lvl*32*Math.pow(7, Dungeon.cycle)) );
 	}
 
 	@Override
 	public int attackSkill( Char target ) {
-		return 20 + Math.round(Dungeon.hero.lvl / 1.33f);
+		return 30 + Math.round(Dungeon.hero.lvl * 1.25f);
 	}
 
 	@Override
-	public int cycledDrRoll() {
-		return Random.NormalIntRange(Dungeon.hero.lvl / 10, Dungeon.hero.lvl);
+	public long cycledDrRoll() {
+		return Random.NormalLongRange(
+				Math.round(Dungeon.hero.lvl*0.8d*Math.pow(7, Dungeon.cycle)),
+				Math.round(Dungeon.hero.lvl*2.25d*Math.pow(7, Dungeon.cycle)));
 	}
 
 	public int pylonsActivated = 0;
@@ -211,9 +239,10 @@ public class BlackMimic extends Mob {
 
 					if (fieldOfView[enemy.pos] && turnsSinceLastAbility >= MIN_COOLDOWN){
 
-						lastAbility = GAS;
+						lastAbility = Random.oneOf(GAS, SUMMON);
 						turnsSinceLastAbility = 0;
-						spend(TICK);
+						if (!Dungeon.isChallenged(Challenges.STRONGER_BOSSES))
+							spend(TICK);
 
 						if (!isCopy)
 							GLog.w(Messages.get(this, "vent"));
@@ -251,6 +280,7 @@ public class BlackMimic extends Mob {
 
 						turnsSinceLastAbility = 0;
 						abilityCooldown = Random.NormalIntRange(MIN_COOLDOWN, MAX_COOLDOWN);
+						abilityCooldown = Math.max(0, abilityCooldown - pylonsActivated*2);
 
 						if (lastAbility == GAS) {
 							if (!isCopy)
@@ -287,11 +317,17 @@ public class BlackMimic extends Mob {
                         } else if (lastAbility == SUMMON) {
 							if (!isCopy)
                             	GLog.w(Messages.get(this, "summon"));
-                            DistortionTrap trap = new DistortionTrap();
-                            do {
-                                trap.pos = Dungeon.level.pointToCell(Random.element(mainArena.getPoints()));
-                            } while (!Dungeon.level.openSpace[trap.pos] || Dungeon.level.map[trap.pos] == Terrain.EMPTY_SP);
-                            trap.activate();
+							int summonAmount = 1;
+							if (Dungeon.isChallenged(Challenges.STRONGER_BOSSES)){
+								summonAmount = Random.Int(1, 3);
+							}
+							for (int i = 0; i < summonAmount; i++) {
+								DistortionTrap trap = new DistortionTrap();
+								do {
+									trap.pos = Dungeon.level.pointToCell(Random.element(mainArena.getPoints()));
+								} while (!Dungeon.level.openSpace[trap.pos] || Dungeon.level.map[trap.pos] == Terrain.EMPTY_SP);
+								trap.activate();
+							}
 
                             return true;
                         } else {
@@ -500,7 +536,7 @@ public class BlackMimic extends Mob {
 					return true;
 				}
 			};
-			Actor.addDelayed(a, Math.min(target.cooldown(), 3*TICK));
+			Actor.addDelayed(a, Math.min(target.cooldown(), 2*TICK));
 		}
 
 	}
@@ -508,8 +544,11 @@ public class BlackMimic extends Mob {
 	private boolean invulnWarned = false;
 
 	@Override
-	public void damage(int dmg, Object src) {
-	    if (Dungeon.cycle == 4) dmg /= 3.5f;
+	public void damage(long dmg, Object src) {
+		switch (pylonsActivated){
+			case 1: dmg *= 0.66d; break;
+			case 2: dmg *= 0.33d; break;
+		}
 		super.damage(dmg, src);
 		if (isInvulnerable(src.getClass())){
 			return;
@@ -518,7 +557,7 @@ public class BlackMimic extends Mob {
 		LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
 		if (lock != null && !isImmune(src.getClass())) lock.addTime(dmg);
 
-		int threshold = HT/3 * (2- pylonsActivated);
+		long threshold = HT/3 * (2- pylonsActivated);
 
 		if (HP < threshold){
 			HP = threshold;
@@ -542,7 +581,7 @@ public class BlackMimic extends Mob {
 		((BlackMimicLevel)Dungeon.level).activatePylon();
 		pylonsActivated++;
 
-		spend(3f);
+		spend(1f);
 		yell(Messages.get(this, "charging"));
 		sprite.showStatus(CharSprite.POSITIVE, Messages.get(this, "invulnerable"));
 		chargeAnnounced = false;
@@ -603,6 +642,16 @@ public class BlackMimic extends Mob {
 			}
 
 			yell(Messages.get(this, "defeated"));
+
+			Game.runOnRenderThread(new Callback() {
+				@Override
+				public void call() {
+					Music.INSTANCE.fadeOut(0.25f, new Callback() {
+						@Override
+						public void call() {}
+					});
+				}
+			});
 		}
 	}
 

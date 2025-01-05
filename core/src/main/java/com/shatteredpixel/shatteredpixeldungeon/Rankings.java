@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.CorpseDust;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
@@ -72,7 +73,7 @@ public enum Rankings {
 
 	public Record latestDaily;
 	public Record latestDailyReplay = null; //not stored, only meant to be temp
-	public LinkedHashMap<Long, Integer> dailyScoreHistory = new LinkedHashMap<>();
+	public LinkedHashMap<Long, Long> dailyScoreHistory = new LinkedHashMap<>();
 
 	public void submit( boolean win, Object cause ) {
 
@@ -160,16 +161,16 @@ public enum Rankings {
 		save();
 	}
 
-	private int score( boolean win ) {
+	private long score(boolean win ) {
 		return (Statistics.goldCollected + Dungeon.hero.lvl * (win ? 26 : Dungeon.depth ) * 100) * (win ? 2 : 1);
 	}
 
 	//assumes a ranking is loaded, or game is ending
-	public int calculateScore(){
+	public long calculateScore(){
 
 		if (Dungeon.initialVersion > 453){
 			Statistics.progressScore = Dungeon.hero.lvl * Statistics.deepestFloor * 25;
-			Statistics.progressScore = Math.min(Statistics.progressScore, 250_000);
+			Statistics.progressScore = Math.min(Statistics.progressScore, 600_000);
 
 			if (Statistics.heldItemValue == 0) {
 				for (Item i : Dungeon.hero.belongings) {
@@ -180,8 +181,8 @@ public enum Rankings {
 					}
 				}
 			}
-			Statistics.treasureScore = Statistics.goldCollected + Statistics.heldItemValue;
-			Statistics.treasureScore = Math.min(Statistics.treasureScore, 100_000);
+			Statistics.treasureScore = (Statistics.goldCollected + Statistics.heldItemValue) / 1000;
+			Statistics.treasureScore = Math.min(Statistics.treasureScore, 1_000_000);
 
 			Statistics.exploreScore = 0;
 			int scorePerFloor = Statistics.floorsExplored.size * 50;
@@ -262,7 +263,7 @@ public enum Rankings {
 					}
 				}
 			}
-			if (!Dungeon.quickslot.contains(item)) {
+			if (!(item instanceof Trinket) && !Dungeon.quickslot.contains(item)) {
 				belongings.backpack.items.remove(item);
 			}
 		}
@@ -374,7 +375,7 @@ public enum Rankings {
 		bundle.put(LATEST_DAILY, latestDaily);
 
 		long[] dates = new long[dailyScoreHistory.size()];
-		int[] scores = new int[dailyScoreHistory.size()];
+		long[] scores = new long[dailyScoreHistory.size()];
 		int i = 0;
 		for (Long l : dailyScoreHistory.keySet()){
 			dates[i] = l;
@@ -426,7 +427,7 @@ public enum Rankings {
 				latestDaily = (Record) bundle.get(LATEST_DAILY);
 
 				dailyScoreHistory.clear();
-				int[] scores = bundle.getIntArray(DAILY_HISTORY_SCORES);
+				long[] scores = bundle.getLongArray(DAILY_HISTORY_SCORES);
 				int i = 0;
 				long latestDate = 0;
 				for (long date : bundle.getLongArray(DAILY_HISTORY_DATES)){
@@ -474,7 +475,7 @@ public enum Rankings {
 		public String gameID;
 
 		//Note this is for summary purposes, visible score should be re-calculated from game data
-		public int score;
+		public long score;
 
 		public String customSeed;
 		public boolean daily;
@@ -511,7 +512,7 @@ public enum Rankings {
 			}
 			
 			win		    = bundle.getBoolean( WIN );
-			score	    = bundle.getInt( SCORE );
+			score	    = bundle.getLong( SCORE );
 			customSeed  = bundle.getString( SEED );
 			daily       = bundle.getBoolean( DAILY );
 

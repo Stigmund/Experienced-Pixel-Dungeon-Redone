@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,26 +38,49 @@ public class Greatshield extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  Math.round(3f*(tier+1)) +     //18 base, down from 36
-				lvl*(tier-1);                   //+4 per level, down from +7
+	public long max(long lvl) {
+		return  Math.round(3d*(tier()+1)) +     //18 base, down from 36
+				lvl*(tier()-1);                   //+4 per level, down from +7
 	}
 
 	@Override
-	public int defenseFactor( Char owner ) {
-		return (tier+1)+(tier-2)*buffedLvl();    //6 extra defence, plus 3 per level;
+	public long defenseFactor( Char owner ) {
+		return DRMax();
+	}
+
+	public long DRMax(){
+		return DRMax(buffedLvl());
+	}
+
+	//6 extra defence, plus 2 per level
+	public long DRMax(long lvl){
+		return (tier()+1)+(tier()-2)*lvl;
 	}
 	
 	public String statsInfo(){
 		if (isIdentified()){
-			return Messages.get(this, "stats_desc", (tier+1)+(tier-2)*buffedLvl());
+			return Messages.get(this, "stats_desc", (tier()+1)+(tier()-2)*buffedLvl());
 		} else {
-			return Messages.get(this, "typical_stats_desc", (tier+1));
+			return Messages.get(this, "typical_stats_desc", (tier()+1));
 		}
 	}
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
-		RoundShield.guardAbility(hero, 6, this);
+		RoundShield.guardAbility(hero, 3+buffedLvl()/300, this);
+	}
+
+	@Override
+	public String abilityInfo() {
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", 3+buffedLvl()/300);
+		} else {
+			return Messages.get(this, "typical_ability_desc", 3);
+		}
+	}
+
+	@Override
+	public String upgradeAbilityStat(long level) {
+		return Long.toString(3 + level);
 	}
 }

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,20 +33,20 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.NecromancerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SkeletonSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
-import com.watabou.utils.Random;
 
 public class Necromancer extends Mob {
 	
@@ -86,6 +86,11 @@ public class Necromancer extends Mob {
                 defenseSkill = 2800;
                 EXP = 64000;
                 break;
+			case 5:
+				HP = HT = 1655000000;
+				defenseSkill = 55500;
+				EXP = 33500000;
+				break;
         }
 	}
 	
@@ -105,16 +110,27 @@ public class Necromancer extends Mob {
 		}
 		return super.act();
 	}
-	
+
 	@Override
-	public int cycledDrRoll() {
+	public void aggro(Char ch) {
+		super.aggro(ch);
+		if (mySkeleton != null && mySkeleton.isAlive()
+				&& Dungeon.level.mobs.contains(mySkeleton)
+				&& mySkeleton.alignment == alignment){
+			mySkeleton.aggro(ch);
+		}
+	}
+
+	@Override
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(8, 28);
-            case 2: return Random.NormalIntRange(75, 180);
-            case 3: return Random.NormalIntRange(400, 700);
-            case 4: return Random.NormalIntRange(7000, 12000);
+            case 1: return Dungeon.NormalLongRange(8, 28);
+            case 2: return Dungeon.NormalLongRange(75, 180);
+            case 3: return Dungeon.NormalLongRange(400, 700);
+            case 4: return Dungeon.NormalLongRange(7000, 12000);
+			case 5: return Dungeon.NormalLongRange(480000, 775000);
         }
-		return Random.NormalIntRange(0, 5);
+		return Dungeon.NormalLongRange(0, 5);
 	}
 	
 	@Override
@@ -138,7 +154,7 @@ public class Necromancer extends Mob {
 			}
 		}
 		
-		if (mySkeleton != null && mySkeleton.isAlive()){
+		if (mySkeleton != null && mySkeleton.isAlive() && mySkeleton.alignment == alignment){
 			mySkeleton.die(null);
 		}
 
@@ -196,7 +212,9 @@ public class Necromancer extends Mob {
 			}
 			
 			mySkeleton.HP = Math.min(mySkeleton.HP + mySkeleton.HT/5 + Dungeon.cycle * 20, mySkeleton.HT);
-			if (mySkeleton.sprite.visible) mySkeleton.sprite.emitter().burst( Speck.factory( Speck.HEALING ), 1 );
+			if (mySkeleton.sprite.visible) {
+				mySkeleton.sprite.showStatusWithIcon( CharSprite.POSITIVE, Long.toString( mySkeleton.HT/5 ), FloatingText.HEALING );
+			}
 			
 		//otherwise give it adrenaline
 		} else if (mySkeleton.buff(Adrenaline.class) == null) {
@@ -244,7 +262,7 @@ public class Necromancer extends Mob {
 
 				Char blocker = Actor.findChar(summoningPos);
 				if (blocker.alignment != alignment){
-					blocker.damage( Random.NormalIntRange(2, 10), this );
+					blocker.damage( (long) (Math.pow(Dungeon.NormalLongRange(2, 10), Dungeon.cycle+1)), new SummoningBlockDamage() );
 					if (blocker == Dungeon.hero && !blocker.isAlive()){
 						Badges.validateDeathFromEnemyMagic();
 						Dungeon.fail(this);
@@ -272,6 +290,7 @@ public class Necromancer extends Mob {
 			Buff.affect( mySkeleton, b.getClass());
 		}
 	}
+public static class SummoningBlockDamage{}
 
 	private class Hunting extends Mob.Hunting{
 
@@ -325,7 +344,11 @@ if (enemySeen){
 					
 					summoning = true;
 					sprite.zap( summoningPos );
-					
+
+					if (Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[summoningPos]){
+						Dungeon.hero.interrupt();
+					}
+
 					spend( firstSummon ? TICK : 2*TICK );
 				} else {
 					//wait for a turn

@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,8 @@ public class Eye extends Mob {
 				return 18000;
 			case 4:
 				return 6000000;
+			case 5:
+				return 320000000;
 		}
 	}
 
@@ -100,18 +102,23 @@ public class Eye extends Mob {
                 HP = HT = 290000000;
                 defenseSkill = 14000;
                 break;
+			case 5:
+				HP = HT = 6500000000L;
+				defenseSkill = 135000;
+				break;
         }
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(86, 106);
-            case 2: return Random.NormalIntRange(360, 487);
-            case 3: return Random.NormalIntRange(2600, 3641);
-            case 4: return Random.NormalIntRange(179000, 290000);
+            case 1: return Dungeon.NormalLongRange(86, 106);
+            case 2: return Dungeon.NormalLongRange(360, 487);
+            case 3: return Dungeon.NormalLongRange(2600, 3641);
+            case 4: return Dungeon.NormalLongRange(179000, 290000);
+			case 5: return Dungeon.NormalLongRange(5750000, 9000000);
         }
-		return Random.NormalIntRange(20, 30);
+		return Dungeon.NormalLongRange(20, 30);
 	}
 
 	@Override
@@ -121,19 +128,21 @@ public class Eye extends Mob {
             case 2: return 450;
             case 3: return 1100;
             case 4: return 16000;
+			case 5: return 210000;
         }
 		return 30;
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(40, 74);
-            case 2: return Random.NormalIntRange(178, 334);
-            case 3: return Random.NormalIntRange(1750, 2800);
-            case 4: return Random.NormalIntRange(200000, 300000);
+            case 1: return Dungeon.NormalLongRange(40, 74);
+            case 2: return Dungeon.NormalLongRange(178, 334);
+            case 3: return Dungeon.NormalLongRange(1750, 2800);
+            case 4: return Dungeon.NormalLongRange(200000, 300000);
+			case 5: return Dungeon.NormalLongRange(6000000, 12500000);
         }
-		return Random.NormalIntRange(0, 10);
+		return Dungeon.NormalLongRange(0, 10);
 	}
 	
 	private Ballistica beam;
@@ -204,11 +213,17 @@ public class Eye extends Mob {
 	}
 
 	@Override
-	public void damage(int dmg, Object src) {
+	public void damage(long dmg, Object src) {
 		if (beamCharged) dmg /= 4;
 		super.damage(dmg, src);
 	}
-	
+
+	@Override
+	public void die(Object cause) {
+		flying = false;
+		super.die(cause);
+	}
+
 	//used so resistances can differentiate between melee and magical attacks
 	public static class DeathGaze{}
 
@@ -238,12 +253,13 @@ public class Eye extends Mob {
 			}
 
 			if (hit( this, ch, true )) {
-                int dmg = Random.NormalIntRange(30, 50);
+                long dmg = Dungeon.NormalLongRange(30, 50);
                 switch (Dungeon.cycle){
-                    case 1: dmg = Random.NormalIntRange(168, 231); break;
-                    case 2: dmg = Random.NormalIntRange(510, 824); break;
-                    case 3: dmg = Random.NormalIntRange(3750, 5200); break;
-                    case 4: dmg = Random.NormalIntRange(200000, 560000); break;
+                    case 1: dmg = Dungeon.NormalLongRange(168, 231); break;
+                    case 2: dmg = Dungeon.NormalLongRange(510, 824); break;
+                    case 3: dmg = Dungeon.NormalLongRange(3750, 5200); break;
+                    case 4: dmg = Dungeon.NormalLongRange(200000, 560000); break;
+					case 5: dmg = Dungeon.NormalLongRange(8000000, 12500000); break;
                 }
 				dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
                 ch.damage(dmg, new DeathGaze() );

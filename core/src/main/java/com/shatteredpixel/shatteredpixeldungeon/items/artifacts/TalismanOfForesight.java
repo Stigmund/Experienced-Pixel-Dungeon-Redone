@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CheckedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.ConeAOE;
@@ -99,7 +100,11 @@ public class TalismanOfForesight extends Artifact {
 	public void charge(Hero target, float amount) {
 		if (cursed || target.buff(MagicImmune.class) != null) return;
 		if (charge < chargeCap){
-			charge += Math.round(2*amount);
+			partialCharge += 2*amount;
+			while (partialCharge >= 1f){
+				charge++;
+				partialCharge--;
+			}
 			if (charge >= chargeCap) {
 				charge = chargeCap;
 				partialCharge = 0;
@@ -204,6 +209,7 @@ public class TalismanOfForesight extends Artifact {
 				if (exp >= 100 + 50*level() && level() < levelCap) {
 					exp -= 100 + 50*level();
 					upgrade();
+					Catalog.countUse(TalismanOfForesight.class);
 					GLog.p( Messages.get(TalismanOfForesight.class, "levelup") );
 				}
 				updateQuickslot();
@@ -263,6 +269,32 @@ public class TalismanOfForesight extends Artifact {
 		public boolean act() {
 			spend( TICK );
 
+			checkAwareness();
+
+			if (charge < chargeCap
+					&& !cursed
+					&& target.buff(MagicImmune.class) == null
+					&& Regeneration.regenOn()) {
+				//fully charges in 2000 turns at +0, scaling to 1000 turns at +10.
+				float chargeGain = (0.05f+(level()*0.005f));
+				chargeGain *= RingOfEnergy.artifactChargeMultiplier(target);
+				partialCharge += chargeGain;
+
+				while (partialCharge >= 1){
+					partialCharge--;
+					charge++;
+					if (charge >= chargeCap) {
+						partialCharge = 0;
+						GLog.p(Messages.get(TalismanOfForesight.class, "full_charge"));
+					}
+					updateQuickslot();
+				}
+			}
+
+			return true;
+		}
+
+		public void checkAwareness(){
 			boolean smthFound = false;
 
 			int distance = 3;
@@ -312,27 +344,6 @@ public class TalismanOfForesight extends Artifact {
 			} else {
 				warn = false;
 			}
-
-			if (charge < chargeCap
-					&& !cursed
-					&& target.buff(MagicImmune.class) == null
-					&& Regeneration.regenOn()) {
-				//fully charges in 2000 turns at +0, scaling to 1000 turns at +10.
-				float chargeGain = (0.05f+(level()*0.005f));
-				chargeGain *= RingOfEnergy.artifactChargeMultiplier(target);
-				partialCharge += chargeGain;
-
-				if (partialCharge > 1 && charge < chargeCap) {
-					partialCharge--;
-					charge++;
-					updateQuickslot();
-				} else if (charge >= chargeCap) {
-					partialCharge = 0;
-					GLog.p( Messages.get(TalismanOfForesight.class, "full_charge") );
-				}
-			}
-
-			return true;
 		}
 
 		public void charge(int boost){

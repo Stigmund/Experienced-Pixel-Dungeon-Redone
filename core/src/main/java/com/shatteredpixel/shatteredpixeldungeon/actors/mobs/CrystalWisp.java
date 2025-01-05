@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,6 +70,11 @@ public class CrystalWisp extends Mob{
 				defenseSkill = 3000;
 				EXP = 74000;
 				break;
+			case 5:
+				HP = HT = 1400000000;
+				defenseSkill = 59500;
+				EXP = 36500000;
+				break;
 		}
 	}
 
@@ -97,14 +102,15 @@ public class CrystalWisp extends Mob{
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
 		switch (Dungeon.cycle) {
-			case 1: return Random.NormalIntRange(50, 55);
-			case 2: return Random.NormalIntRange(240, 275);
-			case 3: return Random.NormalIntRange(800, 900);
-			case 4: return Random.NormalIntRange(14000, 18500);
+			case 1: return Dungeon.NormalLongRange(50, 55);
+			case 2: return Dungeon.NormalLongRange(240, 275);
+			case 3: return Dungeon.NormalLongRange(800, 900);
+			case 4: return Dungeon.NormalLongRange(14000, 18500);
+			case 5: return Dungeon.NormalLongRange(1100000, 1800000);
 		}
-		return Random.NormalIntRange( 5, 10 );
+		return Dungeon.NormalLongRange( 5, 10 );
 	}
 
 	@Override
@@ -114,19 +120,21 @@ public class CrystalWisp extends Mob{
 			case 2: return 275;
 			case 3: return 760;
 			case 4: return 3600;
+			case 5: return 53000;
 		}
 		return 18;
 	}
 
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
 		switch (Dungeon.cycle){
-			case 1: return Random.NormalIntRange(13, 28);
-			case 2: return Random.NormalIntRange(70, 170);
-			case 3: return Random.NormalIntRange(500, 700);
-			case 4: return Random.NormalIntRange(8000, 16000);
+			case 1: return Dungeon.NormalLongRange(13, 28);
+			case 2: return Dungeon.NormalLongRange(70, 170);
+			case 3: return Dungeon.NormalLongRange(500, 700);
+			case 4: return Dungeon.NormalLongRange(8000, 16000);
+			case 5: return Dungeon.NormalLongRange(650000, 1250000);
 		}
-		return Random.NormalIntRange(0, 4);
+		return Dungeon.NormalLongRange(0, 4);
 	}
 
 	@Override
@@ -154,6 +162,12 @@ public class CrystalWisp extends Mob{
 		}
 	}
 
+	@Override
+	public void die(Object cause) {
+		flying = false;
+		super.die(cause);
+	}
+
 	//used so resistances can differentiate between melee and magical attacks
 	public static class LightBeam {}
 
@@ -164,12 +178,13 @@ public class CrystalWisp extends Mob{
 		Char enemy = this.enemy;
 		if (hit( this, enemy, true )) {
 
-			int dmg = Random.NormalIntRange( 5, 10 );
+			long dmg = Random.NormalIntRange( 5, 10 );
 			switch (Dungeon.cycle) {
-				case 1: dmg = Random.NormalIntRange(50, 55); break;
-				case 2: dmg = Random.NormalIntRange(240, 275); break;
-				case 3: dmg = Random.NormalIntRange(800, 900); break;
-				case 4: dmg = Random.NormalIntRange(14000, 18500); break;
+				case 1: dmg = Dungeon.NormalLongRange(50, 55); break;
+				case 2: dmg = Dungeon.NormalLongRange(240, 275); break;
+				case 3: dmg = Dungeon.NormalLongRange(800, 900); break;
+				case 4: dmg = Dungeon.NormalLongRange(14000, 18500); break;
+				case 5: dmg = Dungeon.NormalLongRange(1100000, 1800000); break;
 			}
 			enemy.damage( dmg, new LightBeam() );
 

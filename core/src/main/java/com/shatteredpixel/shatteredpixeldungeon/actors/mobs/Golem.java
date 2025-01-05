@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ public class Golem extends Mob {
 		maxLvl = 22;
 
 		loot = Random.oneOf(Generator.Category.WEAPON, Generator.Category.ARMOR);
-		lootChance = 0.125f; //initially, see lootChance()
+		lootChance = 0.2f; //initially, see lootChance()
 
 		properties.add(Property.INORGANIC);
 		properties.add(Property.LARGE);
@@ -80,18 +80,24 @@ public class Golem extends Mob {
                 defenseSkill = 7000;
                 EXP = 1750000;
                 break;
+			case 5:
+				HP = HT = 3200000000L;
+				defenseSkill = 90500;
+				EXP = 185000000;
+				break;
         }
 	}
 
 	@Override
-	public int damageRoll() {
+	public long damageRoll() {
         switch (Dungeon.cycle) {
-            case 1: return Random.NormalIntRange(69, 96);
-            case 2: return Random.NormalIntRange(300, 519);
-            case 3: return Random.NormalIntRange(1900, 2650);
-            case 4: return Random.NormalIntRange(65000, 180000);
+            case 1: return Dungeon.NormalLongRange(69, 96);
+            case 2: return Dungeon.NormalLongRange(300, 519);
+            case 3: return Dungeon.NormalLongRange(1900, 2650);
+            case 4: return Dungeon.NormalLongRange(65000, 180000);
+			case 5: return Dungeon.NormalLongRange(6000000, 9000000);
         }
-		return Random.NormalIntRange( 25, 30 );
+		return Dungeon.NormalLongRange( 25, 30 );
 	}
 	
 	@Override
@@ -101,26 +107,28 @@ public class Golem extends Mob {
             case 2: return 400;
             case 3: return 1100;
             case 4: return 8300;
+			case 5: return 120000;
         }
 		return 28;
 	}
 	
 	@Override
-	public int cycledDrRoll() {
+	public long cycledDrRoll() {
         switch (Dungeon.cycle){
-            case 1: return Random.NormalIntRange(40, 68);
-            case 2: return Random.NormalIntRange(160, 333);
-            case 3: return Random.NormalIntRange(1100, 1800);
-            case 4: return Random.NormalIntRange(70000, 125000);
+            case 1: return Dungeon.NormalLongRange(40, 68);
+            case 2: return Dungeon.NormalLongRange(160, 333);
+            case 3: return Dungeon.NormalLongRange(1100, 1800);
+            case 4: return Dungeon.NormalLongRange(70000, 125000);
+			case 5: return Dungeon.NormalLongRange(3900000, 7000000);
         }
-		return Random.NormalIntRange(0, 12);
+		return Dungeon.NormalLongRange(0, 12);
 	}
 
 	@Override
 	public float lootChance() {
-		//each drop makes future drops 1/2 as likely
-		// so loot chance looks like: 1/8, 1/16, 1/32, 1/64, etc.
-		return super.lootChance() * (float)Math.pow(1/2f, Dungeon.LimitedDrops.GOLEM_EQUIP.count);
+		//each drop makes future drops 1/3 as likely
+		// so loot chance looks like: 1/5, 1/15, 1/45, 1/135, etc.
+		return super.lootChance() * (float)Math.pow(1/3f, Dungeon.LimitedDrops.GOLEM_EQUIP.count);
 	}
 
 	@Override

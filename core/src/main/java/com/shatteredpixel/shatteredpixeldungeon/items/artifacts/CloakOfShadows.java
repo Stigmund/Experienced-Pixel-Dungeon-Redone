@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -221,16 +222,20 @@ public class CloakOfShadows extends Artifact {
 		if (charge < chargeCap) {
 			if (!isEquipped(target)) amount *= 0.66f;
 			partialCharge += 0.25f*amount;
-			if (partialCharge >= 1){
-				partialCharge--;
+			while (partialCharge >= 1f) {
 				charge++;
-				updateQuickslot();
+				partialCharge--;
 			}
+			if (charge >= chargeCap){
+				partialCharge = 0;
+				charge = chargeCap;
+			}
+			updateQuickslot();
 		}
 	}
 
-	public void overCharge(int amount){
-		charge = Math.min(charge+amount, chargeCap+amount);
+	public void directCharge(int amount){
+		charge = Math.min(charge+amount, chargeCap);
 		updateQuickslot();
 	}
 
@@ -259,7 +264,7 @@ public class CloakOfShadows extends Artifact {
 	}
 
 	@Override
-	public int value() {
+	public long value() {
 		return 0;
 	}
 
@@ -279,7 +284,7 @@ public class CloakOfShadows extends Artifact {
 					partialCharge += chargeToGain;
 				}
 
-				if (partialCharge >= 1) {
+				while (partialCharge >= 1) {
 					charge++;
 					partialCharge -= 1;
 					if (charge == chargeCap){
@@ -362,7 +367,7 @@ public class CloakOfShadows extends Artifact {
 					((Hero) target).interrupt();
 				} else {
 					//target hero level is 1 + 2*cloak level
-					int lvlDiffFromTarget = ((Hero) target).lvl - (1+level()*2);
+					int lvlDiffFromTarget = (int) (((Hero) target).lvl - (1+level()*2));
 					//plus an extra one for each level after 6
 					if (level() >= 7){
 						lvlDiffFromTarget -= level()-6;
@@ -375,6 +380,7 @@ public class CloakOfShadows extends Artifact {
 					
 					if (exp >= (level() + 1) * 50 && level() < levelCap) {
 						upgrade();
+						Catalog.countUse(CloakOfShadows.class);
 						exp -= level() * 50;
 						GLog.p(Messages.get(this, "levelup"));
 						
@@ -390,6 +396,9 @@ public class CloakOfShadows extends Artifact {
 		}
 
 		public void dispel(){
+			if (turnsToCost <= 0 && charge > 0){
+				charge--;
+			}
 			updateQuickslot();
 			detach();
 		}

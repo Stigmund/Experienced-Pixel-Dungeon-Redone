@@ -3,10 +3,10 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * Experienced Pixel Dungeon
- * Copyright (C) 2019-2020 Trashbox Bobylev
+ * Copyright (C) 2019-2024 Trashbox Bobylev
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,13 +40,18 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.noosa.audio.Sample;
+
+import java.util.ArrayList;
 
 public class CurseInfusion extends InventorySpell {
 	
 	{
 		image = ItemSpriteSheet.CURSE_INFUSE;
+
+		talentChance = 1/(float)Recipe.OUT_QUANTITY;
 	}
 
 	@Override
@@ -64,7 +69,10 @@ public class CurseInfusion extends InventorySpell {
 		if (item instanceof MeleeWeapon || item instanceof SpiritBow) {
 			Weapon w = (Weapon) item;
 			if (w.enchantment != null) {
-				w.enchant(Weapon.Enchantment.randomCurse(w.enchantment.getClass()));
+				//if we are freshly applying curse infusion, don't replace an existing curse
+				if (w.hasGoodEnchant() || w.curseInfusionBonus) {
+					w.enchant(Weapon.Enchantment.randomCurse(w.enchantment.getClass()));
+				}
 			} else {
 				w.enchant(Weapon.Enchantment.randomCurse());
 			}
@@ -75,7 +83,10 @@ public class CurseInfusion extends InventorySpell {
 		} else if (item instanceof Armor){
 			Armor a = (Armor) item;
 			if (a.glyph != null){
-				a.inscribe(Armor.Glyph.randomCurse(a.glyph.getClass()));
+				//if we are freshly applying curse infusion, don't replace an existing curse
+				if (a.hasGoodGlyph() || a.curseInfusionBonus) {
+					a.inscribe(Armor.Glyph.randomCurse(a.glyph.getClass()));
+				}
 			} else {
 				a.inscribe(Armor.Glyph.randomCurse());
 			}
@@ -91,13 +102,19 @@ public class CurseInfusion extends InventorySpell {
 	}
 	
 	@Override
-	public int value() {
-		//prices of ingredients, divided by output quantity, rounds down
-		return (int)((30 + 50) * (quantity/3f));
+	public long value() {
+		return (long)(60 * (quantity/(float)Recipe.OUT_QUANTITY));
+	}
+
+	@Override
+	public long energyVal() {
+		return (long)(12 * (quantity/(float)Recipe.OUT_QUANTITY));
 	}
 	
 	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
-		
+
+		private static final int OUT_QUANTITY = 4;
+
 		{
 			inputs =  new Class[]{ScrollOfRemoveCurse.class, MetalShard.class};
 			inQuantity = new int[]{1, 1};
@@ -105,8 +122,13 @@ public class CurseInfusion extends InventorySpell {
 			cost = 6;
 			
 			output = CurseInfusion.class;
-			outQuantity = 4;
+			outQuantity = OUT_QUANTITY;
 		}
-		
+
+		@Override
+		public Item brew(ArrayList<Item> ingredients) {
+			Catalog.countUse(MetalShard.class);
+			return super.brew(ingredients);
+		}
 	}
 }

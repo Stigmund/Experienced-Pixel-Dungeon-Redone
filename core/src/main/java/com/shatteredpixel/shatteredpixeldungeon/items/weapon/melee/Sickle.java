@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2023 Evan Debenham
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,14 +48,9 @@ public class Sickle extends MeleeWeapon {
 	}
 
 	@Override
-	public int max(int lvl) {
-		return  Math.round(6.67f*(tier+1)) +    //20 base, up from 15
-				lvl*(tier+1);                   //scaling unchanged
-	}
-
-	@Override
-	protected int baseChargeUse(Hero hero, Char target){
-		return 2;
+	public long max(long lvl) {
+		return  Math.round(6.67d*(tier()+1)) +    //20 base, up from 15
+				lvl*(tier()+1);                   //scaling unchanged
 	}
 
 	@Override
@@ -65,10 +60,27 @@ public class Sickle extends MeleeWeapon {
 
 	@Override
 	protected void duelistAbility(Hero hero, Integer target) {
-		harvestAbility(hero, target, 1f, this);
+		//replaces damage with 15+2.5*lvl bleed, roughly 138% avg base dmg, 125% avg scaling
+		long bleedAmt = augment.damageFactor(Math.round(15f + 2.5f*buffedLvl()));
+		Sickle.harvestAbility(hero, target, 0f, bleedAmt, this);
 	}
 
-	public static void harvestAbility(Hero hero, Integer target, float bleedFactor, MeleeWeapon wep){
+	@Override
+	public String abilityInfo() {
+		long bleedAmt = levelKnown ? Math.round(15f + 2.5f*buffedLvl()) : 15;
+		if (levelKnown){
+			return Messages.get(this, "ability_desc", augment.damageFactor(bleedAmt));
+		} else {
+			return Messages.get(this, "typical_ability_desc", bleedAmt);
+		}
+	}
+
+	@Override
+	public String upgradeAbilityStat(long level) {
+		return Long.toString(augment.damageFactor(Math.round(15f + 2.5f*level)));
+	}
+
+	public static void harvestAbility(Hero hero, Integer target, float bleedMulti, long bleedBoost, MeleeWeapon wep){
 
 		if (target == null) {
 			return;
@@ -82,7 +94,7 @@ public class Sickle extends MeleeWeapon {
 
 		hero.belongings.abilityWeapon = wep;
 		if (!hero.canAttack(enemy)){
-			GLog.w(Messages.get(wep, "ability_bad_position"));
+			GLog.w(Messages.get(wep, "ability_target_range"));
 			hero.belongings.abilityWeapon = null;
 			return;
 		}
@@ -94,8 +106,8 @@ public class Sickle extends MeleeWeapon {
 				wep.beforeAbilityUsed(hero, enemy);
 				AttackIndicator.target(enemy);
 
-				Buff.affect(enemy, HarvestBleedTracker.class, 0).bleedFactor = bleedFactor;
-				if (hero.attack(enemy, 1.1f, 0, Char.INFINITE_ACCURACY)){
+				Buff.affect(enemy, HarvestBleedTracker.class, 0);
+				if (hero.attack(enemy, bleedMulti, bleedBoost, Char.INFINITE_ACCURACY)){
 					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 				}
 
@@ -110,8 +122,6 @@ public class Sickle extends MeleeWeapon {
 
 	}
 
-	public static class HarvestBleedTracker extends FlavourBuff{
-		public float bleedFactor;
-	};
+	public static class HarvestBleedTracker extends FlavourBuff{};
 
 }
