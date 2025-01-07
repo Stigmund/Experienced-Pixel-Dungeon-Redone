@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Preparation;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -38,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.traits.PreparationAllowed;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -54,7 +56,7 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class CloakOfShadows extends Artifact {
+public class CloakOfShadows extends Artifact implements PreparationAllowed {
 
 	{
 		image = ItemSpriteSheet.ARTIFACT_CLOAK;
@@ -165,6 +167,9 @@ public class CloakOfShadows extends Artifact {
 	@Override
 	public boolean doUnequip(Hero hero, boolean collect, boolean single) {
 		if (super.doUnequip(hero, collect, single)){
+
+			Buff.detach(hero, Preparation.class);
+
 			if (!collect || hero.heroClass != HeroClass.ROGUE){
 				if (activeBuff != null){
 					activeBuff.detach();
@@ -174,10 +179,12 @@ public class CloakOfShadows extends Artifact {
 				activate(hero);
 			}
 
+
 			return true;
 		} else
 			return false;
 	}
+
 
 	@Override
 	public boolean collect( Bag container ) {

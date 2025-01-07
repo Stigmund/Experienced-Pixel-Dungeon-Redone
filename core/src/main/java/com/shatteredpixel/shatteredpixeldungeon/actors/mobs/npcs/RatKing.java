@@ -233,15 +233,23 @@ public class RatKing extends NPC {
 	
 	@Override
 	public String description() {
+
+		String msg = "";
 		if (Dungeon.hero != null && Dungeon.hero.armorAbility instanceof Ratmogrify){
-			return Messages.get(this, "desc_crown");
+			msg = Messages.get(this, "desc_crown");
 		} else if (Holiday.getCurrentHoliday() == Holiday.APRIL_FOOLS){
-			return Messages.get(this, "desc_birthday");
+			msg = Messages.get(this, "desc_birthday");
 		} else if (Holiday.getCurrentHoliday() == Holiday.WINTER_HOLIDAYS){
-			return Messages.get(this, "desc_winter");
+			msg = Messages.get(this, "desc_winter");
 		} else {
-			return super.description();
+			msg = super.description();
 		}
+
+		msg += "\n\n";
+		msg += "Level: \t\t"+ level + "\n";
+		msg += "Count: \t\t"+ counter;
+
+		return msg;
 	}
 
     public static class Barter extends Buff {

@@ -178,12 +178,18 @@ public class WndHero extends WndTabbed {
 			else                        statSlot( Messages.get(this, "str"), hero.STR() );
 			if (hero.shielding() > 0)   statSlot( Messages.get(this, "health"), hero.HP + "+" + hero.shielding() + "/" + hero.HT );
 			else                        statSlot( Messages.get(this, "health"), (hero.HP) + "/" + hero.HT );
+			statSlot( "Luck", Dungeon.luck);
 			statSlot( Messages.get(this, "exp"), hero.exp + "/" + hero.maxExp() );
 
 			pos += GAP;
 
 			statSlot( Messages.get(this, "gold"), Statistics.goldCollected );
-			statSlot( Messages.get(this, "depth"), Statistics.deepestFloor );
+			//statSlot( Messages.get(this, "depth"), Statistics.deepestFloor );
+			if (Statistics.cycleMultiplier != 0){
+				statSlot(Messages.get(WndGameInProgress.class, "depth"), (Statistics.deepestFloor) + " " + Messages.get(WndGameInProgress.class, "cycle", Statistics.cycleMultiplier) );
+			} else {
+				statSlot(Messages.get(WndGameInProgress.class, "depth"), Statistics.deepestFloor );
+			}
 			if (Dungeon.daily){
 				if (!Dungeon.dailyReplay) {
 					statSlot(Messages.get(this, "daily_for"), "_" + Dungeon.customSeedText + "_");

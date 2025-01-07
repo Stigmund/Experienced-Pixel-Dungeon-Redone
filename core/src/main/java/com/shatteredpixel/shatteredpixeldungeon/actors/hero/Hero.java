@@ -1024,7 +1024,7 @@ if (buff(RoundShield.GuardTracker.class) != null){
 
 		if (getCloser( action.dst )) {
 			canSelfTrample = false;
-			if (belongings.weapon instanceof PreparationAllowed)
+			if (belongings.weapon instanceof PreparationAllowed || belongings.artifact instanceof CloakOfShadows || belongings.misc instanceof CloakOfShadows)
 				Buff.affect(this, Preparation.class);
 			return true;
 

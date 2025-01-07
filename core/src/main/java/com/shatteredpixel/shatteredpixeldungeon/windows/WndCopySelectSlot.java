@@ -71,7 +71,7 @@ public class WndCopySelectSlot extends Window {
         }
 
         // Cancel
-        CopySlotCloseButton cancelButton = new CopySlotCloseButton(_onHeroSelect, this);
+        CopySlotCloseButton cancelButton = new CopySlotCloseButton((copyButton, window) -> window.hide(), this);
         cancelButton.set();
         cancelButton.setRect((WIDTH - SLOT_WIDTH) / 2f, pos, SLOT_WIDTH, SLOT_HEIGHT);
         content.add(cancelButton);

@@ -37,6 +37,7 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
     private final BiConsumer<CopyButton, Window> onHeroSelect = (slotButton, window) -> {
 
         window.hide();
+        this.hide();
         ShatteredPixelDungeon.scene().addToFront(new WndCopyGame(currentSlot, slotButton.getSlot(), fromRunningGame));
     };
 
@@ -71,11 +72,9 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
         float pos = setTitle() + GAP;
 
         boolean newSlot = (overwriteInfo == null);
-        String slotText = newSlot
-                        ? "Slot "+ overwriteSlot +" (new)"
-                        : (overwriteSlot == null
-                            ? "No Free Slots"
-                            : "Slot "+ overwriteSlot);
+        String slotText = overwriteSlot == null
+                        ? "No Free Slots"
+                        : "Slot "+ overwriteSlot + (newSlot ? " (new)" : "");
 
         // Save Slot Title
         pos = statSlot(this, pos, "Overwrite Slot:", slotText);
@@ -93,7 +92,7 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
             protected void onClick() {
 
                 ShatteredPixelDungeon.scene().add( new WndCopySelectSlot(getOnHeroSelect(), currentSlot, overwriteSlot, (overwriteInfo != null)));
-                hide();
+                //hide();
             }
         };
 
@@ -162,51 +161,6 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
         title.setRect( 0, 0, WIDTH, 0 );
         add(title);
         return title.bottom();
-    }
-
-    protected void setActionButton(float pos, boolean _disabled) {
-
-        setActionButton(pos, _disabled, "Copy", this::copyGame);
-    }
-
-    protected void setActionButton(float pos, boolean _disabled, String _text, Runnable _action) {
-
-        RedButton actionButton = new RedButton(_text) {
-            @Override
-            protected void onClick() {
-
-                if (overwriteInfo != null) {
-
-                    ShatteredPixelDungeon.scene().add(new WndOptions(Icons.get(Icons.WARNING),
-                            "Are you sure you want to overwrite save slot "+ overwriteSlot +"?",
-                            Messages.get(WndGameInProgress.class, "erase_warn_body"),
-                            "Yes, overwrite slot "+ overwriteSlot,
-                            "No, I want to reselect" ) {
-                        @Override
-                        protected void onSelect( int index ) {
-                            super.onSelect(index);
-                            if (index == 0) {
-
-                                hide();
-                                getOnConfirmAction().run();
-                            }
-                        }
-                    });
-                }
-                else {
-
-                    hide();
-                    getOnConfirmAction().run();
-                }
-            }
-        };
-        actionButton.setRect(0, pos, ((float) WIDTH / 2) - 1, 20);
-        if (_disabled) {
-
-            actionButton.enable(false);
-            actionButton.active = false;
-        }
-        add(actionButton);
     }
 
     private void copyGame() {

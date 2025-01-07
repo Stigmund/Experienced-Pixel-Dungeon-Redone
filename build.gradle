@@ -36,8 +36,8 @@ allprojects {
 
         appJavaCompatibility = JavaVersion.VERSION_1_8
 
-        appAndroidCompileSDK = 33
-        appAndroidMinSDK = 29 // OnePlus ONEPLUS A5000 Android 10 "Q" arm64
+        appAndroidCompileSDK = 34
+        appAndroidMinSDK = 34 // OnePlus ONEPLUS A5000 Android 10 "Q" arm64 = 29
         appAndroidTargetSDK = 34
 
         gdxVersion = '1.12.1'

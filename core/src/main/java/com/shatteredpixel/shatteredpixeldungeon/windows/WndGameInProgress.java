@@ -116,11 +116,13 @@ public class WndGameInProgress extends Window {
 		else                        pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "str"), _info.str );
 		if (_info.shld > 0)  pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "health"), _info.hp + "+" + _info.shld + "/" + _info.ht );
 		else                pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "health"), (_info.hp) + "/" + _info.ht );
+
+		pos = statSlot(_window, pos, "Luck", _info.luck);
 		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "exp"), _info.exp + "/" + Hero.maxExp(_info.level) );
 
 		pos += GAP;
 		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "gold"), _info.goldCollected );
-		pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), _info.maxDepth );
+		//pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), _info.maxDepth );
 
 		if (_info.cycle != 0){
 			pos = statSlot(_window, pos, Messages.get(WndGameInProgress.class, "depth"), (_info.maxDepth) + " " + Messages.get(WndGameInProgress.class, "cycle", _info.cycle) );

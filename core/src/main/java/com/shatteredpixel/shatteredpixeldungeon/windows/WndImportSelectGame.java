@@ -62,12 +62,22 @@ public class WndImportSelectGame extends Window {
         add(pane);
         Component content = pane.content();
 
+
+        WndImportSelectGame win = this;
         int WIDTH = Math.min(138, (int) (PixelScene.uiCamera.width * 0.8));
         for (GameInfo gameInfo : games) {
 
             GamesInProgress.Info game =  gameInfo.info;
 
-            ImportSlotButton existingGame = new ImportSlotButton();
+            ImportSlotButton existingGame = new ImportSlotButton(){
+                protected void onClick() {
+
+                //owner.setOverwriteSlot(slot);
+                //hide();
+                ShatteredPixelDungeon.scene().addToFront(new WndImportGame(gameInfo, null));
+            }};
+
+
             existingGame.set(gameInfo);
             existingGame.setRect((WIDTH - SLOT_WIDTH) / 2f, pos, SLOT_WIDTH, SLOT_HEIGHT);
             align(existingGame);
@@ -216,13 +226,14 @@ public class WndImportSelectGame extends Window {
 
         protected RenderedTextBlock date;
         protected RenderedTextBlock seconds;
-        @Override
+
+        /*@Override
         protected void onClick() {
 
             //owner.setOverwriteSlot(slot);
-            hide();
-            ShatteredPixelDungeon.scene().addToFront(new WndImportGame(gameInfo, null));
-        }
+            //hide();
+            ShatteredPixelDungeon.scene().addToFront(new WndImportGame(this, gameInfo, null));
+        }*/
 
         @Override
         protected void createChildren() {

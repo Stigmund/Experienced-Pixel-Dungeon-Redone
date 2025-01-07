@@ -1076,7 +1076,7 @@ public class Dungeon {
 		GamesInProgress.checkAll();
 	}
 
-	public static DownloadResponse exportGame( int _fromSave) {
+	public static DownloadResponse exportGame(int _fromSave) {
 
 		GamesInProgress.Info info = GamesInProgress.check(_fromSave);
 
@@ -1084,9 +1084,7 @@ public class Dungeon {
 
 			String exportDir = generateExportDirName(info);
 
-			if (downloadListener.downloadFile(DownloadType.EXTERNAL,
-											  exportDir,
-											  GamesInProgress.gameFolder(_fromSave))) {
+			if (downloadListener.exportFile(exportDir, GamesInProgress.gameFolder(_fromSave))) {
 
 				return new DownloadResponse(true, "Exported Slot "+ _fromSave +" to "+ exportDir);
 			}
@@ -1095,11 +1093,20 @@ public class Dungeon {
 		return new DownloadResponse(false, "Failed to Export!");
 	}
 
+	public static DownloadResponse importGame(String _fromFile, int _toSaveSlot) {
+
+		if (downloadListener.importFile(_fromFile, GamesInProgress.gameFolder(_toSaveSlot))) {
+
+			return new DownloadResponse(true, "Imported "+ _fromFile +" to slot "+ _toSaveSlot);
+		}
+
+		return new DownloadResponse(false, "Failed to Import!");
+	}
+
 	@SuppressWarnings("DefaultLocale")
 	private static String generateExportDirName(GamesInProgress.Info _info) {
 
-		return String.format("%s[%s] [%s] [game%d]",
-				EXPORT_DIR,
+		return String.format("[%s] [%s] [game%d]",
 				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", SPDSettings.LOCALE).format(new Date()),
 				Messages.titleCase(WndGameInProgress.getHeroTitle(_info).toLowerCase()),
 				_info.slot);
@@ -1107,6 +1114,7 @@ public class Dungeon {
 	
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
 		info.depth = bundle.getInt( DEPTH );
+		info.luck = bundle.getInt( LUCK );
 		info.version = bundle.getInt( VERSION );
 		info.challenges = bundle.getInt( CHALLENGES );
 		info.cycle = bundle.getInt( CYCLE );

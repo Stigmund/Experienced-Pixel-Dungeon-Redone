@@ -30,9 +30,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.view.ViewConfiguration;
 import android.widget.Toast;
 
@@ -41,12 +43,16 @@ import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.badlogic.gdx.backends.android.AndroidAudio;
 import com.badlogic.gdx.backends.android.AsynchronousAndroidAudio;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeType;
 import com.badlogic.gdx.utils.GdxNativesLoader;
 import com.rohitss.uceh.UCEHandler;
+import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.EXPORT_DIR;
+import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.slotStates;
+
 import com.shatteredpixel.shatteredpixeldungeon.services.news.News;
 import com.shatteredpixel.shatteredpixeldungeon.services.news.NewsImpl;
 import com.shatteredpixel.shatteredpixeldungeon.services.updates.UpdateImpl;
@@ -71,6 +77,7 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 	private static AndroidPlatformSupport support;
 
 	private final int STORAGE_PERMISSION_CODE = 101;
+	private final int EXTERNAL_STORAGE_PERMISSION_CODE  = 23;
 
 	@SuppressLint("SetTextI18n")
 	@Override
@@ -80,6 +87,11 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 		try {
 			GdxNativesLoader.load();
 			FreeType.initFreeType();
+
+			/*Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+			intent.setData(Uri.parse("package:" + getPackageName()));
+			startActivity(intent);*/
+
 		} catch (Exception e){
 			AndroidMissingNativesHandler.error = e;
 			Intent intent = new Intent(this, AndroidMissingNativesHandler.class);
@@ -120,7 +132,7 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 			// Note that we use a different prefs name on android for legacy purposes,
 			// this is the default prefs filename given to an android app (.xml is automatically added to it)
 
-			instance.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+			instance.requestPermissions(new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}, EXTERNAL_STORAGE_PERMISSION_CODE);
 
 			SPDSettings.set(instance.getPreferences("ShatteredPixelDungeon"),
 					this,
@@ -129,14 +141,14 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 		} else {
 			instance = this;
 		}
-		
+
 		//set desired orientation (if it exists) before initializing the app.
 		if (SPDSettings.landscape() != null) {
 			instance.setRequestedOrientation( SPDSettings.landscape() ?
 					ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE :
 					ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT );
 		}
-		
+
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
 		config.depth = 0;
 		if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
@@ -148,19 +160,19 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 
 		//we manage this ourselves
 		config.useImmersiveMode = false;
-		
+
 		config.useCompass = false;
 		config.useAccelerometer = false;
-		
+
 		if (support == null) support = new AndroidPlatformSupport();
 		else                 support.reloadGenerators();
-		
+
 		support.updateSystemUI();
 
 		Button.longClick = ViewConfiguration.getLongPressTimeout()/1000f;
-		
+
 		initialize(new ShatteredPixelDungeon(support), config);
-		
+
 	}
 
 	@Override
@@ -199,16 +211,17 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 	}
 
 	@Override
-	public boolean downloadFile(DownloadType _type, String _exportDir, String _internalGameDir) {
+	public boolean exportFile(String _exportDir, String _internalGameDir) {
 
 		// TODO: try this: https://stackoverflow.com/questions/65482280/how-do-you-get-the-path-of-the-android-documents-directory-in-android-q
 
 		// doesn't work in debug mode apparently!
-		if (instance.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+		//if (instance.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
 
 			try {
 
-				exportSaveFile(_type, _exportDir, _internalGameDir);
+				//exportFromOther();
+				exportSaveFile(_exportDir, _internalGameDir);
 				return true;
 			}
 			catch (Exception e) {
@@ -216,7 +229,7 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 				e.printStackTrace();
 				return false;
 			}
-		}
+		//}
 		/*else {
 
 			// Can't toast on a thread that has not called Looper.prepare() (e.g. not a main thread)
@@ -226,7 +239,22 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 		//exportSaveFile2(_internalGameDir);
 		//exportSaveFile3(_internalGameDir);
 
-		return false;
+		//return false;
+	}
+
+	@Override
+	public boolean importFile(String _importDir, String _internalGameDir) {
+
+		try {
+
+			importSaveFile(_importDir, _internalGameDir);
+			return true;
+		}
+		catch (Exception e) {
+
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	/**
@@ -239,7 +267,7 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-		if (requestCode == STORAGE_PERMISSION_CODE) {
+		if (requestCode == EXTERNAL_STORAGE_PERMISSION_CODE) {
 
 			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 				Toast.makeText(this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
@@ -249,41 +277,22 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 		}
 	}
 
-	private File getExportDirectory(DownloadType _type, String _saveDir) {
+	private File getExportDirectory(String _saveDir) {
 
-		File parentPath;
-		switch (_type) {
-
-			case DOCUMENTS:
-				parentPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-				break;
-			case DOWNLOADS:
-				parentPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-				break;
-			case INTERNAL:
-				parentPath = instance.getContext().getFilesDir();
-				break;
-			default:
-			case EXTERNAL:
-				parentPath = instance.getContext().getExternalFilesDirs("")[0];
-				break;
-		}
-
-		return new File(parentPath, _saveDir);
+		return new File(instance.getContext().getExternalFilesDirs("")[0], EXPORT_DIR + _saveDir);
 	}
 
 	/**
 	 * _saveDir and _internalGameDir are the end of the path, not the start.
 	 * The start is determined by type (or internal if it's the _internalGameDir).
-	 * @param _type
 	 * @param _exportDir
 	 * @param _internalGameDir
 	 */
-	public void exportSaveFile(DownloadType _type, String _exportDir, String _internalGameDir) {
+	public void exportSaveFile(String _exportDir, String _internalGameDir) {
 
 		System.out.println("Has WRITE_EXTERNAL_STORAGE: "+ instance.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE));
 
-		File exportDirectory = getExportDirectory(_type, _exportDir);
+		File exportDirectory = getExportDirectory(_exportDir);
 		System.out.println("exportDirectory: "+ exportDirectory.getAbsolutePath());
 		System.out.println("- Exists? "+ exportDirectory.exists());
 		if (!exportDirectory.exists()) {
@@ -307,26 +316,33 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 		Arrays.stream(files).forEach(f -> writeFile(exportDirectory, f));
 
 		System.out.println("DONE!");
+	}
 
-		//File outputDir = new File(instance.getContext().getExternalFilesDirs("")[0].getAbsoluteFile() + "/"+ _saveDir);
-		//String outputDir = instance.getContext().getExternalFilesDirs("")[0].getAbsoluteFile() + EXPORT_DIR;
-		//File outputDirFile = new File(outputDir);
-		//System.out.println("outputDirFile: "+ outputDirFile.getAbsolutePath());
-		//System.out.println("- Exists Before? "+ outputDirFile.exists());
-		//if (!outputDirFile.exists()) outputDirFile.mkdir();
-		//System.out.println("- Exists After? "+ outputDirFile.exists());
+	public void importSaveFile(String _importDir, String _internalGameDir) {
 
-		//String outputDirFinal =  outputDir + _saveDir;
-		//outputDirFile = new File(outputDirFinal);
-		//System.out.println("outputDirFinal: "+ outputDirFile.getAbsolutePath());
-		//System.out.println("- Exists Before "+ outputDirFile.exists());
-		//if (!outputDirFile.exists()) outputDirFile.mkdir();
-		//System.out.println("- Exists After "+ outputDirFile.exists());
-		//FileUtils.getFileHandle(existingGame.getAbsolutePath()).copyTo(FileUtils.getFileHandle(outputDir.getAbsolutePath()));
-		//File outputDir = new File(externalDir.getAbsolutePath());
-		//System.out.println("outputDir: "+ outputDir.getAbsolutePath());
-		//System.out.println("- Exists? "+ outputDir.exists());
+		File importDirectory = getExportDirectory(_importDir);
+		System.out.println("importDirectory: "+ importDirectory.getAbsolutePath());
+		System.out.println("- Exists? "+ importDirectory.exists());
 
+		if (importDirectory.exists()) {
+
+			File gameDirectory = new File(getContext().getFilesDir(), _internalGameDir);
+			System.out.println("gameDirectory: "+ gameDirectory.getAbsolutePath());
+			System.out.println("- Exists? "+ gameDirectory.exists());
+
+			if (gameDirectory.exists()) {
+
+				gameDirectory.delete();
+			}
+
+			System.out.println("- Creating Dir! "+ gameDirectory.exists());
+			gameDirectory.mkdirs();
+			System.out.println("- Exists Now? "+ gameDirectory.exists());
+
+			Arrays.stream(getFiles(importDirectory)).forEach(f -> writeFile(gameDirectory, f));
+
+			System.out.println("DONE!");
+		}
 	}
 
 	private File[] getFiles(File _file) {

@@ -32,10 +32,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
@@ -113,34 +116,47 @@ public class Succubus extends Mob {
 	@Override
 	public long attackProc( Char enemy, long damage ) {
 		damage = super.attackProc( enemy, damage );
-		
-		if (enemy.buff(Charm.class) != null ){
-			long shield = (HP - HT) + (5 + damage);
-			if (shield > 0){
-				HP = HT;
-				if (shield < 5){
-					sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(5-shield), FloatingText.HEALING);
-				}
 
-				Buff.affect(this, Barrier.class).setShield(shield);
-				sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(shield), FloatingText.SHIELDING);
-			} else {
-				HP += 5 + damage;
-				sprite.showStatusWithIcon(CharSprite.POSITIVE, "5", FloatingText.HEALING);
+		// [CHANGED] Succubus looks for AnitMagic Glyph!
+		// (better to look for "any" antimagic?
+		if (enemy instanceof Hero) {
+
+			Hero hero = (Hero) enemy;
+			if (hero.belongings.armor == null || !(hero.belongings.armor.glyph instanceof AntiMagic)) {
+
+				if (enemy.buff(Charm.class) != null ){
+					long shield = (HP - HT) + (5 + damage);
+					if (shield > 0){
+						HP = HT;
+						if (shield < 5){
+							sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(5-shield), FloatingText.HEALING);
+						}
+
+						Buff.affect(this, Barrier.class).setShield(shield);
+						sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(shield), FloatingText.SHIELDING);
+					} else {
+						HP += 5 + damage;
+						sprite.showStatusWithIcon(CharSprite.POSITIVE, "5", FloatingText.HEALING);
+					}
+					if (Dungeon.level.heroFOV[pos]) {
+						Sample.INSTANCE.play( Assets.Sounds.CHARMS );
+					}
+				} else if (Random.Int( 3 ) == 0) {
+					Charm c = Buff.affect( enemy, Charm.class, Charm.DURATION/2f );
+					c.object = id();
+					c.ignoreNextHit = true; //so that the -5 duration from succubus hit is ignored
+					if (Dungeon.level.heroFOV[enemy.pos]) {
+						enemy.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 5);
+						Sample.INSTANCE.play(Assets.Sounds.CHARMS);
+					}
+				}
 			}
-			if (Dungeon.level.heroFOV[pos]) {
-				Sample.INSTANCE.play( Assets.Sounds.CHARMS );
-			}
-		} else if (Random.Int( 3 ) == 0) {
-			Charm c = Buff.affect( enemy, Charm.class, Charm.DURATION/2f );
-			c.object = id();
-			c.ignoreNextHit = true; //so that the -5 duration from succubus hit is ignored
-			if (Dungeon.level.heroFOV[enemy.pos]) {
-				enemy.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 5);
-				Sample.INSTANCE.play(Assets.Sounds.CHARMS);
-			}
+			//else if (hero.belongings.armor != null && hero.belongings.armor.glyph instanceof AntiMagic) { {
+
+				// find "resisted" damage overhead text
+			//}
 		}
-		
+
 		return damage;
 	}
 	
