@@ -974,7 +974,11 @@ if (buff(RoundShield.GuardTracker.class) != null){
 			// (used to be in just act move!)
 			if (oldPos != pos) {
 
-				if (belongings.weapon instanceof PreparationAllowed || belongings.artifact instanceof CloakOfShadows || belongings.misc instanceof CloakOfShadows)
+				// if primary or secondary is equipped, or if any artifact or misc that allows PreparationAllowed is equipped
+				if (belongings.weapon instanceof PreparationAllowed ||
+						(subClass == HeroSubClass.CHAMPION && belongings.secondWep != null && belongings.secondWep instanceof PreparationAllowed) ||
+						(belongings.artifact != null && belongings.artifact instanceof PreparationAllowed) ||
+						(belongings.misc != null && belongings.misc instanceof PreparationAllowed))
 					Buff.affect(this, Preparation.class);
 			}
 		}
