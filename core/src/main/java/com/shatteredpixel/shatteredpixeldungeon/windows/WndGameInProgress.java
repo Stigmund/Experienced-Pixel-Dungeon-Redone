@@ -160,7 +160,7 @@ public class WndGameInProgress extends Window {
 				
 				Dungeon.hero = null;
 				Dungeon.daily = Dungeon.dailyReplay = false;
-				ActionIndicator.action = null;
+				ActionIndicator.actions.clear();
 				InterlevelScene.mode = InterlevelScene.Mode.CONTINUE;
 				ShatteredPixelDungeon.switchScene(InterlevelScene.class);
 			}

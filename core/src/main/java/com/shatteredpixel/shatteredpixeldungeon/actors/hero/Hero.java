@@ -931,7 +931,9 @@ if (buff(RoundShield.GuardTracker.class) != null){
 			resting = false;
 			
 			ready = false;
-			
+
+			int oldPos = pos;
+
 			if (curAction instanceof HeroAction.Move) {
 				actResult = actMove( (HeroAction.Move)curAction );
 				
@@ -964,6 +966,16 @@ if (buff(RoundShield.GuardTracker.class) != null){
 				
 			} else {
 				actResult = false;
+			}
+
+			// [CHANGED] any action that moves the user should re-apply preparation
+			// e.g. moving somewhere, getting paused by enemy, using preparation to blink to them and kill them,
+			// then looting them or resuming
+			// (used to be in just act move!)
+			if (oldPos != pos) {
+
+				if (belongings.weapon instanceof PreparationAllowed || belongings.artifact instanceof CloakOfShadows || belongings.misc instanceof CloakOfShadows)
+					Buff.affect(this, Preparation.class);
 			}
 		}
 		
@@ -1024,8 +1036,6 @@ if (buff(RoundShield.GuardTracker.class) != null){
 
 		if (getCloser( action.dst )) {
 			canSelfTrample = false;
-			if (belongings.weapon instanceof PreparationAllowed || belongings.artifact instanceof CloakOfShadows || belongings.misc instanceof CloakOfShadows)
-				Buff.affect(this, Preparation.class);
 			return true;
 
 		//Hero moves in place if there is grass to trample

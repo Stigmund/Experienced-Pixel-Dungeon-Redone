@@ -34,23 +34,57 @@ import com.watabou.input.GameAction;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Visual;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 public class ActionIndicator extends Tag {
+
+	//private static final Class<?extends Buff>[] actionBuffClasses = new Class[]{Preparation.class, SnipersMark.class, Combo.class, Marked.class, Berserk.class, Momentum.class, MeleeWeapon.Charger.class, MonkEnergy.class};
+	private static final Comparator<Action> ACTION_SORTER = (o1, o2) -> {
+		if (o1 instanceof MeleeWeapon.Charger) return -1;
+		return o1.getClass().getName().compareTo(o2.getClass().getName());
+	};
 
 	Visual primaryVis;
 	Visual secondVis;
 
-	public static Action action;
-	public static ActionIndicator instance;
+	public static List<Action> actions = new ArrayList<>();
 
-	public ActionIndicator() {
+	// for game scene refresh
+	public static List<ActionIndicator> instances = new ArrayList<>();
+	public final Action action;
+
+	public ActionIndicator(Action action) {
 		super( 0 );
 
-		instance = this;
-
+		this.action = action;
 		setSize( SIZE, SIZE );
 		visible = false;
 	}
-	
+
+	public static List<Action> sortActions() {
+
+		actions.sort(ACTION_SORTER);
+
+		return actions;
+	}
+
+	public static <A extends ActionIndicator.Action> boolean hasAction(A _action) {
+
+		return hasAction(_action.getClass());
+	}
+
+	public static boolean hasAction(Class<? extends ActionIndicator.Action> _class) {
+
+		return actions.stream().anyMatch(_class::isInstance);
+	}
+
+	public Action getAction() {
+
+		return action;
+	}
+
 	@Override
 	public GameAction keyAction() {
 		return SPDAction.TAG_ACTION;
@@ -59,7 +93,7 @@ public class ActionIndicator extends Tag {
 	@Override
 	public void destroy() {
 		super.destroy();
-		instance = null;
+		instances.remove(this);
 	}
 	
 	@Override
@@ -158,40 +192,30 @@ public class ActionIndicator extends Tag {
 
 	@Override
 	protected boolean onLongClick() {
-		return findAction(true);
+		return false;//findAction(true);
 	}
 
 	public static boolean setAction(Action action){
-		if(!action.usable() || ActionIndicator.action == action) return false;
-		ActionIndicator.action = action;
+		if(!action.usable() || ActionIndicator.actions.contains(action)) return false;
+		ActionIndicator.actions.add(action);
 		refresh();
 		return true;
 	}
 
-	// list of action buffs that we should replace it with.
-	private static final Class<?extends Buff>[] actionBuffClasses = new Class[]{Preparation.class, SnipersMark.class, Combo.class, Marked.class, Berserk.class, Momentum.class, MeleeWeapon.Charger.class, MonkEnergy.class};
-	private static boolean findAction(boolean cycle) {
-		if(action == null) cycle = false;
-		int start = -1;
-		if(cycle) while(++start < actionBuffClasses.length && !actionBuffClasses[start].isInstance(action));
-
-		for(int i = (start+1)%actionBuffClasses.length; i != start && i < actionBuffClasses.length; i++) {
-			Buff b = Dungeon.hero.buff(actionBuffClasses[i]);
-			if(b != null && setAction((Action)b)) return true;
-			if(cycle && i+1 == actionBuffClasses.length) i = -1;
-		}
-		return false;
-	}
-
 	public static void clearAction(Action action){
-		if(ActionIndicator.action == action && !findAction(false)) ActionIndicator.action = null;
+		if(ActionIndicator.hasAction(action)) ActionIndicator.actions.remove(action);
 	}
 
 	public static void refresh(){
 		synchronized (ActionIndicator.class) {
-			if (instance != null) {
-				instance.needsRefresh = true;
-			}
+			instances.forEach(ai -> ai.needsRefresh = true);
+
+		}
+	}
+
+	public static void refresh(Action _action){
+		synchronized (ActionIndicator.class) {
+			instances.stream().filter(ai -> ai.action == _action).forEach(ai -> ai.needsRefresh = true);
 		}
 	}
 
@@ -218,7 +242,7 @@ public class ActionIndicator extends Tag {
 		void doAction();
 
 		default boolean usable() { return true; }
-		default boolean isSelectable() { return action != this && usable(); }
+		default boolean isSelectable() { return !ActionIndicator.hasAction(this) && usable(); }
 
 	}
 

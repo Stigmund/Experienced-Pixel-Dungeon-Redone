@@ -81,7 +81,12 @@ import com.zrp200.scrollofdebug.ScrollOfDebug;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class GameScene extends PixelScene {
 
@@ -134,7 +139,8 @@ public class GameScene extends PixelScene {
 
 	private AttackIndicator attack;
 	private LootIndicator loot;
-	private ActionIndicator action;
+	private final List<ActionIndicator> actions = new ArrayList<>();
+
 	private ResumeIndicator resume;
 
 	{
@@ -335,9 +341,7 @@ public class GameScene extends PixelScene {
 		resume.camera = uiCamera;
 		add( resume );
 
-		action = new ActionIndicator();
-		action.camera = uiCamera;
-		add( action );
+		reconfigureTags();
 
 		loot = new LootIndicator();
 		loot.camera = uiCamera;
@@ -655,7 +659,7 @@ private static float waterOfs = 0;
 			updateItemDisplays = false;
 			QuickSlotButton.refresh();
 			InventoryPane.refresh();
-			if (ActionIndicator.action instanceof MeleeWeapon.Charger) {
+			if (ActionIndicator.hasAction(MeleeWeapon.Charger.class)) {
 				//Champion weapon swap uses items, needs refreshing whenever item displays are updated
 				ActionIndicator.refresh();
 			}
@@ -705,27 +709,33 @@ private static float waterOfs = 0;
 			log.newLine();
 		}
 
+		if (shouldUpdateTagBooleans()) {
+
+			reconfigureTags();
+			updateTags = true;
+		}
 		if (updateTags){
+
 			tagAttack = attack.active;
 			tagLoot = loot.visible;
-			tagAction = action.visible;
+			updateTagBooleans();
 			tagResume = resume.visible;
 
 			layoutTags();
 
 		} else if (tagAttack != attack.active ||
 				tagLoot != loot.visible ||
-				tagAction != action.visible ||
+				isTagDifferent() ||
 				tagResume != resume.visible) {
 
 			boolean tagAppearing = (attack.active && !tagAttack) ||
 									(loot.visible && !tagLoot) ||
-									(action.visible && !tagAction) ||
+									isTagAppearing() ||
 									(resume.visible && !tagResume);
 
 			tagAttack = attack.active;
 			tagLoot = loot.visible;
-			tagAction = action.visible;
+			updateTagBooleans();
 			tagResume = resume.visible;
 
 			//if a new tag appears, re-layout tags immediately
@@ -745,6 +755,55 @@ private static float waterOfs = 0;
 		}
 	}
 
+	private boolean shouldUpdateTagBooleans() {
+
+		if (tagActions.size() != ActionIndicator.actions.size()) return true;
+		if (ActionIndicator.actions.isEmpty()) return false;
+
+		List<String> list1 = new ArrayList<>(tagActions.keySet());
+		List<String> list2 = ActionIndicator.actions.stream().map(a -> a.getClass().getName()).collect(Collectors.toList());
+
+		return !(new HashSet<>(list1).containsAll(list2) && new HashSet<>(list2).containsAll(list1));
+	}
+
+	private void updateTagBooleans() {
+
+		actions.forEach(ai -> tagActions.put(ai.action.getClass().getName(), ai.visible));
+	}
+
+	private boolean isTagDifferent() {
+
+		return actions.stream().anyMatch(ai -> ai.visible != tagActions.get(ai.action.getClass().getName()));
+	}
+
+	private boolean isTagAppearing() {
+
+		return actions.stream().anyMatch(ai -> ai.visible && !tagActions.get(ai.action.getClass().getName()));
+	}
+
+	private void reconfigureTags() {
+
+		for (ActionIndicator action : actions) {
+
+			remove(action);
+		}
+		toDestroy.addAll(actions);
+
+		actions.clear();
+		tagActions.clear();
+		ActionIndicator.instances.clear();
+
+		ActionIndicator.sortActions().forEach(a -> {
+
+			ActionIndicator action = new ActionIndicator(a);
+			ActionIndicator.instances.add(action);
+			action.camera = uiCamera;
+			actions.add(action);
+			tagActions.put(a.getClass().getName(), action.visible);
+			add( action );
+		});
+	}
+
 	private static Point lastOffset = null;
 
 	@Override
@@ -758,7 +817,7 @@ private static float waterOfs = 0;
 
 	private boolean tagAttack    = false;
 	private boolean tagLoot      = false;
-	private boolean tagAction    = false;
+	private final Map<String, Boolean> tagActions = new HashMap<>();
 	private boolean tagResume    = false;
 
 	public static void layoutTags() {
@@ -817,10 +876,10 @@ private static float waterOfs = 0;
 			pos = scene.loot.top();
 		}
 
-		if (scene.tagAction) {
-			scene.action.setRect( tagLeft, pos - Tag.SIZE, tagWidth, Tag.SIZE );
-			scene.action.flip(tagsOnLeft);
-			pos = scene.action.top();
+		for (ActionIndicator action : scene.actions.stream().filter(a -> scene.tagActions.get(a.action.getClass().getName())).collect(Collectors.toList())) {
+			action.setRect( tagLeft, pos - Tag.SIZE, tagWidth, Tag.SIZE );
+			action.flip(tagsOnLeft);
+			pos = action.top();
 		}
 
 		if (scene.tagResume) {

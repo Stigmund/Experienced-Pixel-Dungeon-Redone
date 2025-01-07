@@ -515,7 +515,7 @@ private static boolean evaluatingTwinUpgrades = false;
 				partialCharge = 0;
 			}
 
-			if (ActionIndicator.action != this && Dungeon.hero.subClass == HeroSubClass.CHAMPION) {
+			if (!ActionIndicator.hasAction(this) && Dungeon.hero.subClass == HeroSubClass.CHAMPION) {
 				ActionIndicator.setAction(this);
 			}
 
