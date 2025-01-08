@@ -49,6 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.PsycheChest;
 import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.FoodBag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.PotionBandolier;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.ScrollHolder;
@@ -274,6 +275,8 @@ public enum HeroClass {
 		Dungeon.LimitedDrops.POTION_BANDOLIER.drop();
 		new MagicalHolster().collect();
 		Dungeon.LimitedDrops.MAGICAL_HOLSTER.drop();
+		new FoodBag().collect();
+		Dungeon.LimitedDrops.FOOD_BAG.drop();
 
 		new PotionOfHealing().identify();
 		new ScrollOfRage().identify();

@@ -161,6 +161,7 @@ public class Dungeon {
 		SCROLL_HOLDER,
 		POTION_BANDOLIER,
 		MAGICAL_HOLSTER,
+		FOOD_BAG,
 
         TOME_OF_MASTERY,
         ARMOR_KIT,

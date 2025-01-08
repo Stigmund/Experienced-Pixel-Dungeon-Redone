@@ -90,6 +90,7 @@ public enum Icons {
 	ARENA,
 	FINAL_MIMIC,
 	CHEESY_CHEEST,
+	FOOD_BAG,
 
 	STAIRS,
 	STAIRS_CHASM,
@@ -345,7 +346,10 @@ public enum Icons {
 			case CHEESY_CHEEST:
 				icon.frame( icon.texture.uvRectBySize( 227, 80, 10, 10 ) );
 				break;
-
+			case FOOD_BAG:
+				icon = new Image( Assets.StigIcons.CUSTOM_ICONS );
+				icon.frame( icon.texture.uvRectBySize( 0, 0, 10, 10 ) );
+				break;
 			case TARGET:
 				icon.frame( icon.texture.uvRectBySize( 0, 32, 16, 16 ) );
 				break;

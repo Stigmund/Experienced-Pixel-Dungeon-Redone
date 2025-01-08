@@ -350,5 +350,6 @@ public class Assets {
 	public static class StigIcons {
 
 		public static final String CHANGELOG_MAN= "stigimages/changelog_man.png";
+		public static final String CUSTOM_ICONS = "stigimages/icons.png";
 	}
 }
