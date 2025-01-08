@@ -144,6 +144,7 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
             @Override
             public void onClick() {
                 hide();
+                ShatteredPixelDungeon.scene().addToFront(new WndGame());
             }
         };
         cancel.setRect(((float) WIDTH / 2) +1, pos, ((float) WIDTH / 2) - 1, 20);
@@ -173,6 +174,11 @@ public class WndCopyGame extends Window implements WndUsesHeroSelector {
             if (!fromRunningGame) {
 
                 ShatteredPixelDungeon.switchNoFade(StartScene.class);
+            }
+            else {
+
+                hide();
+                ShatteredPixelDungeon.scene().addToFront(new WndGame());
             }
             AnimatedToast.toast(String.format("Copied Slot %d to Slot %d!", currentSlot, overwriteSlot));
         }
