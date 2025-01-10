@@ -952,6 +952,20 @@ public enum Talent {
 		}
 	}
 
+	public static void removeArmourTalents(ArmorAbility abil, ArrayList<LinkedHashMap<Talent, Integer>> talents) {
+
+		if (talents.size() >= MAX_TALENT_TIERS) {
+
+			Map<Talent, Integer> tm = talents.get(3);
+			if (tm != null) {
+				for (Talent t : abil.talents()) {
+					tm.remove(t);
+				}
+			}
+
+		}
+	}
+
 	private static final String TALENT_TIER = "talents_tier_";
 
 	public static void storeTalentsInBundle( Bundle bundle, Hero hero ){

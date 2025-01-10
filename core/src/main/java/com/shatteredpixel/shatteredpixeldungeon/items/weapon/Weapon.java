@@ -412,6 +412,14 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 		return enchant( ench );
 	}
 
+	public boolean hasEnchantment() {
+		return enchantment != null;
+	}
+
+	public boolean hasAugment() {
+		return augment != null && !augment.equals(Augment.NONE);
+	}
+
 	public boolean hasEnchant(Class<?extends Enchantment> type, Char owner) {
 		return enchantment != null && enchantment.getClass() == type && owner.buff(MagicImmune.class) == null;
 	}

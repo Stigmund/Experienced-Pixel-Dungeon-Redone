@@ -664,6 +664,14 @@ public class Armor extends EquipableItem implements EquipableItem.Tierable {
 		return inscribe( gl );
 	}
 
+	public boolean hasGlyph() {
+		return glyph != null;
+	}
+
+	public boolean hasAugment() {
+		return augment != null && !augment.equals(Augment.NONE);
+	}
+
 	public boolean hasGlyph(Class<?extends Glyph> type, Char owner) {
 		return glyph != null && glyph.getClass() == type && owner.buff(MagicImmune.class) == null;
 	}

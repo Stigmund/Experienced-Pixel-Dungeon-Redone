@@ -31,14 +31,18 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.KingsCrown;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
+import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
@@ -49,12 +53,15 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ItemButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -386,9 +393,12 @@ public class WndBlacksmith extends Window {
 				@Override
 				protected void onClick() {
 
-					Item first, second;
-					first = btnItem1.item();
-					second = btnItem2.item();
+					Item detach, upgrade;
+					boolean classArmourSwap = (btnItem1.item() instanceof Armor && btnItem2.item() instanceof ClassArmor);
+					boolean kingsCrownToDrop = (!(btnItem1.item() instanceof Armor) && btnItem2.item() instanceof ClassArmor);
+					upgrade = classArmourSwap ? btnItem2.item() : btnItem1.item();
+					detach = classArmourSwap ? btnItem1.item() : btnItem2.item();
+					boolean wasEquipped = false;
 
 					/*if (btnItem1.item() instanceof EquipableItem.Tierable && btnItem2.item() instanceof EquipableItem.Tierable){
 						if (((EquipableItem.Tierable) btnItem1.item()).tier() < ((EquipableItem.Tierable) btnItem2.item()).tier()) {
@@ -405,29 +415,99 @@ public class WndBlacksmith extends Window {
 					ScrollOfUpgrade.upgrade( Dungeon.hero );
 					Item.evoke( Dungeon.hero );
 
-					if (second.isEquipped( Dungeon.hero )) {
-						((EquipableItem)second).doUnequip( Dungeon.hero, false );
+					if (detach.isEquipped( Dungeon.hero )) {
+						wasEquipped = true;
+						((EquipableItem)detach).doUnequip( Dungeon.hero, false );
 					}
-					second.detach( Dungeon.hero.belongings.backpack );
 
-					if (second instanceof Armor){
-						BrokenSeal seal = ((Armor) second).checkSeal();
+					// if we consume the hero armour, re-drop the crown!
+					// most is dealt with in ClassArmor.doUnequip()
+					if (kingsCrownToDrop) {
+						Talent.removeArmourTalents(Dungeon.hero.armorAbility, Dungeon.hero.talents);
+						Dungeon.level.drop( new KingsCrown(), Dungeon.hero.pos );
+						Dungeon.hero.armorAbility = null;
+					}
+
+					detach.detach( Dungeon.hero.belongings.backpack );
+
+					if (detach instanceof Armor){
+						BrokenSeal seal = ((Armor) detach).checkSeal();
 						if (seal != null){
 							Dungeon.level.drop( seal, Dungeon.hero.pos );
 						}
 					}
-					if (first instanceof MissileWeapon && first.quantity() > 1){
-						first = first.split(1);
+
+
+					if (upgrade instanceof MissileWeapon && upgrade.quantity() > 1){
+						upgrade = upgrade.split(1);
 					}
 
-					long level = first.trueLevel();
-					first.level(level+second.trueLevel()+1); //prevents on-upgrade effects like enchant/glyph removal
-					if (first instanceof MissileWeapon && !Dungeon.hero.belongings.contains(first)) {
-						if (!first.collect()){
-							Dungeon.level.drop( first, Dungeon.hero.pos );
+					long level = upgrade.trueLevel();
+					upgrade.level(level+detach.trueLevel()+1); //prevents on-upgrade effects like enchant/glyph removal
+					if (upgrade instanceof MissileWeapon && !Dungeon.hero.belongings.contains(upgrade)) {
+						if (!upgrade.collect()){
+							Dungeon.level.drop( upgrade, Dungeon.hero.pos );
 						}
 					}
-					Badges.validateItemLevelAquired( first );
+
+					// [CHANGED] if "to" weapon doesn't have an enchantment or augment, copy those too
+					if (upgrade instanceof Weapon && detach instanceof Weapon) {
+
+						Weapon w1 = (Weapon) upgrade;
+						Weapon w2 = (Weapon) detach;
+
+						if (!w1.hasEnchantment() && w2.hasEnchantment()) {
+
+							w1.enchant((Weapon.Enchantment) Reflection.newInstance(w2.enchantment.getClass()));
+							//GLog.p(Messages.get(StoneOfEnchantment.class, "weapon"));
+						}
+						if (!w1.hasAugment() && w2.hasAugment()) {
+
+							w1.augment = w2.augment;
+						}
+
+						if (!w1.enchantHardened && w2.enchantHardened) {
+
+							w1.enchantHardened = true;
+						}
+					}
+					else if (upgrade instanceof Armor && detach instanceof Armor) {
+
+						Armor a1 = (Armor) upgrade;
+						Armor a2 = (Armor) detach;
+
+						// if we are swapping class armour over, we "keep" the enchantment from the class armour
+						// when classArmourSwap == true, the non class armour's enchantment and augments need to be transferred if they exist.
+						// if they dont exist, the armour keeps it's current enchants/augs as that is the same as applying when classArmourSwap == false
+						if ((classArmourSwap && a2.hasGlyph()) || (!classArmourSwap && !a1.hasGlyph() && a2.hasGlyph())) {
+
+							a1.inscribe((Armor.Glyph) Reflection.newInstance(a2.glyph.getClass()));
+						}
+
+						if ((classArmourSwap && a2.hasAugment()) || (!classArmourSwap && !a1.hasAugment() && a2.hasAugment())) {
+
+							a1.augment = a2.augment;
+						}
+
+						if ((classArmourSwap && a1.glyphHardened) || (!classArmourSwap && !a1.glyphHardened && a2.glyphHardened)) {
+
+							a1.glyphHardened = true;
+						}
+
+						if (classArmourSwap && a2.tier < a1.tier) {
+
+							a1.tier = a2.tier;
+						}
+
+						// if consumed class armour to upgrade, the class armour will be kept and swapped
+						// so if it's not equipped
+						if (classArmourSwap && wasEquipped) {
+
+							((Armor) upgrade).doEquip(Dungeon.hero);
+						}
+					}
+
+					Badges.validateItemLevelAquired( upgrade );
 					Item.updateQuickslot();
 
 					// [CHANGED] static cost 2500
