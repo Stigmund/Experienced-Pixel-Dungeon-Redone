@@ -740,7 +740,7 @@ private static float waterOfs = 0;
 		}
 
 		// if our tracked tag booleans don't match the instance booleans
-		if (instances.entrySet().stream().anyMatch(es -> es.getValue().visible != tagActions.get(es.getKey()))) {
+		if (instances.entrySet().stream().anyMatch(es -> es.getValue().visible != Optional.ofNullable(tagActions.get(es.getKey())).orElse(false))) {
 
 			return true;
 		}
