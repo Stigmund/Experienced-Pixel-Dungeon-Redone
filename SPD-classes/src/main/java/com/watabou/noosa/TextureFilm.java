@@ -29,6 +29,7 @@ import com.watabou.gltextures.TextureCache;
 import com.watabou.utils.RectF;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class TextureFilm {
 	
@@ -52,23 +53,54 @@ public class TextureFilm {
 	public TextureFilm( SmartTexture texture, int width ) {
 		this( texture, width, texture.height );
 	}
-	
+
 	public TextureFilm( Object tx, int width, int height ) {
 
 		SmartTexture texture = TextureCache.get( tx );
-		
+
 		texWidth = texture.width;
 		texHeight = texture.height;
-		
+
 		float uw = (float)width / texWidth;
 		float vh = (float)height / texHeight;
 		int cols = texWidth / width;
 		int rows = texHeight / height;
-		
+
 		for (int i=0; i < rows; i++) {
 			for (int j=0; j < cols; j++) {
 				RectF rect = new RectF( j * uw, i * vh, (j+1) * uw, (i+1) * vh );
 				add( i * cols + j, rect );
+			}
+		}
+	}
+
+
+	// See FloatingText.java
+	public static final int[] PAGES = {0, 28};
+	public TextureFilm(List<Object> txs, int width, int height ) {
+
+		int pageOffset = 0;
+		int page = 0;
+		for (Object tx : txs) {
+
+			pageOffset = PAGES[page++];
+			SmartTexture texture = TextureCache.get( tx );
+
+			texWidth = texture.width;
+			texHeight = texture.height;
+
+			float uw = (float)width / texWidth;
+			float vh = (float)height / texHeight;
+			int cols = texWidth / width;
+			int rows = texHeight / height;
+			int id = 0;
+
+			for (int i=0; i < rows; i++) {
+				for (int j=0; j < cols; j++) {
+					RectF rect = new RectF( j * uw, i * vh, (j+1) * uw, (i+1) * vh );
+					id = i * cols + j + pageOffset;
+					add( id, rect );
+				}
 			}
 		}
 	}

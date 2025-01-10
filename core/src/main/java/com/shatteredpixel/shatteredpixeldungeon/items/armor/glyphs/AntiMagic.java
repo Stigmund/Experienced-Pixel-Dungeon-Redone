@@ -189,14 +189,100 @@ public class AntiMagic extends Armor.Glyph {
 					&& armor.hasGlyph(AntiMagic.class, _char)
 					&& AntiMagic.IMMUNITIES.contains(_magic)) {
 
-				String name = Messages.get(_magic, "resist_name");
-				if (name.contains(NO_TEXT_FOUND)) name = _magic.getSimpleName() +"?";
+				Resisted txt = getFlavourText(_magic);
+				_char.sprite.showStatusWithIcon(txt.colour(), txt.name(), txt.icon());
 
-				_char.sprite.showStatusWithIcon(CharSprite.RESIST, Messages.get(Buff.class, "antimagic_resist", name), FloatingText.SHIELDING);
 				return true;
 			}
 		}
 
 		return resisted;
+	}
+	
+	private static Resisted getFlavourText(Class<?> _magic) {
+
+		String name = Messages.get(_magic, "resist_name");
+		if (name.contains(NO_TEXT_FOUND)) name = _magic.getSimpleName() +"?";
+		name = Messages.get(Buff.class, "antimagic_resist", name);
+		
+		if (_magic.isAssignableFrom(MagicalSleep.class)) {
+
+			return new Resisted(name, FloatingText.MAGIC_SLEEP, 0xFFFFF);
+		}
+		else if (_magic.isAssignableFrom(Charm.class)) {
+
+			return new Resisted(name, FloatingText.CHARM, 0xFF3355);
+		}
+		else if (_magic.isAssignableFrom(Weakness.class)) {
+
+			return new Resisted(name, FloatingText.WEAKNESS, 0x5E1A80);
+		}
+		else if (_magic.isAssignableFrom(Vulnerable.class)) {
+
+			return new Resisted(name, FloatingText.VULNERABLE, 0x5E1A80);
+		}
+		else if (_magic.isAssignableFrom(Hex.class)) {
+
+			return new Resisted(name, FloatingText.HEX, 0x5E1A80);
+		}
+		else if (_magic.isAssignableFrom(Degrade.class)) {
+
+			return new Resisted(name, FloatingText.DEGRADE, 0x5E1A80);
+		}
+		else if (_magic.isAssignableFrom(Blindness.class)) {
+
+			return new Resisted(name, FloatingText.BLINDNESS, 0x47649D);
+		}
+		else if (_magic.isAssignableFrom(Corruption.class)) {
+
+			return new Resisted(name, FloatingText.CORRUPTION, 0xFFFFF);
+		}
+		else if (_magic.isAssignableFrom(Paralysis.class)) {
+
+			return new Resisted(name, FloatingText.PARALYSIS, 0xFFDB65);
+		}
+		else if (_magic.isAssignableFrom(CorrosiveGas.class) || _magic.isAssignableFrom(Corrosion.class)) {
+
+			return new Resisted(name, FloatingText.CORROSION, 0xFF8800);
+		}
+		else if (_magic.isAssignableFrom(ToxicGas.class)) {
+
+			return new Resisted(name, FloatingText.TOXIC, 0x50FF60);
+		}
+		else if (_magic.isAssignableFrom(Poison.class)) {
+
+			return new Resisted(name, FloatingText.POISON, 0x993399);
+		}
+		else if (_magic.isAssignableFrom(Ooze.class)) {
+
+			return new Resisted(name, FloatingText.OOZE, 0x008056);
+		}
+
+		return new Resisted(name, FloatingText.SHIELDING, CharSprite.DEFAULT);
+	}
+
+	public static class Resisted {
+
+		private final String name;
+		private final int icon;
+		private final int colour;
+		
+		public Resisted(String name, int icon, int colour) {
+
+			this.name = name;
+			this.icon = icon;
+			this.colour = colour;
+		}
+
+		public String name() {
+			return this.name;
+		}
+		public int icon() {
+			return this.icon;
+		}
+		
+		public int colour() {
+			return this.colour;
+		}
 	}
 }
