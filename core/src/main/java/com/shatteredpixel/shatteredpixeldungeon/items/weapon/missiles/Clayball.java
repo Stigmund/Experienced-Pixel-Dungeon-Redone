@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DemonSpawner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Slime;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -43,6 +44,8 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Point;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Clayball extends MissileWeapon {
 	
@@ -77,7 +80,7 @@ public class Clayball extends MissileWeapon {
 
 		Dungeon.level.pressCell(cell);
 
-		ArrayList<Char> targets = new ArrayList<>();
+		Set<Char> targets = new HashSet<>();
 		if (Actor.findChar(cell) != null) targets.add(Actor.findChar(cell));
 
 		boolean[] FOV = new boolean[Dungeon.level.length()];
@@ -98,7 +101,13 @@ public class Clayball extends MissileWeapon {
 		}
 
 		for (Char target : targets){
-			if (target != Dungeon.hero) {
+			if (target instanceof Shopkeeper) {
+
+				// can't be fucking arsed anymore! Shop man flees, no point in letting stuff happen or figuring out orders
+				// because the buff causes damage and prevents the damage action from occurring, which prevents key drops!
+				target.damage(0, this);
+			}
+			else if (target != Dungeon.hero) {
 				Viscosity.DeferedDamage dmg = Buff.affect(target, Viscosity.DeferedDamage.class);
 				if (dmg != null) {
 					dmg.prolong(target.HT * 10);

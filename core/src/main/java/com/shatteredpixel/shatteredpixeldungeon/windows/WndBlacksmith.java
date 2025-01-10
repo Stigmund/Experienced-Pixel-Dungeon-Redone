@@ -240,6 +240,7 @@ public class WndBlacksmith extends Window {
 		for (BlacksmithButton b : buttons){
 			b.leftJustify = true;
 			b.multiline = true;
+			b.updateText();
 			b.setSize(width, b.reqHeight());
 			b.setRect(0, pos, width, b.reqHeight());
 			b.enable(b.active); //so that it's visually reflected
