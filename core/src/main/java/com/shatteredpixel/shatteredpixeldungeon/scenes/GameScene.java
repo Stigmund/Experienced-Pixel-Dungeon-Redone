@@ -343,8 +343,6 @@ public class GameScene extends PixelScene {
 		resume.camera = uiCamera;
 		add( resume );
 
-		//reconfigureTags();
-
 		loot = new LootIndicator();
 		loot.camera = uiCamera;
 		add( loot );
@@ -769,11 +767,10 @@ private static float waterOfs = 0;
 		}));
 
 		invalidTags.forEach(s -> {
-
 			Optional<ActionIndicator> oa = ActionIndicator.getInstance(s);
-			boolean visible = oa.map(ai -> ai.visible).orElse(false);
 
-			tagActions.put(s, visible);
+			oa.ifPresent(actionIndicator -> actionIndicator.camera = uiCamera);
+			tagActions.put(s, oa.map(ai -> ai.visible).orElse(false));
 		});
 	}
 

@@ -66,17 +66,7 @@ public class ActionIndicator extends Tag {
 
 		//this.action = action;
 		this.name = action.key();
-
-		ActionIndicator instance = instances.get(name);
-		if (instance != null) {
-
-			//instance.action = action;
-			instance.needsRefresh = true;
-		}
-		else {
-
-			instances.put(name, this);
-		}
+		instances.put(name, this);
 	}
 
 	public static Optional<Action> getAction(Action action) {
