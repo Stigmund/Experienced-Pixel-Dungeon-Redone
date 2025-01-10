@@ -27,10 +27,12 @@ package com.shatteredpixel.shatteredpixeldungeon.items.spells;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Identification;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -43,24 +45,62 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
 import com.watabou.noosa.audio.Sample;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-public class IdentificationBomb extends Spell {
+public class IdentificationBomb extends Spell implements ToggleAction {
 
     {
-        image = ItemSpriteSheet.IDENTIFY_BOMB;
+        image = ItemSpriteSheet.IDENTIFY_BOMB_IDENTIFY;
     }
 
     @Override
     protected void onCast(Hero hero) {
-        Sample.INSTANCE.play( Assets.Sounds.BLAST, 2f );
-        detach( hero.belongings.backpack );
-        GameScene.flash( 0x8000A0FF );
-        GLog.i(Messages.get(IdentificationBomb.class, "blast"));
-        CellEmitter.center(hero.pos).burst(BlastParticle.FACTORY, 100);
-        Catalog.countUse(getClass());
+
+        switch (SPDSettings.identificationBomb()) {
+            default:
+            case IDENTIFY:
+                identifyAllUnidentifiedItems(hero);
+                break;
+            case DESTROY:
+                destroyAllUnidentifiedItems(hero);
+                break;
+        }
+    }
+
+    private void identifyAllUnidentifiedItems(Hero hero) {
+
+        useItem(hero);
+
+        curUser.sprite.parent.add( new Identification( curUser.sprite.center().offset( 0, -16 ) ) );
+
+        // identify equipped items if unidentified (existing function)
+        int identifiedItems = hero.belongings.observe();
+
+        List<Item> toIdentify = hero.belongings.getBags()
+                                    .stream()
+                                    .flatMap(b -> b.items.stream().filter(i -> !i.isIdentified()))
+                                    .collect(Collectors.toList());
+
+        identifiedItems += toIdentify.size();
+
+        // identify items first!
+        toIdentify.forEach(item -> {
+
+            item.identify();
+            Badges.validateItemLevelAquired(item);
+        });
+
+        bombFeedback(hero, identifiedItems);
+    }
+
+    private void destroyAllUnidentifiedItems(Hero hero) {
+
+        useItem(hero);
 
         int destroyedItems = 0;
         ArrayList<Item> toDestroy = new ArrayList<>();
@@ -76,11 +116,30 @@ public class IdentificationBomb extends Spell {
             item.detachAll(hero.belongings.backpack);
         }
 
-        hero.damage(Math.max(0, Math.round(hero.HT*(0.66d * Math.pow(0.9, destroyedItems)))), new Bomb.ConjuredBomb());
+        bombFeedback(hero, destroyedItems);
+    }
+
+    private void useItem(Hero hero) {
+
+        Sample.INSTANCE.play( Assets.Sounds.BLAST, 2f );
+        detach( hero.belongings.backpack );
+        GameScene.flash( 0x8000A0FF );
+        GLog.i(Messages.get(IdentificationBomb.class, "blast"));
+        CellEmitter.center(hero.pos).burst(BlastParticle.FACTORY, 100);
+        Catalog.countUse(getClass());
+    }
+
+    private void bombFeedback(Hero hero, int itemCount) {
+
+        hero.damage(Math.max(0, Math.round(hero.HT*(0.66d * Math.pow(0.9, itemCount)))), new Bomb.ConjuredBomb());
+
         if (hero.isAlive()) {
+
             Buff.prolong(hero, Blindness.class, Blindness.DURATION);
             Dungeon.observe();
-        } else {
+        }
+        else {
+
             Badges.validateDeathFromFriendlyMagic();
             Dungeon.fail( Bomb.class );
             GLog.n( Messages.get(Bomb.class, "ondeath") );
@@ -106,5 +165,54 @@ public class IdentificationBomb extends Spell {
             outQuantity = OUT_QUANTITY;
         }
 
+    }
+
+    @Override
+    public boolean doToggleAction() {
+
+        IdentifyBombType state = SPDSettings.identificationBomb().toggle();
+        SPDSettings.identificationBomb(state);
+
+        // Can't be arsed to figure out how to "easily" have item sprites from other files!
+        //setSprite(state);
+
+        return state.equals(IdentifyBombType.IDENTIFY);
+    }
+
+    private void setSprite(IdentifyBombType state) {
+
+        switch (state) {
+            default:
+            case IDENTIFY:
+                image = ItemSpriteSheet.IDENTIFY_BOMB_IDENTIFY;
+            case DESTROY:
+                image = ItemSpriteSheet.IDENTIFY_BOMB_DESTROY;
+        }
+    }
+
+    public enum IdentifyBombType {
+        IDENTIFY, DESTROY;
+
+        public IdentifyBombType toggle() {
+
+            switch (this) {
+                default:
+                case IDENTIFY:
+                    return DESTROY;
+                case DESTROY:
+                    return IDENTIFY;
+            }
+        }
+
+        public static IdentifyBombType from(String string) {
+
+            switch (string) {
+                default:
+                case "IDENTIFY":
+                    return IDENTIFY;
+                case "DESTROY":
+                    return DESTROY;
+            }
+        }
     }
 }

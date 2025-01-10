@@ -48,6 +48,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShaftParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Dressable;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Brimstone;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
@@ -529,7 +530,7 @@ public class DriedRose extends Artifact {
 
 	}
 
-	public static class GhostHero extends DirectableAlly {
+	public static class GhostHero extends DirectableAlly implements Dressable {
 
 		{
 			spriteClass = GhostSprite.class;

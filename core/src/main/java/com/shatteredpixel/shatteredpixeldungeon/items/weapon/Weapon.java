@@ -131,7 +131,7 @@ abstract public class Weapon extends KindOfWeapon implements EquipableItem.Tiera
 			damage = enchantment.proc( this, attacker, defender, damage );
 		}
 
-		damage = KingBlade.checkAndProc((Hero) attacker, defender, this, damage);
+		damage = KingBlade.checkAndProc(attacker, defender, this, damage);
 
 		if (!levelKnown && attacker == Dungeon.hero) {
 			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero, this) );

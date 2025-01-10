@@ -318,28 +318,37 @@ public class Belongings implements Iterable<Item> {
 		}
 	}
 	
-	public void observe() {
+	public int observe() {
+
+		int identifiedCount = 0;
+
 		if (weapon() != null) {
+			if (!weapon().isIdentified()) identifiedCount++;
 			weapon().identify();
 			Badges.validateItemLevelAquired(weapon());
 		}
 		if (armor() != null) {
+			if (!armor().isIdentified()) identifiedCount++;
 			armor().identify();
 			Badges.validateItemLevelAquired(armor());
 		}
 		if (artifact() != null) {
+			if (!artifact().isIdentified()) identifiedCount++;
 			artifact().identify();
 			Badges.validateItemLevelAquired(artifact());
 		}
 		if (misc() != null) {
+			if (!misc().isIdentified()) identifiedCount++;
 			misc().identify();
 			Badges.validateItemLevelAquired(misc());
 		}
 		if (ring() != null) {
+			if (!ring().isIdentified()) identifiedCount++;
 			ring().identify();
 			Badges.validateItemLevelAquired(ring());
 		}
 		if (secondWep() != null){
+			if (!secondWep().isIdentified()) identifiedCount++;
 			secondWep().identify();
 			Badges.validateItemLevelAquired(secondWep());
 		}
@@ -349,6 +358,8 @@ public class Belongings implements Iterable<Item> {
 			}
 		}
 		Item.updateQuickslot();
+
+		return identifiedCount;
 	}
 	
 	public void uncurseEquipped() {

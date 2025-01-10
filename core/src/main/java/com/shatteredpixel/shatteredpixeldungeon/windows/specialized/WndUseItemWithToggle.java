@@ -1,20 +1,31 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows.specialized;
 
-import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks.addPerk;
-import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks.earnPerk;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.CheeseCheest;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CheckBox;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
 
-public class WndCheeseCheest extends WndUseItem implements WndCustom {
+import java.util.function.Consumer;
 
-    public WndCheeseCheest(Window owner, Item item) {
+/**
+ * Same as WndUseItem but with one additional "toggle" button.
+ * Items that use this must:
+ * - implement ToggleAction.class
+ * - set itemWindow = WndUseItemWithToggle.class;
+ */
+public class WndUseItemWithToggle extends WndUseItem {
+
+    /**
+     * Constructor MUST be "ClassName(Window owner, Item item)" to work via reflection.
+     * @param owner
+     * @param item
+     */
+    public WndUseItemWithToggle(Window owner, Item item) {
 
         super(owner, item);
 
@@ -22,13 +33,12 @@ public class WndCheeseCheest extends WndUseItem implements WndCustom {
 
         if (Dungeon.hero.isAlive() && Dungeon.hero.belongings.contains(item)) {
 
-            CheckBox checkBox = new CheckBox(item.actionName(CheeseCheest.AC_GLITCH, Dungeon.hero)) {
+            CheckBox checkBox = new CheckBox(getItem(item).getToggleButtonText()) {
 
                 @Override
                 protected void onClick() {
 
-                    executeItemAction(owner, item, CheeseCheest.AC_GLITCH, true, false);
-                    //addPerk(Dungeon.hero);
+                    super.checked(getItem(item).toggleAction());
                 }
             };
             checkBox.enable(true);
@@ -42,10 +52,13 @@ public class WndCheeseCheest extends WndUseItem implements WndCustom {
             y += BUTTON_HEIGHT;
 
             add( checkBox );
-
-            //y = layoutButtons(buttons, width, y);
         }
 
         resize(width, ((int) y));
+    }
+
+    private ToggleAction getItem(Item item) {
+
+        return (ToggleAction) item;
     }
 }

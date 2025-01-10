@@ -83,6 +83,8 @@ public class SPDAction extends GameAction {
 
 	public static final GameAction TAG_ATTACK   = new SPDAction("tag_attack");
 	public static final GameAction TAG_ACTION   = new SPDAction("tag_action");
+
+	// wont change! fuck off lol (one hotkey worked when only one action was present, now multiple are, its too much work!)
 	public static final GameAction TAG_LOOT     = new SPDAction("tag_loot");
 	public static final GameAction TAG_RESUME   = new SPDAction("tag_resume");
 

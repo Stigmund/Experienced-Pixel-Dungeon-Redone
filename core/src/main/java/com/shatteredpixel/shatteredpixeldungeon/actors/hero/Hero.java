@@ -95,6 +95,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.PsycheChest;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Dressable;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Brimstone;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
@@ -195,7 +196,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class Hero extends Char {
+public class Hero extends Char implements Dressable {
 
     {
         actPriority = HERO_PRIO;
@@ -2746,6 +2747,12 @@ if (!Dungeon.level.visited[cell] && !Dungeon.level.mapped[cell]
 		if (isAlive())
 			super.next();
 			}
+
+	@Override
+	public Armor armor() {
+
+		return belongings.armor();
+	}
 
 	public static interface Doom {
 		public void onDeath();

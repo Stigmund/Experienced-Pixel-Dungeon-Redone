@@ -27,24 +27,20 @@ package com.shatteredpixel.shatteredpixeldungeon.items.quest;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Perks;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Unstable;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndCheeseCheest;
-import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndKingBlade;
-import com.watabou.utils.Random;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndUseItemWithToggle;
 
-public class KingBlade extends Item {
-    public static final String AC_TOGGLE = "TOGGLE";
-
+public class KingBlade extends Item implements ToggleAction {
     {
         image = ItemSpriteSheet.KING_BLADE;
 
-        itemWindow = WndKingBlade.class;
+        itemWindow = WndUseItemWithToggle.class;
     }
 
     public static long checkAndProc(Char _attacker, Char _defender, Weapon _weapon, long _damage) {
@@ -81,20 +77,12 @@ public class KingBlade extends Item {
                 Messages.get(KingBlade.class, "procs", _procName1, _procName2)));
     }
 
-    @Override
-    public void execute(Hero hero, String action ) {
+    public boolean doToggleAction() {
 
-        super.execute( hero, action );
+        boolean state = !SPDSettings.kingBlade();
+        SPDSettings.kingBlade(state);
 
-        if (action.equals( AC_TOGGLE )) {
-
-            boolean state = !SPDSettings.kingBlade();
-            SPDSettings.kingBlade(state);
-
-            GLog.i(String.format("%s%s",
-                    (state ? GLog.POSITIVE : GLog.NEGATIVE),
-                    Messages.get(this, "toggle", (SPDSettings.kingBlade() ? "On" : "Off"))));
-        }
+        return state;
     }
 
     @Override

@@ -56,7 +56,7 @@ import com.watabou.utils.Reflection;
 
 public class WndUpgrade extends Window {
 
-	private static final int WIDTH = 180;
+	private static final int WIDTH = PixelScene.landscape() ? 180 : 120;
 
 	private static final float COL_1 = WIDTH/6f;
 	private static final float COL_2 = 3*WIDTH/6f;
@@ -77,6 +77,7 @@ public class WndUpgrade extends Window {
 	}
 
 	public WndUpgrade( Item upgrader, Item toUpgrade, boolean force, long amount){
+
 
 		this.upgrader = upgrader;
 		this.force = force;

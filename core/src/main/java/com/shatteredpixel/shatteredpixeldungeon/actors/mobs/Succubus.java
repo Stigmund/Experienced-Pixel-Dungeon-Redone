@@ -117,44 +117,31 @@ public class Succubus extends Mob {
 	public long attackProc( Char enemy, long damage ) {
 		damage = super.attackProc( enemy, damage );
 
-		// [CHANGED] Succubus looks for AnitMagic Glyph!
-		// (better to look for "any" antimagic?
-		if (enemy instanceof Hero) {
-
-			Hero hero = (Hero) enemy;
-			if (hero.belongings.armor == null || !(hero.belongings.armor.glyph instanceof AntiMagic)) {
-
-				if (enemy.buff(Charm.class) != null ){
-					long shield = (HP - HT) + (5 + damage);
-					if (shield > 0){
-						HP = HT;
-						if (shield < 5){
-							sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(5-shield), FloatingText.HEALING);
-						}
-
-						Buff.affect(this, Barrier.class).setShield(shield);
-						sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(shield), FloatingText.SHIELDING);
-					} else {
-						HP += 5 + damage;
-						sprite.showStatusWithIcon(CharSprite.POSITIVE, "5", FloatingText.HEALING);
-					}
-					if (Dungeon.level.heroFOV[pos]) {
-						Sample.INSTANCE.play( Assets.Sounds.CHARMS );
-					}
-				} else if (Random.Int( 3 ) == 0) {
-					Charm c = Buff.affect( enemy, Charm.class, Charm.DURATION/2f );
-					c.object = id();
-					c.ignoreNextHit = true; //so that the -5 duration from succubus hit is ignored
-					if (Dungeon.level.heroFOV[enemy.pos]) {
-						enemy.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 5);
-						Sample.INSTANCE.play(Assets.Sounds.CHARMS);
-					}
+		if (enemy.buff(Charm.class) != null ){
+			long shield = (HP - HT) + (5 + damage);
+			if (shield > 0){
+				HP = HT;
+				if (shield < 5){
+					sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(5-shield), FloatingText.HEALING);
 				}
-			}
-			//else if (hero.belongings.armor != null && hero.belongings.armor.glyph instanceof AntiMagic) { {
 
-				// find "resisted" damage overhead text
-			//}
+				Buff.affect(this, Barrier.class).setShield(shield);
+				sprite.showStatusWithIcon(CharSprite.POSITIVE, Long.toString(shield), FloatingText.SHIELDING);
+			} else {
+				HP += 5 + damage;
+				sprite.showStatusWithIcon(CharSprite.POSITIVE, "5", FloatingText.HEALING);
+			}
+			if (Dungeon.level.heroFOV[pos]) {
+				Sample.INSTANCE.play( Assets.Sounds.CHARMS );
+			}
+		} else if (Random.Int( 3 ) == 0) {
+			Charm c = Buff.affect( enemy, Charm.class, Charm.DURATION/2f );
+			c.object = id();
+			c.ignoreNextHit = true; //so that the -5 duration from succubus hit is ignored
+			if (Dungeon.level.heroFOV[enemy.pos]) {
+				enemy.sprite.centerEmitter().start(Speck.factory(Speck.HEART), 0.2f, 5);
+				Sample.INSTANCE.play(Assets.Sounds.CHARMS);
+			}
 		}
 
 		return damage;

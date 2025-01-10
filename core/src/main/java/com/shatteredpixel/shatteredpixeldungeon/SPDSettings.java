@@ -25,6 +25,7 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.badlogic.gdx.Preferences;
+import com.shatteredpixel.shatteredpixeldungeon.items.spells.IdentificationBomb;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -66,6 +67,7 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_GLITCH	= "cheest_glitch";
 	public static final String KEY_CAPTURE_LOGS	= "capture_logs";
 	public static final String KEY_KING_BLADE_TOGGLE	= "kingblade_toggle";
+	public static final String KEY_IDENTIFICATION_BOMB_TOGGLE	= "idbomb_toggle";
 
 	public static void set( Preferences prefs, DownloadListener _downloadListener, Locale _local ) {
 
@@ -82,6 +84,16 @@ public class SPDSettings extends GameSettings {
 	public static void kingBlade(boolean _state) {
 
 		put( KEY_KING_BLADE_TOGGLE, _state );
+	}
+
+	public static IdentificationBomb.IdentifyBombType identificationBomb() {
+
+		return IdentificationBomb.IdentifyBombType.from(getString(KEY_IDENTIFICATION_BOMB_TOGGLE, IdentificationBomb.IdentifyBombType.IDENTIFY.toString()));
+	}
+
+	public static void identificationBomb(IdentificationBomb.IdentifyBombType _state) {
+
+		put( KEY_IDENTIFICATION_BOMB_TOGGLE, _state.toString() );
 	}
 
 	public static boolean captureGameLogs() {

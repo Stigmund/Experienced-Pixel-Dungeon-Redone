@@ -87,11 +87,6 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 		try {
 			GdxNativesLoader.load();
 			FreeType.initFreeType();
-
-			/*Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-			intent.setData(Uri.parse("package:" + getPackageName()));
-			startActivity(intent);*/
-
 		} catch (Exception e){
 			AndroidMissingNativesHandler.error = e;
 			Intent intent = new Intent(this, AndroidMissingNativesHandler.class);
@@ -132,7 +127,7 @@ public class AndroidLauncher extends AndroidApplication implements DownloadListe
 			// Note that we use a different prefs name on android for legacy purposes,
 			// this is the default prefs filename given to an android app (.xml is automatically added to it)
 
-			instance.requestPermissions(new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}, EXTERNAL_STORAGE_PERMISSION_CODE);
+			// instance.requestPermissions(new String[]{Manifest.permission.MANAGE_EXTERNAL_STORAGE}, EXTERNAL_STORAGE_PERMISSION_CODE);
 
 			SPDSettings.set(instance.getPreferences("ShatteredPixelDungeon"),
 					this,

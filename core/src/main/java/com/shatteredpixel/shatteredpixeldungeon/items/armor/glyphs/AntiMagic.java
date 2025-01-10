@@ -24,12 +24,21 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs;
 
+import static com.shatteredpixel.shatteredpixeldungeon.messages.Messages.NO_TEXT_FOUND;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.CorrosiveGas;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corrosion;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSleep;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
@@ -43,7 +52,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Dressable;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.ArcaneBomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.HolyBomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRetribution;
@@ -66,6 +77,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocki
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.HolyDart;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.DisintegrationTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GrimTrap;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
 import java.util.HashSet;
@@ -122,9 +135,25 @@ public class AntiMagic extends Armor.Glyph {
 		RESISTS.add( Eye.DeathGaze.class );
 		RESISTS.add( YogFist.BrightFist.LightBeam.class );
 		RESISTS.add( YogFist.DarkFist.DarkBolt.class );
+	}
 
-		RESISTS.add( Paralysis.class );
-		RESISTS.add( Poison.class );
+	public static final HashSet<Class<?>> IMMUNITIES = new HashSet<>();
+	static {
+		IMMUNITIES.add( MagicalSleep.class );
+		IMMUNITIES.add( Charm.class );
+		IMMUNITIES.add( Weakness.class );
+		IMMUNITIES.add( Vulnerable.class );
+		IMMUNITIES.add( Hex.class );
+		IMMUNITIES.add( Degrade.class );
+
+		IMMUNITIES.add( Blindness.class );
+		IMMUNITIES.add( Corruption.class );
+		IMMUNITIES.add( Paralysis.class );
+		IMMUNITIES.add( CorrosiveGas.class );
+		IMMUNITIES.add( Corrosion.class );
+		IMMUNITIES.add( Poison.class );
+		IMMUNITIES.add( Ooze.class );
+		IMMUNITIES.add( ToxicGas.class );
 	}
 	
 	@Override
@@ -149,4 +178,25 @@ public class AntiMagic extends Armor.Glyph {
 		return TEAL;
 	}
 
+	public static boolean resistMagic(Char _char, Class<?> _magic) {
+
+		boolean resisted = false;
+
+		if (_char instanceof Dressable) {
+
+			Armor armor = ((Dressable) _char).armor();
+			if (armor != null
+					&& armor.hasGlyph(AntiMagic.class, _char)
+					&& AntiMagic.IMMUNITIES.contains(_magic)) {
+
+				String name = Messages.get(_magic, "resist_name");
+				if (name.contains(NO_TEXT_FOUND)) name = _magic.getSimpleName() +"?";
+
+				_char.sprite.showStatusWithIcon(CharSprite.RESIST, Messages.get(Buff.class, "antimagic_resist", name), FloatingText.SHIELDING);
+				return true;
+			}
+		}
+
+		return resisted;
+	}
 }

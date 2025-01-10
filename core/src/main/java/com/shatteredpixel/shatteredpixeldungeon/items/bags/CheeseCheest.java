@@ -33,21 +33,20 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndCheeseCheest;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndUseItemWithToggle;
 
-public class CheeseCheest extends Bag {
+public class CheeseCheest extends Bag implements ToggleAction {
 
 	/*
 		Deliberately not added to the actions list, instead an itemWindow is set
 		this is because it's easier/more flexible to rearrange the window
 		instead of coming up with a mechanism to define different action buttons/widths etc.
 	 */
-	public static final String AC_GLITCH = "GLITCH";
-
 	{
 		image = ItemSpriteSheet.CHEEST;
 
-		itemWindow = WndCheeseCheest.class;
+		itemWindow = WndUseItemWithToggle.class;
 	}
 
 	@Override
@@ -83,18 +82,11 @@ public class CheeseCheest extends Bag {
 	}
 
 	@Override
-	public void execute( Hero hero, String action ) {
+	public boolean doToggleAction() {
 
-		super.execute( hero, action );
+		boolean state = !SPDSettings.cheeseChestGlitch();
+		SPDSettings.cheeseChestGlitch(state);
 
-		if (action.equals( AC_GLITCH )) {
-
-			boolean state = !SPDSettings.cheeseChestGlitch();
-			SPDSettings.cheeseChestGlitch(state);
-
-			GLog.i(String.format("%s%s",
-								 (state ? GLog.POSITIVE : GLog.NEGATIVE),
-								 Messages.get(this, "toggle_glitch", (SPDSettings.cheeseChestGlitch() ? "On" : "Off"))));
-		}
+		return state;
 	}
 }

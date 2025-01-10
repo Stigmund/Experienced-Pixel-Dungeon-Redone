@@ -24,6 +24,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
+import static com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.instances;
+
 import com.shatteredpixel.shatteredpixeldungeon.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -86,6 +88,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class GameScene extends PixelScene {
@@ -139,7 +142,6 @@ public class GameScene extends PixelScene {
 
 	private AttackIndicator attack;
 	private LootIndicator loot;
-	private final List<ActionIndicator> actions = new ArrayList<>();
 
 	private ResumeIndicator resume;
 
@@ -341,7 +343,7 @@ public class GameScene extends PixelScene {
 		resume.camera = uiCamera;
 		add( resume );
 
-		reconfigureTags();
+		//reconfigureTags();
 
 		loot = new LootIndicator();
 		loot.camera = uiCamera;
@@ -375,6 +377,7 @@ public class GameScene extends PixelScene {
 			toolbar.setRect( 0, uiCamera.height - toolbar.height(), uiCamera.width, toolbar.height() );
 		}
 
+		reconfigureActionIndicators();
 		layoutTags();
 
 		switch (InterlevelScene.mode) {
@@ -659,10 +662,7 @@ private static float waterOfs = 0;
 			updateItemDisplays = false;
 			QuickSlotButton.refresh();
 			InventoryPane.refresh();
-			if (ActionIndicator.hasAction(MeleeWeapon.Charger.class)) {
-				//Champion weapon swap uses items, needs refreshing whenever item displays are updated
-				ActionIndicator.refresh();
-			}
+			ActionIndicator.refresh();
 		}
 
 		if (Dungeon.hero == null || scene == null) {
@@ -709,40 +709,13 @@ private static float waterOfs = 0;
 			log.newLine();
 		}
 
-		if (shouldUpdateTagBooleans()) {
 
-			reconfigureTags();
-			updateTags = true;
-		}
+		if (!updateTags) updateTags = shouldUpdateTagBooleans();
+
 		if (updateTags){
 
-			tagAttack = attack.active;
-			tagLoot = loot.visible;
-			updateTagBooleans();
-			tagResume = resume.visible;
-
+			reconfigureActionIndicators();
 			layoutTags();
-
-		} else if (tagAttack != attack.active ||
-				tagLoot != loot.visible ||
-				isTagDifferent() ||
-				tagResume != resume.visible) {
-
-			boolean tagAppearing = (attack.active && !tagAttack) ||
-									(loot.visible && !tagLoot) ||
-									isTagAppearing() ||
-									(resume.visible && !tagResume);
-
-			tagAttack = attack.active;
-			tagLoot = loot.visible;
-			updateTagBooleans();
-			tagResume = resume.visible;
-
-			//if a new tag appears, re-layout tags immediately
-			//otherwise, wait until the hero acts, so as to not suddenly change their position
-			if (tagAppearing)   layoutTags();
-			else                tagDisappeared = true;
-
 		}
 
 		cellSelector.enable(Dungeon.hero.ready);
@@ -757,50 +730,50 @@ private static float waterOfs = 0;
 
 	private boolean shouldUpdateTagBooleans() {
 
-		if (tagActions.size() != ActionIndicator.actions.size()) return true;
-		if (ActionIndicator.actions.isEmpty()) return false;
+		if (tagAttack != attack.active || tagLoot != loot.visible || tagResume != resume.visible) {
 
-		List<String> list1 = new ArrayList<>(tagActions.keySet());
-		List<String> list2 = ActionIndicator.actions.stream().map(a -> a.getClass().getName()).collect(Collectors.toList());
-
-		return !(new HashSet<>(list1).containsAll(list2) && new HashSet<>(list2).containsAll(list1));
-	}
-
-	private void updateTagBooleans() {
-
-		actions.forEach(ai -> tagActions.put(ai.action.getClass().getName(), ai.visible));
-	}
-
-	private boolean isTagDifferent() {
-
-		return actions.stream().anyMatch(ai -> ai.visible != tagActions.get(ai.action.getClass().getName()));
-	}
-
-	private boolean isTagAppearing() {
-
-		return actions.stream().anyMatch(ai -> ai.visible && !tagActions.get(ai.action.getClass().getName()));
-	}
-
-	private void reconfigureTags() {
-
-		for (ActionIndicator action : actions) {
-
-			remove(action);
+			return true;
 		}
-		toDestroy.addAll(actions);
 
-		actions.clear();
-		tagActions.clear();
-		ActionIndicator.instances.clear();
+		// find actions we've not seen before
+		if (ActionIndicator.actions.stream().anyMatch(a -> tagActions.get(a.key()) == null)) {
 
-		ActionIndicator.sortActions().forEach(a -> {
+			return true;
+		}
 
-			ActionIndicator action = new ActionIndicator(a);
-			ActionIndicator.instances.add(action);
-			action.camera = uiCamera;
-			actions.add(action);
-			tagActions.put(a.getClass().getName(), action.visible);
-			add( action );
+		// if our tracked tag booleans don't match the instance booleans
+		if (instances.entrySet().stream().anyMatch(es -> es.getValue().visible != tagActions.get(es.getKey()))) {
+
+			return true;
+		}
+		return false;
+	}
+
+	private void reconfigureActionIndicators() {
+
+		tagAttack = attack.active;
+		tagLoot = loot.visible;
+		tagResume = resume.visible;
+
+		// we always "add" tags. if tags are not present in actions, we set to false, as the instance should still exist!
+		List<String> invalidTags = new ArrayList<>(tagActions.keySet());
+		ActionIndicator.actions.forEach(a -> tagActions.computeIfAbsent(a.key(), s -> {
+
+			invalidTags.remove(a.key());
+
+			ActionIndicator ai = new ActionIndicator(a);
+			ai.camera = uiCamera;
+			add( ai );
+
+			return ai.visible;
+		}));
+
+		invalidTags.forEach(s -> {
+
+			Optional<ActionIndicator> oa = ActionIndicator.getInstance(s);
+			boolean visible = oa.map(ai -> ai.visible).orElse(false);
+
+			tagActions.put(s, visible);
 		});
 	}
 
@@ -876,10 +849,25 @@ private static float waterOfs = 0;
 			pos = scene.loot.top();
 		}
 
-		for (ActionIndicator action : scene.actions.stream().filter(a -> scene.tagActions.get(a.action.getClass().getName())).collect(Collectors.toList())) {
-			action.setRect( tagLeft, pos - Tag.SIZE, tagWidth, Tag.SIZE );
-			action.flip(tagsOnLeft);
-			pos = action.top();
+		//list sorted in reverse order
+		String chargerClass = MeleeWeapon.Charger.class.getSimpleName();
+		List<String> sortedActions = scene.tagActions.entrySet().stream().filter(Map.Entry::getValue).map(Map.Entry::getKey).sorted((o1, o2) -> {
+			if (chargerClass.equals(o1) && !chargerClass.equals(o2)) return 1;
+			if (!chargerClass.equals(o1) && chargerClass.equals(o2)) return -1;
+			return o2.compareTo(o1);
+		}).collect(Collectors.toList());
+
+		for (String key : sortedActions) {
+
+			// should always exist by this point!
+			Optional<ActionIndicator> oa = ActionIndicator.getInstance(key);
+			if (oa.isPresent()) {
+
+				ActionIndicator action = oa.get();
+				action.setRect( tagLeft, pos - Tag.SIZE, tagWidth, Tag.SIZE );
+				action.flip(tagsOnLeft);
+				pos = action.top();
+			}
 		}
 
 		if (scene.tagResume) {

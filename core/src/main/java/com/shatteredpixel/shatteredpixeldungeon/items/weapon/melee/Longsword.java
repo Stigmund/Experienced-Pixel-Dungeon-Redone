@@ -120,7 +120,7 @@ public class Longsword extends MeleeWeapon {
 							dmg = enchantment.proc( this, attacker, defender, damage );
 						}
 
-						dmg = KingBlade.checkAndProc((Hero) attacker, defender, this, dmg);
+						dmg = KingBlade.checkAndProc(attacker, defender, this, dmg);
 						ch.damage(dmg, this);
 					}
 				}

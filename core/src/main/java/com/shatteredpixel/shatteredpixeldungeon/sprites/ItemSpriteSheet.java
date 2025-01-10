@@ -205,7 +205,8 @@ public class ItemSpriteSheet {
 	public static final int ARCANE_BOMB     = BOMBS+10;
 	public static final int SHRAPNEL_BOMB   = BOMBS+11;
 	public static final int NEW_TENGU_BOMB  = BOMBS+12;
-	public static final int IDENTIFY_BOMB   = BOMBS+13;
+	public static final int IDENTIFY_BOMB_IDENTIFY   = BOMBS+13;
+	public static final int IDENTIFY_BOMB_DESTROY   = BOMBS+14;
 
 	static{
 		assignItemRect(BOMB,            10, 13);
@@ -221,7 +222,8 @@ public class ItemSpriteSheet {
 		assignItemRect(ARCANE_BOMB,     10, 13);
 		assignItemRect(SHRAPNEL_BOMB,   10, 13);
 		assignItemRect(NEW_TENGU_BOMB,  9,  15);
-		assignItemRect(IDENTIFY_BOMB,   14, 16);
+		assignItemRect(IDENTIFY_BOMB_IDENTIFY,   14, 16);
+		assignItemRect(IDENTIFY_BOMB_DESTROY,   14, 16);
 	}
 
 	private static final int FISHING_HOOKS = xy(16, 5);

@@ -36,53 +36,77 @@ import com.watabou.noosa.Visual;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ActionIndicator extends Tag {
 
 	//private static final Class<?extends Buff>[] actionBuffClasses = new Class[]{Preparation.class, SnipersMark.class, Combo.class, Marked.class, Berserk.class, Momentum.class, MeleeWeapon.Charger.class, MonkEnergy.class};
-	private static final Comparator<Action> ACTION_SORTER = (o1, o2) -> {
-		if (o1 instanceof MeleeWeapon.Charger) return -1;
-		return o1.getClass().getName().compareTo(o2.getClass().getName());
-	};
 
 	Visual primaryVis;
 	Visual secondVis;
 
-	public static List<Action> actions = new ArrayList<>();
-
 	// for game scene refresh
-	public static List<ActionIndicator> instances = new ArrayList<>();
-	public final Action action;
+	public static Map<String, ActionIndicator> instances = new HashMap<>();
+	public static List<Action> actions = new ArrayList<>();
+	public String name;
 
 	public ActionIndicator(Action action) {
 		super( 0 );
 
-		this.action = action;
+		setInstance(action);
 		setSize( SIZE, SIZE );
 		visible = false;
 	}
 
-	public static List<Action> sortActions() {
+	private void setInstance(Action action) {
 
-		actions.sort(ACTION_SORTER);
+		//this.action = action;
+		this.name = action.key();
 
-		return actions;
+		ActionIndicator instance = instances.get(name);
+		if (instance != null) {
+
+			//instance.action = action;
+			instance.needsRefresh = true;
+		}
+		else {
+
+			instances.put(name, this);
+		}
 	}
 
-	public static <A extends ActionIndicator.Action> boolean hasAction(A _action) {
-
-		return hasAction(_action.getClass());
+	public static Optional<Action> getAction(Action action) {
+		synchronized (ActionIndicator.class) {
+			return Optional.of(actions.stream().filter(a -> a == action).findFirst()).orElse(null);
+		}
 	}
 
-	public static boolean hasAction(Class<? extends ActionIndicator.Action> _class) {
+	public static boolean hasAction(Action _action) {
 
-		return actions.stream().anyMatch(_class::isInstance);
+		return getAction(_action).isPresent();
 	}
 
-	public Action getAction() {
+	public static Optional<Action> getAction(String _class) {
 
-		return action;
+		synchronized (ActionIndicator.class) {
+			return Optional.of(actions.stream().filter(a -> _class.equals(a.key())).findFirst()).orElse(null);
+		}
+	}
+
+	public static Optional<ActionIndicator> getInstance(Action action) {
+
+		return getInstance(action.key());
+	}
+
+	public static Optional<ActionIndicator> getInstance(String action) {
+
+		synchronized (ActionIndicator.class) {
+			return Optional.ofNullable(instances.get(action));
+		}
 	}
 
 	@Override
@@ -125,69 +149,67 @@ public class ActionIndicator extends Tag {
 	public void update() {
 		super.update();
 
-		synchronized (ActionIndicator.class) {
-			if (!visible && action != null) {
-				visible = true;
-				needsRefresh = true;
-				flash();
-			} else {
-				visible = action != null;
-			}
+		Optional<Action> action = getAction(name);
 
-			if (needsRefresh) {
-				if (primaryVis != null) {
-					primaryVis.destroy();
-					primaryVis.killAndErase();
-					primaryVis = null;
-				}
-				if (secondVis != null) {
-					secondVis.destroy();
-					secondVis.killAndErase();
-					secondVis = null;
-				}
-				if (action != null) {
-					primaryVis = action.primaryVisual();
-					add(primaryVis);
-
-					secondVis = action.secondaryVisual();
-					if (secondVis != null) {
-						add(secondVis);
-					}
-
-					setColor(action.indicatorColor());
-				}
-
-				layout();
-				needsRefresh = false;
-			}
-
-			if (!Dungeon.hero.ready) {
-				if (primaryVis != null) primaryVis.alpha(0.5f);
-				if (secondVis != null) secondVis.alpha(0.5f);
-			} else {
-				if (primaryVis != null) primaryVis.alpha(1f);
-				if (secondVis != null) secondVis.alpha(1f);
-			}
+		if (!visible && action.isPresent()) {
+			visible = true;
+			needsRefresh = true;
+			flash();
+		} else {
+			visible = action.isPresent();
 		}
 
+		if (needsRefresh) {
+			if (primaryVis != null) {
+				primaryVis.destroy();
+				primaryVis.killAndErase();
+				primaryVis = null;
+			}
+			if (secondVis != null) {
+				secondVis.destroy();
+				secondVis.killAndErase();
+				secondVis = null;
+			}
+			if (action.isPresent()) {
+				primaryVis = action.get().primaryVisual();
+				add(primaryVis);
+
+				secondVis = action.get().secondaryVisual();
+				if (secondVis != null) {
+					add(secondVis);
+				}
+
+				setColor(action.get().indicatorColor());
+			}
+
+			layout();
+			needsRefresh = false;
+		}
+
+		if (!Dungeon.hero.ready) {
+			if (primaryVis != null) primaryVis.alpha(0.5f);
+			if (secondVis != null) secondVis.alpha(0.5f);
+		} else {
+			if (primaryVis != null) primaryVis.alpha(1f);
+			if (secondVis != null) secondVis.alpha(1f);
+		}
 	}
 
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (action != null && Dungeon.hero.ready) {
-			action.doAction();
+
+		Optional<Action> action = getAction(name);
+
+		if (action.isPresent() && Dungeon.hero.ready) {
+			action.get().doAction();
 		}
 	}
 
 	@Override
 	protected String hoverText() {
-		String text = (action == null ? null : action.actionName());
-		if (text != null){
-			return Messages.titleCase(text);
-		} else {
-			return null;
-		}
+
+		return getAction(name).map(a -> Messages.titleCase(a.actionName())).orElse(null);
 	}
 
 	@Override
@@ -195,32 +217,58 @@ public class ActionIndicator extends Tag {
 		return false;//findAction(true);
 	}
 
-	public static boolean setAction(Action action){
-		if(!action.usable() || ActionIndicator.actions.contains(action)) return false;
+	public static boolean setAction(Action action) {
+
+		// if not usable, or the exact same action, do nothing
+		if (!action.usable() || ActionIndicator.actions.contains(action)) return false;
 		ActionIndicator.actions.add(action);
-		refresh();
+		refresh(action);
 		return true;
 	}
 
+	/*private static final Class<?extends Buff>[] actionBuffClasses = new Class[]{Preparation.class, SnipersMark.class, Combo.class, Marked.class, Berserk.class, Momentum.class, MeleeWeapon.Charger.class, MonkEnergy.class};
+	private static boolean findAction(boolean cycle) {
+		if(action == null) cycle = false;
+		int start = -1;
+		if(cycle) while(++start < actionBuffClasses.length && !actionBuffClasses[start].isInstance(action));
+
+		for(int i = (start+1)%actionBuffClasses.length; i != start && i < actionBuffClasses.length; i++) {
+			Buff b = Dungeon.hero.buff(actionBuffClasses[i]);
+			if(b != null && setAction((Action)b)) return true;
+			if(cycle && i+1 == actionBuffClasses.length) i = -1;
+		}
+		return false;
+	}*/
+
 	public static void clearAction(Action action){
-		if(ActionIndicator.hasAction(action)) ActionIndicator.actions.remove(action);
+
+		actions.removeIf(a -> ActionIndicator.getAction(a).isPresent());
+	}
+
+	public static void refresh(Action action){
+		synchronized (ActionIndicator.class) {
+			ActionIndicator.getInstance(action).ifPresent(ai -> ai.needsRefresh = true);
+		}
 	}
 
 	public static void refresh(){
-		synchronized (ActionIndicator.class) {
-			instances.forEach(ai -> ai.needsRefresh = true);
 
+		synchronized (ActionIndicator.class) {
+			instances.values().forEach(ai -> ai.needsRefresh = true);
 		}
 	}
 
-	public static void refresh(Action _action){
-		synchronized (ActionIndicator.class) {
-			instances.stream().filter(ai -> ai.action == _action).forEach(ai -> ai.needsRefresh = true);
-		}
-	}
+	/*public static void refresh(Class<? extends Action> action){
+
+		getAction(action).ifPresent(ActionIndicator::refresh);
+	}*/
 
 	public interface Action {
 
+		default String key() {
+
+			return getClass().getSimpleName();
+		}
 		String actionName();
 
 		default int actionIcon(){
