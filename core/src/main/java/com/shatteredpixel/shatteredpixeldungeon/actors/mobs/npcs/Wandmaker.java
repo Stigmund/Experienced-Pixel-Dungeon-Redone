@@ -24,6 +24,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
+import static com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem.BUTTON_HEIGHT;
+
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
@@ -55,8 +57,10 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Rotberry;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WandmakerSprite;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndQuest;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndWandmaker;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
@@ -67,6 +71,8 @@ import com.watabou.utils.Random;
 import java.util.ArrayList;
 
 public class Wandmaker extends NPC {
+
+	private boolean blockCheeseFlag = false;
 
 	{
 		spriteClass = WandmakerSprite.class;
@@ -107,6 +113,25 @@ public class Wandmaker extends NPC {
 	public boolean reset() {
 		return true;
 	}
+
+	private void giftCheeseWand() {
+
+		Dungeon.hero.belongings.getItem(Cheese.class).detach(Dungeon.hero.belongings.backpack);
+		Item wand = new WandOfUnstable().identify();
+		if (wand.doPickUp( Dungeon.hero )) {
+			GLog.i( Messages.get(Dungeon.hero, "you_now_have", wand.name()) );
+		} else {
+			Dungeon.level.drop( wand, pos ).sprite.drop();
+		}
+		//yell( Messages.get(this, "farewell", Dungeon.hero.name()) );
+		//Wandmaker.this.destroy();
+
+		//Wandmaker.this.sprite.die();
+
+		//Wandmaker.Quest.complete();
+
+		Badges.validateUnstable();
+	}
 	
 	@Override
 	public boolean interact(Char c) {
@@ -116,32 +141,17 @@ public class Wandmaker extends NPC {
 			return true;
 		}
 
-		if (Dungeon.hero.belongings.getItem(Cheese.class) != null){
+		Wandmaker self = this;
+		if (Dungeon.hero.belongings.getItem(Cheese.class) != null && !blockCheeseFlag){
 			Game.runOnRenderThread(new Callback() {
 				@Override
 				public void call() {
-					GameScene.show(new WndQuest(Wandmaker.this, Messages.get(Wandmaker.class, "cheese")){
+					blockCheeseFlag = true;
+					GameScene.show(new WndCheeseQuest(Wandmaker.this, Messages.get(Wandmaker.class, "cheese"), self)/*{
 						@Override
 						public void hide() {
 							super.hide();
 
-							/* Don't take quest item on cheese quest!
-							Item questItem;
-							switch (Quest.type) {
-								case 1:
-								default:
-									questItem = Dungeon.hero.belongings.getItem(CorpseDust.class);
-									break;
-								case 2:
-									questItem = Dungeon.hero.belongings.getItem(Embers.class);
-									break;
-								case 3:
-									questItem = Dungeon.hero.belongings.getItem(Rotberry.Seed.class);
-									break;
-							}
-							if (questItem != null)
-								questItem.detach( Dungeon.hero.belongings.backpack );
-							*/
 							Dungeon.hero.belongings.getItem(Cheese.class).detach(Dungeon.hero.belongings.backpack);
 							Item wand = new WandOfUnstable().identify();
 							if (wand.doPickUp( Dungeon.hero )) {
@@ -158,13 +168,15 @@ public class Wandmaker extends NPC {
 
 							Badges.validateUnstable();
 						}
-					});
+					}*/);
 				}
 			});
 			return true;
 		}
 
-		if (Quest.given) {
+		blockCheeseFlag = false;
+
+		if (Quest.given && !Quest.complete) {
 			
 			Item item;
 			switch (Quest.type) {
@@ -208,7 +220,7 @@ public class Wandmaker extends NPC {
 				});
 			}
 			
-		} else {
+		} else if (!Quest.given) {
 
 			String msg1 = "";
 			String msg2 = "";
@@ -280,6 +292,7 @@ public class Wandmaker extends NPC {
 		private static boolean spawned;
 		
 		private static boolean given;
+		private static boolean complete;
 		
 		public static Wand wand1;
 		public static Wand wand2;
@@ -297,6 +310,7 @@ public class Wandmaker extends NPC {
 		private static final String SPAWNED		= "spawned";
 		private static final String TYPE		= "type";
 		private static final String GIVEN		= "given";
+		private static final String COMPLETE		= "complete";
 		private static final String WAND1		= "wand1";
 		private static final String WAND2		= "wand2";
 
@@ -313,6 +327,7 @@ public class Wandmaker extends NPC {
 				node.put( TYPE, type );
 				
 				node.put( GIVEN, given );
+				node.put( COMPLETE, complete );
 				
 				node.put( WAND1, wand1 );
 				node.put( WAND2, wand2 );
@@ -335,6 +350,7 @@ public class Wandmaker extends NPC {
 				type = node.getInt(TYPE);
 				
 				given = node.getBoolean( GIVEN );
+				complete = node.getBoolean( COMPLETE );
 				
 				wand1 = (Wand)node.get( WAND1 );
 				wand2 = (Wand)node.get( WAND2 );
@@ -380,6 +396,7 @@ public class Wandmaker extends NPC {
 				spawned = true;
 
 				given = false;
+				complete = false;
 				wand1 = (Wand) Generator.random(Generator.Category.WAND);
 				wand1.cursed = false;
 				wand1.upgrade();
@@ -509,9 +526,62 @@ public class Wandmaker extends NPC {
 		public static void complete() {
 			wand1 = null;
 			wand2 = null;
-			
+
+			Quest.complete = true;
 			Notes.remove( Notes.Landmark.WANDMAKER );
 			Statistics.questScores[1] = 2000;
+		}
+	}
+
+	private static class WndCheeseQuest extends WndQuest {
+
+		private final WndCheeseQuest wnd;
+		private final Wandmaker wandmaker;
+
+		public void hide() {
+
+			super.hide();
+			wandmaker.blockCheeseFlag = true;
+			wandmaker.interact(Dungeon.hero);
+		}
+
+		protected int addExtraContent(int y, int width) {
+
+			int halfWidth = (width /2);
+			int btnWidth = halfWidth - GAP;
+
+			RedButton ok = new RedButton("Yes", 8, true ) {
+				@Override
+				protected void onClick() {
+
+					wandmaker.giftCheeseWand();
+					hide();
+				}
+			};
+			ok.setPos(0, y);
+			ok.setSize( btnWidth, BUTTON_HEIGHT );
+			add( ok );
+
+			RedButton cancel = new RedButton("No", 8 ) {
+				@Override
+				protected void onClick() {
+
+					hide();
+				}
+			};
+
+			cancel.setPos((float) (halfWidth + (GAP / 2)), y);
+			cancel.setSize( btnWidth, BUTTON_HEIGHT );
+			add( cancel );
+
+			return (int) (cancel.bottom());
+		}
+
+		public WndCheeseQuest(NPC questgiver, String text, Wandmaker wandmaker) {
+
+			super(questgiver, text);
+			this.wnd = this;
+			this.wandmaker = wandmaker;
 		}
 	}
 }

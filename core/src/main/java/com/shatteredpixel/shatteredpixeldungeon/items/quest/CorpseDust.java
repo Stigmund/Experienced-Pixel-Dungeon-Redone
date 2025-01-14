@@ -26,6 +26,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.quest;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -33,9 +34,18 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Wraith;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.ui.InventoryPane;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.utils.WndUtils;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndUseItemWithToggle;
 import com.watabou.noosa.Game;
+import com.watabou.noosa.Gizmo;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
@@ -44,17 +54,16 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class CorpseDust extends Item {
+public class CorpseDust extends Item implements ToggleAction {
 	
 	{
 		image = ItemSpriteSheet.DUST;
 		
-		cursed = true;
+		cursed = SPDSettings.corpseDustToggle();
 		cursedKnown = true;
 		
 		unique = true;
 	}
-
 
 	@Override
 	public boolean isUpgradable() {
@@ -84,6 +93,33 @@ public class CorpseDust extends Item {
 		}
 	}
 
+	@Override
+	public boolean state() {
+
+		return SPDSettings.corpseDustToggle();
+	}
+
+	@Override
+	public void setState(boolean state) {
+
+		SPDSettings.corpseDustToggle(state);
+		cursed = state;
+		//InventoryPane.refresh();
+
+		// BALL-ACHE!
+
+		// hide both windows
+		Game.scene().getMembers().stream().filter(m -> m instanceof WndBag).findFirst().ifPresent(g -> ((Window) g).hide());
+		Game.scene().getMembers().stream().filter(m -> m instanceof WndUseItemWithToggle).findFirst().ifPresent(g -> ((Window) g).hide());
+
+		// re-show inventory (to redraw - not sure how else to do this)
+		WndBag bag = new WndBag(Dungeon.hero.belongings.backpack);
+		GameScene.show(bag);
+
+		// re-show toggleable item window
+		Game.scene().addToFront(WndUtils.getItemWindow(bag, this));
+	}
+
 	public static class DustGhostSpawner extends Buff {
 
 		int spawnPower = 0;
@@ -95,7 +131,8 @@ public class CorpseDust extends Item {
 
 		@Override
 		public boolean act() {
-			if (target instanceof Hero && ((Hero) target).belongings.getItem(CorpseDust.class) == null){
+
+			if (!SPDSettings.corpseDustToggle() || (target instanceof Hero && ((Hero) target).belongings.getItem(CorpseDust.class) == null)){
 				spawnPower = 0;
 				spend(TICK);
 				return true;

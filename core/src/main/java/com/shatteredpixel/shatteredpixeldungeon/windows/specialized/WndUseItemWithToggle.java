@@ -44,7 +44,7 @@ public class WndUseItemWithToggle extends WndUseItem {
             checkBox.enable(true);
             checkBox.active = true;
             checkBox.centerText = true;
-            checkBox.checked(SPDSettings.cheeseChestGlitch());
+            checkBox.checked(getItem(item).state());
             checkBox.textColor(TITLE_COLOR);
 
             y += GAP;

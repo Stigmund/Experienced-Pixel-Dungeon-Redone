@@ -82,11 +82,14 @@ public class CheeseCheest extends Bag implements ToggleAction {
 	}
 
 	@Override
-	public boolean doToggleAction() {
+	public boolean state() {
 
-		boolean state = !SPDSettings.cheeseChestGlitch();
+		return SPDSettings.cheeseChestGlitch();
+	}
+
+	@Override
+	public void setState(boolean state) {
+
 		SPDSettings.cheeseChestGlitch(state);
-
-		return state;
 	}
 }

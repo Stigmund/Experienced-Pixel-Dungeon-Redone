@@ -116,7 +116,8 @@ public class WndWandmaker extends Window {
 
 		hide();
 
-		questItem.detach( Dungeon.hero.belongings.backpack );
+		// [CHANGED] instead of dropping two rewards, just don't consume it!
+		//questItem.detach( Dungeon.hero.belongings.backpack );
 
 		reward.identify(false);
 		if (reward.doPickUp( Dungeon.hero )) {
@@ -124,11 +125,12 @@ public class WndWandmaker extends Window {
 		} else {
 			Dungeon.level.drop( reward, wandmaker.pos ).sprite.drop();
 		}
+
+		// [CHANGED] don't disappear (so we can still do cheese quest if we want)
+		//wandmaker.yell( Messages.get(this, "farewell", Messages.titleCase(Dungeon.hero.name())) );
+		//wandmaker.destroy();
 		
-		wandmaker.yell( Messages.get(this, "farewell", Messages.titleCase(Dungeon.hero.name())) );
-		wandmaker.destroy();
-		
-		wandmaker.sprite.die();
+		//wandmaker.sprite.die();
 		
 		Wandmaker.Quest.complete();
 	}

@@ -1,11 +1,21 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows.specialized;
 
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public interface ToggleAction {
 
-    boolean doToggleAction();
+    default boolean doToggleAction() {
+
+        boolean state = !state();
+        setState(state);
+
+        return state;
+    }
+
+    boolean state();
+    void setState(boolean state);
 
     default boolean toggleAction() {
 

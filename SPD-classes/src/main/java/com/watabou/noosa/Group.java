@@ -38,6 +38,10 @@ public class Group extends Gizmo {
 	// Accessing it is a little faster,
 	// than calling members.getSize()
 	public int length;
+
+	public ArrayList<Gizmo> getMembers() {
+		return members;
+	}
 	
 	public Group() {
 		members = new ArrayList<>();

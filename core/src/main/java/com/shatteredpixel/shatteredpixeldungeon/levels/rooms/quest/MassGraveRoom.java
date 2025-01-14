@@ -80,7 +80,7 @@ public class MassGraveRoom extends SpecialRoom {
 		}
 
 		ArrayList<Item> items = new ArrayList<>();
-		//100% corpse dust, 2x100% 1 coin, 2x30% coins, 1x60% random item, 1x30% armor
+		//100% 2xcorpse dust, 2x100% 1 coin, 2x30% coins, 1x60% random item, 1x30% armor
 		items.add(new CorpseDust());
 		items.add(new Gold(1));
 		items.add(new Gold(1));

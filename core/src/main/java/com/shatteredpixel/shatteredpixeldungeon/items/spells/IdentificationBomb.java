@@ -179,6 +179,16 @@ public class IdentificationBomb extends Spell implements ToggleAction {
         return state.equals(IdentifyBombType.IDENTIFY);
     }
 
+    @Override
+    public boolean state() {
+        return SPDSettings.identificationBomb().equals(IdentifyBombType.IDENTIFY);
+    }
+
+    @Override
+    public void setState(boolean state) {
+        SPDSettings.identificationBomb(state ? IdentifyBombType.IDENTIFY : IdentifyBombType.DESTROY);
+    }
+
     private void setSprite(IdentifyBombType state) {
 
         switch (state) {

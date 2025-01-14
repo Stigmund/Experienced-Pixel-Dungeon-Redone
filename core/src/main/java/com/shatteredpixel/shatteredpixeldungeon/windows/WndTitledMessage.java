@@ -72,7 +72,14 @@ public class WndTitledMessage extends Window {
 
 		bringToFront(titlebar);
 
-		resize( width, (int)text.bottom() + 2 );
+		int bottom = addExtraContent((int)text.bottom() + 2, width);
+
+		resize( width, bottom );
+	}
+
+	protected int addExtraContent(int y, int width) {
+
+		return y;
 	}
 
 	protected boolean useHighlighting(){

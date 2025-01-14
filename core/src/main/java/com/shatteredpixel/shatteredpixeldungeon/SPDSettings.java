@@ -65,6 +65,7 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_CAMERA_FOLLOW= "camera_follow";
 	public static final String KEY_SCREEN_SHAKE = "screen_shake";
 	public static final String KEY_GLITCH	= "cheest_glitch";
+	public static final String CORPSE_DUST	= "corpse_dust";
 	public static final String KEY_CAPTURE_LOGS	= "capture_logs";
 	public static final String KEY_KING_BLADE_TOGGLE	= "kingblade_toggle";
 	public static final String KEY_IDENTIFICATION_BOMB_TOGGLE	= "idbomb_toggle";
@@ -116,6 +117,16 @@ public class SPDSettings extends GameSettings {
 	public static boolean cheeseChestGlitch() {
 
 		return getBoolean( KEY_GLITCH, false );
+	}
+
+	public static void corpseDustToggle(boolean _value) {
+
+		put( CORPSE_DUST, _value );
+	}
+
+	public static boolean corpseDustToggle() {
+
+		return getBoolean( CORPSE_DUST, true );
 	}
 
 	public static void fullscreen( boolean value ) {

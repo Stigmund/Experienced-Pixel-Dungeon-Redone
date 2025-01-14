@@ -77,12 +77,16 @@ public class KingBlade extends Item implements ToggleAction {
                 Messages.get(KingBlade.class, "procs", _procName1, _procName2)));
     }
 
-    public boolean doToggleAction() {
+    @Override
+    public boolean state() {
 
-        boolean state = !SPDSettings.kingBlade();
+        return SPDSettings.kingBlade();
+    }
+
+    @Override
+    public void setState(boolean state) {
+
         SPDSettings.kingBlade(state);
-
-        return state;
     }
 
     @Override

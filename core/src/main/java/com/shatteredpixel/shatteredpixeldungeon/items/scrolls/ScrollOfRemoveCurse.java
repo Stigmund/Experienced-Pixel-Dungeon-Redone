@@ -96,7 +96,7 @@ public class ScrollOfRemoveCurse extends InventoryScroll {
 		} else if (item instanceof Armor){
 			return ((Armor)item).hasCurseGlyph();
 		} else if (item instanceof CorpseDust){
-			return true;
+			return false;
 		} else {
 			return false;
 		}
@@ -148,11 +148,11 @@ public class ScrollOfRemoveCurse extends InventoryScroll {
 			if (item instanceof Wand){
 				((Wand) item).updateLevel();
 			}
-			if (item instanceof CorpseDust){
+			/*if (item instanceof CorpseDust){
 				item.detach( hero.belongings.backpack );
 				hero.sprite.emitter().start( ShadowParticle.UP, 0.01f, 100 );
 				procced = true;
-			}
+			}*/
 		}
 		
 		if (procced && hero != null) {

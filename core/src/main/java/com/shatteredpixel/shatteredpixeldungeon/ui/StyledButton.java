@@ -24,6 +24,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import static com.shatteredpixel.shatteredpixeldungeon.ui.Window.TITLE_COLOR;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -46,12 +48,18 @@ public class StyledButton extends Button {
 	}
 	
 	public StyledButton(Chrome.Type type, String label, int size ){
+
+		this(type, label, size, false);
+	}
+
+	public StyledButton(Chrome.Type type, String label, int size, boolean highlightText ){
 		super();
-		
+
 		bg = Chrome.get( type );
 		addToBack( bg );
-		
+
 		text = PixelScene.renderTextBlock( size );
+		if (highlightText) text.hardlight(TITLE_COLOR);
 		text.text( label );
 		add( text );
 	}
@@ -127,7 +135,7 @@ public class StyledButton extends Button {
 	public String text(){
 		return text.text();
 	}
-	
+
 	public void textColor( int value ) {
 		text.hardlight( value );
 	}

@@ -34,7 +34,7 @@ import java.util.ArrayList;
 
 public class WndUseItem extends WndInfoItem {
 
-	protected static final float BUTTON_HEIGHT	= 16;
+	public static final float BUTTON_HEIGHT	= 16;
 
 	protected static final float GAP	= 2;
 
