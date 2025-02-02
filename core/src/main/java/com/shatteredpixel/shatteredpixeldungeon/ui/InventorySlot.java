@@ -101,7 +101,7 @@ public class InventorySlot extends ItemSlot {
 						bg.ra = +0.3f;
 						bg.ga = -0.15f;
 						sprite.lightness(0.3f);
-						//sprite.alpha(0.5f);
+						sprite.alpha(0.7f);
 					}
 				}
 			}
