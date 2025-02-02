@@ -54,6 +54,11 @@ public enum HeroStartingEquipment {
 		new FoodBag().collect();
 		LimitedDrops.FOOD_BAG.drop();
 	}),
+	TRINKET_BAG(new TrinketBag(), Collections.singletonList(HeroClass.RAT_KING), hero -> {
+
+		new TrinketBag().collect();
+		LimitedDrops.TRINKET_BAG.drop();
+	}),
 	BROKEN_SEAL(new BrokenSeal(), Arrays.asList(HeroClass.RAT_KING, HeroClass.WARRIOR), hero -> {
 
 		if (hero.belongings.armor != null) {

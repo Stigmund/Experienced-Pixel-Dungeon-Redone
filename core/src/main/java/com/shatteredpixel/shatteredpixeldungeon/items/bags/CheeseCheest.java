@@ -47,6 +47,8 @@ public class CheeseCheest extends Bag implements ToggleAction {
 		image = ItemSpriteSheet.CHEEST;
 
 		itemWindow = WndUseItemWithToggle.class;
+
+		order = 7;
 	}
 
 	@Override

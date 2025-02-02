@@ -406,6 +406,8 @@ public class WndBag extends WndTabbed {
 			return Icons.get( Icons.CHEESY_CHEEST );
 		} else if (bag instanceof FoodBag) {
 			return Icons.get( Icons.FOOD_BAG );
+		} else if (bag instanceof TrinketBag) {
+			return Icons.get( Icons.TRINKET_BAG );
 		} else {
 			return Icons.get( Icons.BACKPACK );
 		}
@@ -440,6 +442,8 @@ public class WndBag extends WndTabbed {
 					return SPDAction.BAG_6;
 				case 7:
 					return SPDAction.BAG_7;
+				case 8:
+					return SPDAction.BAG_8;
 			}
 		}
 

@@ -142,7 +142,8 @@ public class InventoryPane extends Component {
 						&& KeyBindings.getActionForKey(keyEvent) != SPDAction.BAG_4
 						&& KeyBindings.getActionForKey(keyEvent) != SPDAction.BAG_5
 						&& KeyBindings.getActionForKey(keyEvent) != SPDAction.BAG_6
-						&& KeyBindings.getActionForKey(keyEvent) != SPDAction.BAG_7){
+						&& KeyBindings.getActionForKey(keyEvent) != SPDAction.BAG_7
+						&& KeyBindings.getActionForKey(keyEvent) != SPDAction.BAG_8){
 					//any windows opened as a consequence of this should be centered on the inventory
 					GameScene.centerNextWndOnInvPane();
 					selector.onSelect(null);
@@ -487,6 +488,8 @@ public class InventoryPane extends Component {
 			return Icons.get( Icons.CHEESY_CHEEST );
 		} else if (bag instanceof FoodBag){
 			return Icons.get( Icons.FOOD_BAG );
+		} else if (bag instanceof TrinketBag){
+			return Icons.get( Icons.TRINKET_BAG );
 		} else {
 			return Icons.get( Icons.BACKPACK );
 		}
@@ -694,6 +697,8 @@ public class InventoryPane extends Component {
 					return SPDAction.BAG_6;
 				case 7:
 					return SPDAction.BAG_7;
+				case 8:
+					return SPDAction.BAG_8;
 			}
 		}
 

@@ -91,6 +91,7 @@ public enum Icons {
 	FINAL_MIMIC,
 	CHEESY_CHEEST,
 	FOOD_BAG,
+	TRINKET_BAG,
 
 	STAIRS,
 	STAIRS_CHASM,
@@ -348,6 +349,9 @@ public enum Icons {
 				break;
 			case FOOD_BAG:
 				icon.frame( icon.texture.uvRectBySize( 238, 80, 10, 10 ) );
+				break;
+			case TRINKET_BAG:
+				icon.frame( icon.texture.uvRectBySize( 196, 90, 10, 10 ) );
 				break;
 			case TARGET:
 				icon.frame( icon.texture.uvRectBySize( 0, 32, 16, 16 ) );

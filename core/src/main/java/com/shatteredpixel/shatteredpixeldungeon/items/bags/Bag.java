@@ -37,6 +37,7 @@ import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class Bag extends Item implements Iterable<Item> {
 
@@ -49,6 +50,8 @@ public class Bag extends Item implements Iterable<Item> {
 
 		unique = true;
 	}
+
+	public int order;
 	
 	public Char owner;
 	
@@ -57,6 +60,8 @@ public class Bag extends Item implements Iterable<Item> {
 	public int capacity(){
 		return 55; // default container size
 	}
+
+	public int order() { return order; }
 	
 	@Override
 	public void execute( Hero hero, String action ) {
@@ -244,5 +249,10 @@ public class Bag extends Item implements Iterable<Item> {
 				items.remove( index );
 			}
 		}
+	}
+
+	public static boolean canHold(Object object, List<Class<?>> classes) {
+
+		return classes.stream().anyMatch(c -> c.isInstance(object));
 	}
 }

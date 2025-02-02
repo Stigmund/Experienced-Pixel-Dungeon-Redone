@@ -277,6 +277,8 @@ public enum HeroClass {
 		Dungeon.LimitedDrops.MAGICAL_HOLSTER.drop();
 		new FoodBag().collect();
 		Dungeon.LimitedDrops.FOOD_BAG.drop();
+		new FoodBag().collect();
+		Dungeon.LimitedDrops.TRINKET_BAG.drop();
 
 		new PotionOfHealing().identify();
 		new ScrollOfRage().identify();

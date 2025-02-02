@@ -41,6 +41,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 
 public class Belongings implements Iterable<Item> {
@@ -50,6 +51,8 @@ public class Belongings implements Iterable<Item> {
 	public static class Backpack extends Bag {
 		{
 			image = ItemSpriteSheet.BACKPACK;
+
+			order = 0;
 		}
 		public int capacity(){
 			int cap = super.capacity();
@@ -229,6 +232,8 @@ public class Belongings implements Iterable<Item> {
 				result.add((Bag)i);
 			}
 		}
+
+		result.sort(Comparator.comparingInt(Bag::order));
 
 		return result;
 	}

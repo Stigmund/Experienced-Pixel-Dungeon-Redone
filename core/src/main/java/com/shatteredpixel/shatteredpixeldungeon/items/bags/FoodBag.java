@@ -26,23 +26,38 @@ package com.shatteredpixel.shatteredpixeldungeon.items.bags;
 
 import com.shatteredpixel.shatteredpixeldungeon.items.ArcaneResin;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.OverloadBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Stylus;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.CorpseDust;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.KingBlade;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.RustyShield;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.BeaconOfReturning;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.IdentificationBomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.Spell;
+import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.TreasureBag;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class FoodBag extends Bag {
 
 	{
 		image = ItemSpriteSheet.MEAT;
+
+		order = 5;
 	}
+
+	private static final List<Class<?>> ITEMS = Collections.singletonList(Food.class);
 
 	@Override
 	public boolean canHold( Item item ) {
-		if (item instanceof Food){
+		if (canHold(item, ITEMS)){
 			return super.canHold(item);
 		} else {
 			return false;

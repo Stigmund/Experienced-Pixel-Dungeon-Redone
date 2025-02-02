@@ -162,7 +162,7 @@ public class Dungeon {
 		POTION_BANDOLIER,
 		MAGICAL_HOLSTER,
 		FOOD_BAG,
-
+		TRINKET_BAG,
         TOME_OF_MASTERY,
         ARMOR_KIT,
         DM_DROPS,

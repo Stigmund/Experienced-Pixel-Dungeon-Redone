@@ -391,6 +391,7 @@ public class ShopRoom extends SpecialRoom {
 		if (!Dungeon.LimitedDrops.POTION_BANDOLIER.dropped()) bags.put(new PotionBandolier(), 0);
 		if (!Dungeon.LimitedDrops.MAGICAL_HOLSTER.dropped()) bags.put(new MagicalHolster(), 0);
 		if (!Dungeon.LimitedDrops.FOOD_BAG.dropped()) bags.put(new FoodBag(), 0);
+		if (!Dungeon.LimitedDrops.TRINKET_BAG.dropped()) bags.put(new TrinketBag(), 0);
 
 		if (bags.isEmpty()) return null;
 
@@ -423,6 +424,8 @@ public class ShopRoom extends SpecialRoom {
 			Dungeon.LimitedDrops.MAGICAL_HOLSTER.drop();
 		} else if (bestBag instanceof FoodBag){
 			Dungeon.LimitedDrops.FOOD_BAG.drop();
+		} else if (bestBag instanceof TrinketBag){
+			Dungeon.LimitedDrops.TRINKET_BAG.drop();
 		}
 
 		return bestBag;

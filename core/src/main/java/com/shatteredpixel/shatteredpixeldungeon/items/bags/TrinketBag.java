@@ -25,24 +25,44 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.bags;
 
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.LiquidMetal;
-import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
+import com.shatteredpixel.shatteredpixeldungeon.items.OverloadBeacon;
+import com.shatteredpixel.shatteredpixeldungeon.items.fishingrods.FishingRod;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.CorpseDust;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.KingBlade;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.RustyShield;
+import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.TreasureBag;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
 
-public class PotionBandolier extends Bag {
+import java.util.Arrays;
+import java.util.List;
+
+public class TrinketBag extends Bag {
 
 	{
-		image = ItemSpriteSheet.BANDOLIER;
+		image = ItemSpriteSheet.TRINKET_POUCH;
 
-		order = 3;
+		order = 6;
 	}
+
+	private static final List<Class<?>> ITEMS = Arrays.asList(
+			TrinketCatalyst.class,
+			ToggleAction.class,
+			OverloadBeacon.class,
+			CorpseDust.class,
+			FishingRod.class,
+			TreasureBag.class);
 
 	@Override
 	public boolean canHold( Item item ) {
-		if (item instanceof Potion || item instanceof LiquidMetal || item instanceof Waterskin){
+
+		if (canHold(item, ITEMS)) {
 			return super.canHold(item);
-		} else {
+		}
+		else {
 			return false;
 		}
 	}
