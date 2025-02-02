@@ -173,6 +173,8 @@ public class TrinketCatalyst extends Item {
 			message.setPos(0, titlebar.bottom() + GAP);
 			add( message );
 
+			cata.rolledTrinkets.clear();
+
 			//roll new trinkets if trinkets were not already rolled
 			while (cata.rolledTrinkets.size() < NUM_TRINKETS-1){
 				cata.rolledTrinkets.add((Trinket) Generator.random(Generator.Category.TRINKET));
