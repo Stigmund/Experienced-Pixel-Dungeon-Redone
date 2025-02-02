@@ -494,7 +494,7 @@ public class WndBlacksmith extends Window {
 							a1.glyphHardened = true;
 						}
 
-						if (classArmourSwap && a2.tier < a1.tier) {
+						if (classArmourSwap && a2.tier > a1.tier) {
 
 							a1.tier = a2.tier;
 						}

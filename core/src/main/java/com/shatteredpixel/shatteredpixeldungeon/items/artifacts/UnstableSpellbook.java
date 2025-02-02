@@ -58,16 +58,16 @@ import com.watabou.utils.Reflection;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class UnstableSpellbook extends Artifact {
+public class UnstableSpellbook extends Artifact implements UpgradeText {
 
 	{
 		image = ItemSpriteSheet.ARTIFACT_SPELLBOOK;
 
 		levelCap = 10;
 
-		charge = (int)(level()*0.6f)+2;
+		charge = getMaxCharges();
 		partialCharge = 0;
-		chargeCap = (int)(level()*0.6f)+2;
+		chargeCap = getMaxCharges();
 
 		defaultAction = AC_READ;
 	}
@@ -91,6 +91,26 @@ public class UnstableSpellbook extends Artifact {
 			i = Random.chances(probs);
 		}
 		scrolls.remove(ScrollOfTransmutation.class);
+	}
+
+	public long getMaxCharges() {
+
+		return getMaxCharges(level());
+	}
+	private long getMaxCharges(long level) {
+
+		return (int)(level*0.6f)+2;
+	}
+
+	public long getUpgradeCharges() {
+
+		return getMaxCharges(level()+1);
+	}
+
+	@Override
+	public String getEffectValue(long level) {
+
+		return String.valueOf(getMaxCharges(level));
 	}
 
 	@Override
@@ -239,7 +259,7 @@ public class UnstableSpellbook extends Artifact {
 
 	@Override
 	public Item upgrade() {
-		chargeCap = (int)((level()+1)*0.6f)+2;
+		chargeCap = getUpgradeCharges();
 
 		//for artifact transmutation.
 		while (!scrolls.isEmpty() && scrolls.size() > (levelCap-1-level()))

@@ -53,16 +53,16 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class TimekeepersHourglass extends Artifact {
+public class TimekeepersHourglass extends Artifact implements UpgradeText {
 
 	{
 		image = ItemSpriteSheet.ARTIFACT_HOURGLASS;
 
 		levelCap = 5;
 
-		charge = 5+level();
+		charge = getMaxCharges();
 		partialCharge = 0;
-		chargeCap = 5+level();
+		chargeCap = getMaxCharges();
 
 		defaultAction = AC_ACTIVATE;
 	}
@@ -82,6 +82,21 @@ public class TimekeepersHourglass extends Artifact {
 			actions.add(AC_ACTIVATE);
 		}
 		return actions;
+	}
+
+	public long getMaxCharges() {
+
+		return getMaxCharges(level());
+	}
+
+	public long getMaxCharges(long level) {
+
+		return 5+level;
+	}
+
+	@Override
+	public String getEffectValue(long level) {
+		return String.valueOf(visiblyUpgraded(level));
 	}
 
 	@Override
@@ -177,7 +192,7 @@ public class TimekeepersHourglass extends Artifact {
 
 	@Override
 	public Item upgrade() {
-		chargeCap = 5+level();
+		chargeCap = getMaxCharges()+1;
 
 		//for artifact transmutation.
 		while (level()+1 > sandBags)

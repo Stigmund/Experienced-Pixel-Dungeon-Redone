@@ -199,11 +199,6 @@ public class TrinketCatalyst extends Item {
 
 		}
 
-		@Override
-		public void onBackPressed() {
-			//do nothing
-		}
-
 		private class RewardWindow extends WndInfoItem {
 
 			public RewardWindow( Item item ) {

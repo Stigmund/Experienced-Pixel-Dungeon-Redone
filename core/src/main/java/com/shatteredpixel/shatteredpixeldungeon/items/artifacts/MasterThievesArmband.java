@@ -50,7 +50,7 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class MasterThievesArmband extends Artifact {
+public class MasterThievesArmband extends Artifact implements UpgradeText {
 
 	{
 		image = ItemSpriteSheet.ARTIFACT_ARMBAND;
@@ -59,7 +59,7 @@ public class MasterThievesArmband extends Artifact {
 
 		charge = 0;
 		partialCharge = 0;
-		chargeCap = 5+level()/2;
+		chargeCap = getMaxCharges();
 
 		defaultAction = AC_STEAL;
 	}
@@ -203,6 +203,27 @@ public class MasterThievesArmband extends Artifact {
 		}
 	};
 
+	@Override
+	public String getEffectValue(long level) {
+
+		return String.valueOf(getMaxCharges(level));
+	}
+
+	public long getMaxCharges() {
+
+		return getMaxCharges(level());
+	}
+
+	public long getUpgradeCharges() {
+
+		return getMaxCharges(level()+1);
+	}
+
+	private long getMaxCharges(long level) {
+
+		return (5+level)/2;
+	}
+
 	//counter of 0 for attempt but no success, 1 for success
 	public static class StolenTracker extends CounterBuff {
 		public void setItemStolen(boolean stolen){ if (stolen) countUp(1); }
@@ -234,7 +255,7 @@ public class MasterThievesArmband extends Artifact {
 
 	@Override
 	public Item upgrade() {
-		chargeCap = 5 + (level()+1)/2;
+		chargeCap = getUpgradeCharges();
 		return super.upgrade();
 	}
 

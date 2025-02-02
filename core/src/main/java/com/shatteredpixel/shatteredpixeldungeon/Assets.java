@@ -31,8 +31,7 @@ public class Assets {
 		public static final String FIREBALL     = "effects/fireball.png";
 		public static final String SPECKS       = "effects/specks.png";
 		public static final String SPELL_ICONS  = "effects/spell_icons.png";
-		public static final String TEXT_ICONS   = "effects/text_icons.png";
-		public static final String CUSTOM_TEXT_ICONS   = "stigimages/text_icons.png";
+		public static final String TEXT_ICONS   = "stigimages/text_icons.png";
 	}
 
 	public static class Environment {
@@ -84,7 +83,7 @@ public class Assets {
 		public static final String CHROME   = "interfaces/chrome.png";
 		public static final String GREEN_BUTTON   = "stigimages/chrome_green_button.png";
 		public static final String RED_GEM   = "stigimages/chrome_red_gem.png";
-		public static final String ICONS    = "interfaces/icons.png";
+		public static final String ICONS    = "stigimages/icons.png";
 		public static final String STATUS   = "interfaces/status_pane.png";
 		public static final String MENU     = "interfaces/menu_pane.png";
 		public static final String MENU_BTN = "interfaces/menu_button.png";
@@ -266,7 +265,7 @@ public class Assets {
 	}
 
 	public static class Sprites {
-		public static final String ITEMS        = "sprites/items.png";
+		public static final String ITEMS        = "stigimages/items.png";
 		public static final String ITEM_ICONS   = "sprites/item_icons.png";
 
 		public static final String WARRIOR  = "sprites/warrior.png";
@@ -351,6 +350,5 @@ public class Assets {
 	public static class StigIcons {
 
 		public static final String CHANGELOG_MAN= "stigimages/changelog_man.png";
-		public static final String CUSTOM_ICONS = "stigimages/icons.png";
 	}
 }

@@ -43,6 +43,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
@@ -55,7 +56,7 @@ import java.util.stream.Collectors;
 public class IdentificationBomb extends Spell implements ToggleAction {
 
     {
-        image = ItemSpriteSheet.IDENTIFY_BOMB_IDENTIFY;
+        image = SPDSettings.identificationBomb().getSprite();
     }
 
     @Override
@@ -167,16 +168,18 @@ public class IdentificationBomb extends Spell implements ToggleAction {
 
     }
 
+    public boolean highlightInventorySlot() {
+
+        return false;
+    }
+
     @Override
     public boolean doToggleAction() {
 
         IdentifyBombType state = SPDSettings.identificationBomb().toggle();
-        SPDSettings.identificationBomb(state);
+        setState(state.equals(IdentifyBombType.IDENTIFY));
 
-        // Can't be arsed to figure out how to "easily" have item sprites from other files!
-        //setSprite(state);
-
-        return state.equals(IdentifyBombType.IDENTIFY);
+        return state();
     }
 
     @Override
@@ -187,21 +190,24 @@ public class IdentificationBomb extends Spell implements ToggleAction {
     @Override
     public void setState(boolean state) {
         SPDSettings.identificationBomb(state ? IdentifyBombType.IDENTIFY : IdentifyBombType.DESTROY);
-    }
-
-    private void setSprite(IdentifyBombType state) {
-
-        switch (state) {
-            default:
-            case IDENTIFY:
-                image = ItemSpriteSheet.IDENTIFY_BOMB_IDENTIFY;
-            case DESTROY:
-                image = ItemSpriteSheet.IDENTIFY_BOMB_DESTROY;
-        }
+        image = SPDSettings.identificationBomb().getSprite();
     }
 
     public enum IdentifyBombType {
-        IDENTIFY, DESTROY;
+        IDENTIFY(ItemSpriteSheet.IDENTIFY_BOMB_IDENTIFY),
+        DESTROY(ItemSpriteSheet.IDENTIFY_BOMB_DESTROY);
+
+        private final int sprite;
+
+        IdentifyBombType(int sprite) {
+
+            this.sprite = sprite;
+        }
+
+        public int getSprite() {
+
+            return this.sprite;
+        }
 
         public IdentifyBombType toggle() {
 

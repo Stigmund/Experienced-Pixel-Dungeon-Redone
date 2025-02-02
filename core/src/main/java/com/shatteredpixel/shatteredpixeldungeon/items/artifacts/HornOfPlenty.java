@@ -47,7 +47,7 @@ import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
 
-public class HornOfPlenty extends Artifact {
+public class HornOfPlenty extends Artifact implements UpgradeText {
 
 
 	{
@@ -57,7 +57,7 @@ public class HornOfPlenty extends Artifact {
 
 		charge = 0;
 		partialCharge = 0;
-		chargeCap = 5 + level()/2;
+		chargeCap = getMaxCharges();
 
 		defaultAction = AC_SNACK;
 	}
@@ -198,13 +198,13 @@ public class HornOfPlenty extends Artifact {
 	@Override
 	public void level(long value) {
 		super.level(value);
-		chargeCap = 5 + level()/2;
+		chargeCap = getMaxCharges();
 	}
 
 	@Override
 	public Item upgrade() {
 		super.upgrade();
-		chargeCap = 5 + level()/2;
+		chargeCap = getMaxCharges();
 		return this;
 	}
 	
@@ -257,6 +257,21 @@ public class HornOfPlenty extends Artifact {
 		if (charge >= 8)       image = ItemSpriteSheet.ARTIFACT_HORN4;
 		else if (charge >= 5)  image = ItemSpriteSheet.ARTIFACT_HORN3;
 		else if (charge >= 2)   image = ItemSpriteSheet.ARTIFACT_HORN2;
+	}
+
+	public long getMaxCharges() {
+
+		return getMaxCharges(level());
+	}
+
+	public long getMaxCharges(long level) {
+
+		return 5 + level/2;
+	}
+
+	@Override
+	public String getEffectValue(long level) {
+		return String.valueOf(getMaxCharges(level));
 	}
 
 	public class hornRecharge extends ArtifactBuff{

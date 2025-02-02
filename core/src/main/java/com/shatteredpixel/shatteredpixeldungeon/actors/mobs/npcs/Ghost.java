@@ -302,8 +302,9 @@ public class Ghost extends NPC {
 		}
 		
 		public static void spawn( SewerLevel level, Room room ) {
+			// [CHANGED] True random instead of luck based (which always forces specific max quest!)
 			if (!spawned && (Dungeon.depth == PsycheChest.questDepth ||
-					(Dungeon.depth > 1 && Dungeon.Int( 5 - Dungeon.depth ) == 0))) {
+					(Dungeon.depth > 1 && Random.Int( 5 - Dungeon.depth ) == 0))) {
 				
 				Ghost ghost = new Ghost();
 				do {

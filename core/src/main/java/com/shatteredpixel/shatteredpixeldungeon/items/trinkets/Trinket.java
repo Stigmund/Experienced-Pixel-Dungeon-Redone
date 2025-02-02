@@ -22,15 +22,20 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.trinkets;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
 import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
-public abstract class Trinket extends Item {
+public abstract class Trinket extends Item implements ToggleAction {
 
 	{
 		levelKnown = true;
@@ -52,7 +57,7 @@ public abstract class Trinket extends Item {
 
 		Trinket trinket = Dungeon.hero.belongings.getItem(trinketType);
 
-		if (trinket != null){
+		if (trinket != null && trinket.enabled){
 			return (int)trinket.buffedLvl();
 		} else {
 			return -1;

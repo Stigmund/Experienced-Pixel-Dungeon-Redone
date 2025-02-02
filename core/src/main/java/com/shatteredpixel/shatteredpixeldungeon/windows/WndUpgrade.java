@@ -26,6 +26,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.UpgradeText;
 import com.shatteredpixel.shatteredpixeldungeon.items.fishingrods.FishingRod;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
@@ -335,6 +337,16 @@ public class WndUpgrade extends Window {
 							bottom);
 				}
 			}
+		}
+
+		// currently just Artifacts
+		if (toUpgrade instanceof UpgradeText){
+
+			UpgradeText ut = (UpgradeText) toUpgrade;
+			bottom = fillFields(Messages.get(toUpgrade, "upgrade_text"),
+					ut.getEffectValue(levelFrom),
+					ut.getEffectValue(levelTo),
+					bottom);
 		}
 
 		//visual separators for each column

@@ -48,7 +48,7 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class ChaliceOfBlood extends Artifact {
+public class ChaliceOfBlood extends Artifact implements UpgradeText {
 
 	{
 		image = ItemSpriteSheet.ARTIFACT_CHALICE1;
@@ -199,13 +199,22 @@ public class ChaliceOfBlood extends Artifact {
 				desc += Messages.get(this, "desc_3");
 		}
 
-		desc += Messages.get(this, "hp", level() < 10 ? 1f / (10f - (level()*0.9f)) : (float)((3 * Math.pow(level() - 1, 2) / 243)));
+		desc += Messages.get(this, "hp", getRawEffectValue(level()));
 
 		return desc;
+	}
+
+	public float getRawEffectValue(long level) {
+
+		return level < 10 ? 1f / (10f - (level()*0.9f)) : (float)((3 * Math.pow(level - 1, 2) / 243));
+	}
+
+	public String getEffectValue(long level) {
+
+		return String.valueOf(getRawEffectValue(level));
 	}
 
 	public class chaliceRegen extends ArtifactBuff {
 		//see Regeneration.class for effect
 	}
-
 }

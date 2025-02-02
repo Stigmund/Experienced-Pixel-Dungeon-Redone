@@ -50,6 +50,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundlable;
@@ -92,6 +93,7 @@ public class Item implements Bundlable {
 	
 	public boolean cursed;
 	public boolean cursedKnown;
+	public boolean enabled = true;
 	
 	// Unique items persist through revival
 	public boolean unique = false;
@@ -530,6 +532,15 @@ public class Item implements Bundlable {
 	}
 	
 	public ItemSprite.Glowing glowing() {
+
+		// actually, its overkill!
+		/*if (this instanceof ToggleAction) {
+			return ((ToggleAction) this).isGlowing();
+		}
+		else {
+			return null;
+		}*/
+
 		return null;
 	}
 
@@ -609,6 +620,7 @@ public class Item implements Bundlable {
 	private static final String QUICKSLOT		= "quickslotpos";
 	private static final String KEPT_LOST       = "kept_lost";
 	private static final String WERE_OOFED      = "were_oofed";
+	private static final String TRINKET_ENABLED      = "trinket_enabled";
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -622,6 +634,7 @@ public class Item implements Bundlable {
 		}
 		bundle.put( KEPT_LOST, keptThoughLostInvent );
 		bundle.put( WERE_OOFED, wereOofed);
+		bundle.put( TRINKET_ENABLED, enabled );
 	}
 	
 	@Override
@@ -630,6 +643,7 @@ public class Item implements Bundlable {
 		levelKnown	= bundle.getBoolean( LEVEL_KNOWN );
 		cursedKnown	= bundle.getBoolean( CURSED_KNOWN );
 		wereOofed = bundle.getBoolean(WERE_OOFED);
+		enabled = bundle.getBoolean(TRINKET_ENABLED, true);
 		
 		long level = bundle.getLong( LEVEL );
 		if (level > 0) {

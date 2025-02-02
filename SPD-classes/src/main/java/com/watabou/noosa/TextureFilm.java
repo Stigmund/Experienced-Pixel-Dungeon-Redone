@@ -74,37 +74,6 @@ public class TextureFilm {
 		}
 	}
 
-
-	// See FloatingText.java
-	public static final int[] PAGES = {0, 28};
-	public TextureFilm(List<Object> txs, int width, int height ) {
-
-		int pageOffset = 0;
-		int page = 0;
-		for (Object tx : txs) {
-
-			pageOffset = PAGES[page++];
-			SmartTexture texture = TextureCache.get( tx );
-
-			texWidth = texture.width;
-			texHeight = texture.height;
-
-			float uw = (float)width / texWidth;
-			float vh = (float)height / texHeight;
-			int cols = texWidth / width;
-			int rows = texHeight / height;
-			int id = 0;
-
-			for (int i=0; i < rows; i++) {
-				for (int j=0; j < cols; j++) {
-					RectF rect = new RectF( j * uw, i * vh, (j+1) * uw, (i+1) * vh );
-					id = i * cols + j + pageOffset;
-					add( id, rect );
-				}
-			}
-		}
-	}
-	
 	public TextureFilm( TextureFilm atlas, Object key, int width, int height ) {
 	
 		texWidth = atlas.texWidth;

@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
 import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.WndUseItemWithToggle;
+import com.watabou.utils.Bundle;
 
 public class KingBlade extends Item implements ToggleAction {
     {

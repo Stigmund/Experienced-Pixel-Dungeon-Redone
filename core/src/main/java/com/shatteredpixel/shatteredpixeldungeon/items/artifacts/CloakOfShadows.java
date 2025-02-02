@@ -56,7 +56,7 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
-public class CloakOfShadows extends Artifact implements PreparationAllowed {
+public class CloakOfShadows extends Artifact implements PreparationAllowed, UpgradeText  {
 
 	{
 		image = ItemSpriteSheet.ARTIFACT_CLOAK;
@@ -66,7 +66,7 @@ public class CloakOfShadows extends Artifact implements PreparationAllowed {
 
 		charge = level()+3;
 		partialCharge = 0;
-		chargeCap = level()+3;
+		chargeCap = getMaxCharges();
 
 		defaultAction = AC_STEALTH;
 
@@ -246,9 +246,24 @@ public class CloakOfShadows extends Artifact implements PreparationAllowed {
 		updateQuickslot();
 	}
 
+	public long getMaxCharges() {
+
+		return level()+3;
+	}
+
+	public long getUpgradeCharges() {
+
+		return getMaxCharges()+1;
+	}
+
+	private long getMaxCharges(long level) {
+
+		return level+3;
+	}
+
 	@Override
 	public Item upgrade() {
-		chargeCap = chargeCap+1;
+		chargeCap = getUpgradeCharges();
 		return super.upgrade();
 	}
 
@@ -273,6 +288,11 @@ public class CloakOfShadows extends Artifact implements PreparationAllowed {
 	@Override
 	public long value() {
 		return 0;
+	}
+
+	@Override
+	public String getEffectValue(long level) {
+		return String.valueOf(getMaxCharges(level));
 	}
 
 	public class cloakRecharge extends ArtifactBuff{

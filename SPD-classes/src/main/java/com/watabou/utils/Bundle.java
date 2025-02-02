@@ -100,6 +100,10 @@ public class Bundle {
 		return data.optBoolean( key );
 	}
 
+	public boolean getBoolean( String key, boolean defaultValue ) {
+		return data.optBoolean( key, defaultValue );
+	}
+
 	public int getInt( String key ) {
 		return data.optInt( key );
 	}

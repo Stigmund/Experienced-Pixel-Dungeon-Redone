@@ -25,20 +25,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.CorrosiveGas;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corrosion;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSleep;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
@@ -56,7 +42,7 @@ public class FloatingText extends RenderedTextBlock {
 	private static final float DISTANCE	= DungeonTilemap.SIZE;
 
 	public static final int ICON_SIZE = 7;
-	public static TextureFilm iconFilm = new TextureFilm(Arrays.asList(Assets.Effects.TEXT_ICONS, Assets.Effects.CUSTOM_TEXT_ICONS), ICON_SIZE, ICON_SIZE );
+	public static TextureFilm iconFilm = new TextureFilm(Assets.Effects.TEXT_ICONS, ICON_SIZE, ICON_SIZE );
 
 	public static int NO_ICON   = -1;
 
@@ -95,7 +81,6 @@ public class FloatingText extends RenderedTextBlock {
 	public static int FIRE_BOOST    = 25;
 	public static int RESPAWN_BOOST = 26;
 	public static int MOB_BOOST     = 27;
-	// page 2
 	// additional resists
 	public static int MAGIC_SLEEP     = 28;
 	public static int CHARM     = 29;
@@ -195,7 +180,7 @@ public class FloatingText extends RenderedTextBlock {
 		hardlight( color );
 
 		if (iconIdx != NO_ICON){
-			icon = new Image( iconIdx >= 28 ? Assets.Effects.CUSTOM_TEXT_ICONS : Assets.Effects.TEXT_ICONS);
+			icon = new Image( Assets.Effects.TEXT_ICONS );
 			icon.frame(iconFilm.get(iconIdx));
 			add(icon);
 			iconLeft = left;

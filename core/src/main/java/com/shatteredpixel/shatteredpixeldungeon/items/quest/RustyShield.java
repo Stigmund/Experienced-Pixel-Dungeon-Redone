@@ -29,8 +29,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.windows.specialized.ToggleAction;
 
-public class RustyShield extends Item {
+public class RustyShield extends Item implements ToggleAction {
     {
         image = ItemSpriteSheet.RUSTY_SHIELD;
     }

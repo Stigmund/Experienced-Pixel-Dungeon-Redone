@@ -119,13 +119,18 @@ public class Artifact extends KindofMisc {
 
 	@Override
 	public long visiblyUpgraded() {
-		return levelKnown ? Math.round((level()*10)/(float)levelCap): 0;
+		return visiblyUpgraded(level());
+	}
+
+	public long visiblyUpgraded(long level) {
+		return levelKnown ? Math.round((level*10)/(float)levelCap): 0;
 	}
 
 	@Override
 	public long buffedVisiblyUpgraded() {
 		return visiblyUpgraded();
 	}
+
 
 	@Override
 	public long buffedLvl() {

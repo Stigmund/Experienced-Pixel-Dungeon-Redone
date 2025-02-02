@@ -347,8 +347,7 @@ public enum Icons {
 				icon.frame( icon.texture.uvRectBySize( 227, 80, 10, 10 ) );
 				break;
 			case FOOD_BAG:
-				icon = new Image( Assets.StigIcons.CUSTOM_ICONS );
-				icon.frame( icon.texture.uvRectBySize( 0, 0, 10, 10 ) );
+				icon.frame( icon.texture.uvRectBySize( 238, 80, 10, 10 ) );
 				break;
 			case TARGET:
 				icon.frame( icon.texture.uvRectBySize( 0, 32, 16, 16 ) );

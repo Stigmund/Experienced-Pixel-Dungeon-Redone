@@ -560,10 +560,11 @@ public class GameScene extends PixelScene {
 			GameScene.flashForDocument(Document.ADVENTURERS_GUIDE, Document.GUIDE_DIEING);
 		}
 
-		TrinketCatalyst cata = Dungeon.hero.belongings.getItem(TrinketCatalyst.class);
+		// what the literal fuck?!?
+		/*TrinketCatalyst cata = Dungeon.hero.belongings.getItem(TrinketCatalyst.class);
 		if (cata != null && cata.hasRolledTrinkets()){
 			addToFront(new TrinketCatalyst.WndTrinket(cata));
-		}
+		}*/
 
 		if (!invVisible) toggleInvPane();
 		fadeIn();

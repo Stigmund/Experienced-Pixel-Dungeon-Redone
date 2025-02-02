@@ -59,7 +59,7 @@ public class CorpseDust extends Item implements ToggleAction {
 	{
 		image = ItemSpriteSheet.DUST;
 		
-		cursed = SPDSettings.corpseDustToggle();
+		cursed = !state();
 		cursedKnown = true;
 		
 		unique = true;
@@ -94,6 +94,12 @@ public class CorpseDust extends Item implements ToggleAction {
 	}
 
 	@Override
+	public void restoreFromBundle(Bundle bundle) {
+		super.restoreFromBundle(bundle);
+		cursedKnown = true;
+	}
+
+	@Override
 	public boolean state() {
 
 		return SPDSettings.corpseDustToggle();
@@ -103,21 +109,7 @@ public class CorpseDust extends Item implements ToggleAction {
 	public void setState(boolean state) {
 
 		SPDSettings.corpseDustToggle(state);
-		cursed = state;
-		//InventoryPane.refresh();
-
-		// BALL-ACHE!
-
-		// hide both windows
-		Game.scene().getMembers().stream().filter(m -> m instanceof WndBag).findFirst().ifPresent(g -> ((Window) g).hide());
-		Game.scene().getMembers().stream().filter(m -> m instanceof WndUseItemWithToggle).findFirst().ifPresent(g -> ((Window) g).hide());
-
-		// re-show inventory (to redraw - not sure how else to do this)
-		WndBag bag = new WndBag(Dungeon.hero.belongings.backpack);
-		GameScene.show(bag);
-
-		// re-show toggleable item window
-		Game.scene().addToFront(WndUtils.getItemWindow(bag, this));
+		cursed = !state;
 	}
 
 	public static class DustGhostSpawner extends Buff {

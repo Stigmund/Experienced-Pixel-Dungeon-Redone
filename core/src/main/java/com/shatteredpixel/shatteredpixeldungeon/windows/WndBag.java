@@ -76,7 +76,7 @@ public class WndBag extends WndTabbed {
 	protected int col;
 	protected int row;
 
-	private static Bag lastBag;
+	public static Bag lastBag;
 
 	public WndBag( Bag bag ) {
 		this(bag, null);
