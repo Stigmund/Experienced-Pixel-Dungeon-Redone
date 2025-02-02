@@ -77,7 +77,6 @@ public enum HeroStartingEquipment {
 	MAGE_STAFF(new MagesStaff(), Arrays.asList(HeroClass.RAT_KING, HeroClass.MAGE), hero -> {
 
 		new MagesStaff(new WandOfMagicMissile()).identify().collect();
-		LimitedDrops.MAGICAL_HOLSTER.drop();
 	});
 
 	private final Item item;

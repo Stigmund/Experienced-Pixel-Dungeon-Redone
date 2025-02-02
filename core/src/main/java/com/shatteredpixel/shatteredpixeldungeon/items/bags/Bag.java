@@ -253,6 +253,6 @@ public class Bag extends Item implements Iterable<Item> {
 
 	public static boolean canHold(Object object, List<Class<?>> classes) {
 
-		return classes.stream().anyMatch(c -> c.isInstance(object));
+		return classes.stream().anyMatch(c -> !(object instanceof Bag) && c.isInstance(object));
 	}
 }
