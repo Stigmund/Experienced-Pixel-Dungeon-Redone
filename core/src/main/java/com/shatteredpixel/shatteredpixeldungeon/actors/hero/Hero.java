@@ -413,6 +413,13 @@ public class Hero extends Char implements Dressable {
 		if (talent == Talent.VARIED_CHARGE && subClass == HeroSubClass.CHAMPION) return 6;
 		if (talent == Talent.INSCRIBED_POWER && heroClass == HeroClass.MAGE) return 2;
 		if (talent == Talent.HEIGHTENED_SENSES && heroClass == HeroClass.HUNTRESS) return 2;
+		// makes it possible to get berries again! Not sure if talents are outright disabled or not
+		// but this "if list" appears to be acting as it's replacement as all talent points are 0
+		// annoying because berries are in the Catalog!
+		if (talent == Talent.NATURES_BOUNTY && heroClass == HeroClass.HUNTRESS) return 1;
+		// same for Cached rations that produce a special ration shown in the catalog
+		// (could just remove the items from the catalog, but this is kinda more fun!)
+		if (talent == Talent.CACHED_RATIONS && heroClass == HeroClass.ROGUE) return 1;
 		if (talent == Talent.WEAPON_RECHARGING && heroClass == HeroClass.DUELIST) return 2;
 		for (LinkedHashMap<Talent, Integer> tier : talents){
 			for (Talent f : tier.keySet()){
