@@ -53,7 +53,8 @@ public class BurntBag extends TreasureBag {
     }
 
     public static Item burningRoll(){
-        if (Random.Int(12) == 0)
+       // if (Random.Int(12) == 0)
+        if (Dungeon.Int(20) == 19)
             return new IdealBag();
         else
             return new BurntBag();
