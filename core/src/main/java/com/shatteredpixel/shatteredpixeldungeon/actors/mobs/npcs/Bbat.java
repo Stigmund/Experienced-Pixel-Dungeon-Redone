@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Marked;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.BbatSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -55,6 +56,15 @@ public class Bbat extends Mob {
         WANDERING = new Wandering();
         intelligentAlly = true;
         flying = true;
+    }
+
+    @Override
+    protected boolean act() {
+        if (Dungeon.level.heroFOV[pos]){
+            Bestiary.setSeen(getClass());
+        }
+
+        return super.act();
     }
 
     public static void saveLevel(Bundle bundle){
