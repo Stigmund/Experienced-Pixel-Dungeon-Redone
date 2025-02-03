@@ -27,8 +27,15 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.items.ArcaneResin;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
+import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.Cheese;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.CheeseChunk;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.GooBlob;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.MetalShard;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -104,6 +111,18 @@ public class TrinketCatalyst extends Item {
 		rolledTrinkets.clear();
 		if (bundle.contains(ROLLED_TRINKETS)){
 			rolledTrinkets.addAll((Collection<Trinket>) ((Collection<?>)bundle.getCollection( ROLLED_TRINKETS )));
+		}
+	}
+
+	public static class CreateFromRecipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
+		{
+			inputs =  new Class[]{ArcaneResin.class, GooBlob.class, MetalShard.class};
+			inQuantity = new int[]{1, 1, 1};
+
+			cost = 100;
+
+			output = TrinketCatalyst.class;
+			outQuantity = 1;
 		}
 	}
 

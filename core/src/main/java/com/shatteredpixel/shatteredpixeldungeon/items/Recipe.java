@@ -229,7 +229,8 @@ public abstract class Recipe {
 		new Potion.SeedToPotion(),
 		new StewedMeat.threeMeat(),
 		new MeatPie.Recipe(),
-		new WandOfEarthblast.Recipe()
+		new WandOfEarthblast.Recipe(),
+		new TrinketCatalyst.CreateFromRecipe()
 	};
 	
 	public static ArrayList<Recipe> findRecipes(ArrayList<Item> ingredients){
