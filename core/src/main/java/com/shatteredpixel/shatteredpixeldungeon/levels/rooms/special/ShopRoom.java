@@ -275,7 +275,7 @@ public class ShopRoom extends SpecialRoom {
 		itemsToSpawn.add( new Alchemize().quantity(Random.IntRange(2, 3)));
 
 
-		if (Dungeon.cycle == 0) itemsToSpawn.add(ChooseBag(Dungeon.hero.belongings));
+		itemsToSpawn.add(ChooseBag(Dungeon.hero.belongings));
 
 
 		itemsToSpawn.add( new PotionOfHealing() );
@@ -391,6 +391,7 @@ public class ShopRoom extends SpecialRoom {
 		if (!Dungeon.LimitedDrops.POTION_BANDOLIER.dropped()) bags.put(new PotionBandolier(), 0);
 		if (!Dungeon.LimitedDrops.MAGICAL_HOLSTER.dropped()) bags.put(new MagicalHolster(), 0);
 		if (!Dungeon.LimitedDrops.FOOD_BAG.dropped()) bags.put(new FoodBag(), 0);
+		if (!Dungeon.LimitedDrops.CHEESY_CHEEST.dropped()) bags.put(new CheeseCheest(), 0);
 		if (!Dungeon.LimitedDrops.TRINKET_BAG.dropped()) bags.put(new TrinketBag(), 0);
 
 		if (bags.isEmpty()) return null;
@@ -424,6 +425,8 @@ public class ShopRoom extends SpecialRoom {
 			Dungeon.LimitedDrops.MAGICAL_HOLSTER.drop();
 		} else if (bestBag instanceof FoodBag){
 			Dungeon.LimitedDrops.FOOD_BAG.drop();
+		} else if (bestBag instanceof CheeseCheest){
+			Dungeon.LimitedDrops.CHEESY_CHEEST.drop();
 		} else if (bestBag instanceof TrinketBag){
 			Dungeon.LimitedDrops.TRINKET_BAG.drop();
 		}

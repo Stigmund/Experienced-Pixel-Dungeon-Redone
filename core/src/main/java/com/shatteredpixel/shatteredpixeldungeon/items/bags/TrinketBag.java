@@ -24,12 +24,18 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.bags;
 
+import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
+import com.shatteredpixel.shatteredpixeldungeon.items.BlackPsycheChest;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.KingsCrown;
 import com.shatteredpixel.shatteredpixeldungeon.items.OverloadBeacon;
+import com.shatteredpixel.shatteredpixeldungeon.items.PsycheChest;
+import com.shatteredpixel.shatteredpixeldungeon.items.TengusMask;
 import com.shatteredpixel.shatteredpixeldungeon.items.fishingrods.FishingRod;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.CorpseDust;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.KingBlade;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.RustyShield;
 import com.shatteredpixel.shatteredpixeldungeon.items.treasurebags.TreasureBag;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
@@ -53,7 +59,13 @@ public class TrinketBag extends Bag {
 			ToggleAction.class,
 			OverloadBeacon.class,
 			CorpseDust.class,
+			RatSkull.class,
+			Ankh.class,
 			FishingRod.class,
+			TengusMask.class,
+			KingsCrown.class,
+			PsycheChest.class,
+			BlackPsycheChest.class,
 			TreasureBag.class);
 
 	@Override
