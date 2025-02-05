@@ -112,6 +112,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import static com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.slotStates;
 import static com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.ROGUE;
@@ -1306,7 +1307,7 @@ public class Dungeon {
 		ch.modifyPassable(passable);
 
 		if (chars) {
-			for (Char c : Actor.chars()) {
+			for (Char c : Actor.chars().stream().filter(c -> c.alignment != Char.Alignment.ALLY).collect(Collectors.toList())) {
 				if (vis[c.pos]) {
 					passable[c.pos] = false;
 				}

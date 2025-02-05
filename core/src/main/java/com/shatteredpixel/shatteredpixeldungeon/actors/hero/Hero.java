@@ -1843,7 +1843,8 @@ if (buff(RoundShield.GuardTracker.class) != null){
 
 			path = null;
 
-			if (Actor.findChar( target ) == null) {
+			Char charAtPos = Actor.findChar( target );
+			if (charAtPos == null || charAtPos.alignment == Alignment.ALLY) {
 				if (Dungeon.level.passable[target] || Dungeon.level.avoid[target]) {
 					step = target;
 				}
@@ -1920,6 +1921,12 @@ if (buff(RoundShield.GuardTracker.class) != null){
 
 			if (isSubclass(HeroSubClass.FREERUNNER)){
 				Buff.affect(this, Momentum.class).gainStack();
+			}
+
+			Char charAtPos = Actor.findChar( target );
+			if (Dungeon.level.adjacent( pos, target ) && charAtPos != null && charAtPos.alignment == Alignment.ALLY) {
+
+				return charAtPos.interact(this);
 			}
 
 			sprite.move(pos, step);
